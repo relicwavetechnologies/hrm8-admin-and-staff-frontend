@@ -37,13 +37,13 @@ export function getCalendarIntegrations(): CalendarIntegration[] {
 export function saveCalendarIntegration(integration: CalendarIntegration): void {
   const integrations = getCalendarIntegrations();
   const index = integrations.findIndex(i => i.provider === integration.provider);
-  
+
   if (index >= 0) {
     integrations[index] = integration;
   } else {
     integrations.push(integration);
   }
-  
+
   localStorage.setItem(STORAGE_KEY, JSON.stringify(integrations));
 }
 
@@ -72,7 +72,7 @@ export async function connectCalendarProvider(provider: CalendarProvider): Promi
         lastSync: new Date().toISOString(),
         defaultCalendarId: 'primary',
       };
-      
+
       saveCalendarIntegration(integration);
       resolve();
     }, 1500);
@@ -87,7 +87,7 @@ export async function createCalendarEvent(
   event: Omit<CalendarEvent, 'id'>
 ): Promise<CalendarEvent> {
   const integration = getCalendarIntegration(provider);
-  
+
   if (!integration || !integration.connected) {
     throw new Error(`${provider} calendar is not connected`);
   }
@@ -114,7 +114,7 @@ export async function updateCalendarEvent(
   updates: Partial<CalendarEvent>
 ): Promise<CalendarEvent> {
   const integration = getCalendarIntegration(provider);
-  
+
   if (!integration || !integration.connected) {
     throw new Error(`${provider} calendar is not connected`);
   }
@@ -135,7 +135,7 @@ export async function deleteCalendarEvent(
   eventId: string
 ): Promise<void> {
   const integration = getCalendarIntegration(provider);
-  
+
   if (!integration || !integration.connected) {
     throw new Error(`${provider} calendar is not connected`);
   }
@@ -154,11 +154,11 @@ export async function deleteCalendarEvent(
 export async function getAvailableTimeSlots(
   provider: CalendarProvider,
   startDate: string,
-  endDate: string,
+  _endDate: string,
   duration: number // in minutes
 ): Promise<Array<{ start: string; end: string }>> {
   const integration = getCalendarIntegration(provider);
-  
+
   if (!integration || !integration.connected) {
     throw new Error(`${provider} calendar is not connected`);
   }
@@ -181,7 +181,7 @@ export async function getAvailableTimeSlots(
  */
 export async function syncCalendar(provider: CalendarProvider): Promise<void> {
   const integration = getCalendarIntegration(provider);
-  
+
   if (!integration || !integration.connected) {
     throw new Error(`${provider} calendar is not connected`);
   }

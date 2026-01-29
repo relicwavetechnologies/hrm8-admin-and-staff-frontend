@@ -1,4 +1,4 @@
-import { Job } from "@/shared/types/job";
+
 
 export interface JobAnalytics {
   totalViews: number;
@@ -39,7 +39,7 @@ export interface TimeSeriesData {
 }
 
 // Mock data generators
-export function getJobAnalytics(jobId: string): JobAnalytics {
+export function getJobAnalytics(_jobId: string): JobAnalytics {
   return {
     totalViews: Math.floor(Math.random() * 5000) + 1000,
     totalApplications: Math.floor(Math.random() * 500) + 50,
@@ -50,7 +50,7 @@ export function getJobAnalytics(jobId: string): JobAnalytics {
   };
 }
 
-export function getApplicationFunnel(jobId: string): ApplicationFunnel {
+export function getApplicationFunnel(_jobId: string): ApplicationFunnel {
   const base = Math.floor(Math.random() * 3000) + 1000;
   return {
     views: base,
@@ -62,7 +62,7 @@ export function getApplicationFunnel(jobId: string): ApplicationFunnel {
   };
 }
 
-export function getSourceEffectiveness(jobId: string): SourceEffectiveness[] {
+export function getSourceEffectiveness(_jobId: string): SourceEffectiveness[] {
   return [
     { source: "HRM8 Job Board", applications: 234, quality: 85, hires: 12, costPerHire: 1200 },
     { source: "LinkedIn", applications: 189, quality: 92, hires: 15, costPerHire: 1800 },
@@ -72,7 +72,7 @@ export function getSourceEffectiveness(jobId: string): SourceEffectiveness[] {
   ];
 }
 
-export function getGeographicData(jobId: string): GeographicData[] {
+export function getGeographicData(_jobId: string): GeographicData[] {
   return [
     { country: "United States", applications: 345, percentage: 45 },
     { country: "United Kingdom", applications: 198, percentage: 26 },
@@ -82,10 +82,10 @@ export function getGeographicData(jobId: string): GeographicData[] {
   ];
 }
 
-export function getTimeSeriesData(jobId: string, days: number = 30): TimeSeriesData[] {
+export function getTimeSeriesData(_jobId: string, days: number = 30): TimeSeriesData[] {
   const data: TimeSeriesData[] = [];
   const today = new Date();
-  
+
   for (let i = days; i >= 0; i--) {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
@@ -95,11 +95,11 @@ export function getTimeSeriesData(jobId: string, days: number = 30): TimeSeriesD
       applications: Math.floor(Math.random() * 30) + 5,
     });
   }
-  
+
   return data;
 }
 
-export function getBenchmarkData(jobId: string) {
+export function getBenchmarkData(_jobId: string) {
   return {
     companyAverage: {
       timeToHire: 28,

@@ -3,7 +3,6 @@
  * Maps backend job data to frontend format
  */
 
-import { Job as BackendJob } from '@/shared/lib/api/jobService';
 import { Job, JobFormData } from '@/shared/types/job';
 
 /**
@@ -198,7 +197,7 @@ export function mapBackendJobToFormData(backendJob: any): Partial<JobFormData> {
         website: { included: false, required: false },
       },
     },
-    status: (normalizedJob.status === 'open' || normalizedJob.status === 'draft') ? normalizedJob.status : 'draft',
+    status: normalizedJob.status === 'open' ? 'open' : 'draft',
     jobBoardDistribution: normalizedJob.jobBoardDistribution || [],
     videoInterviewingEnabled: normalizedJob.videoInterviewingEnabled || false,
   };

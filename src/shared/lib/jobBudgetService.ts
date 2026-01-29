@@ -1,4 +1,4 @@
-import { Job } from "@/shared/types/job";
+
 
 export interface BudgetTransaction {
   id: string;
@@ -100,7 +100,7 @@ export function addBudgetTransaction(
     date: new Date().toISOString(),
     ...transaction,
   };
-  
+
   mockTransactions.push(newTransaction);
   return newTransaction;
 }

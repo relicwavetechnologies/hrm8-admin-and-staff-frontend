@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/shared/contexts/AuthContext';
+// import { useAuth } from '@/shared/contexts/AuthContext';
 import { commissionService, Commission } from '@/shared/lib/hrm8/commissionService';
 import { DataTable } from '@/shared/components/tables/DataTable';
 import { Button } from '@/shared/components/ui/button';
@@ -69,14 +69,14 @@ const columns = [
 ];
 
 export default function CommissionsPage() {
-  const { user } = useAuth();
+  // const { user } = useAuth();
   const [commissions, setCommissions] = useState<Commission[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [selectedCommissions, setSelectedCommissions] = useState<Commission[]>([]);
 
-  const isGlobalAdmin = user?.role === 'GLOBAL_ADMIN';
+  // const isGlobalAdmin = user?.role === 'GLOBAL_ADMIN';
 
   useEffect(() => {
     loadCommissions();
@@ -101,6 +101,7 @@ export default function CommissionsPage() {
     }
   };
 
+  /*
   const handleConfirm = async (id: string) => {
     try {
       const response = await commissionService.confirm(id);
@@ -128,6 +129,7 @@ export default function CommissionsPage() {
       toast.error('Failed to mark commission as paid');
     }
   };
+  */
 
   const handleOpenPaymentDialog = () => {
     // Get pending/confirmed commissions that can be paid

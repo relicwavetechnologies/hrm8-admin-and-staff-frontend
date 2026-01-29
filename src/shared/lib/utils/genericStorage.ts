@@ -32,10 +32,7 @@ interface EntityWithId {
   id: string;
 }
 
-interface EntityWithTimestamps extends EntityWithId {
-  createdAt?: string;
-  updatedAt?: string;
-}
+
 
 /**
  * Creates a typed storage manager for a specific entity type
@@ -123,7 +120,7 @@ export function createStorage<T extends EntityWithId>(config: StorageConfig<T>) 
   function update(id: string, updates: Partial<T>): T | null {
     const items = getAll();
     const index = items.findIndex(item => item.id === id);
-    
+
     if (index === -1) return null;
 
     items[index] = {
@@ -155,9 +152,9 @@ export function createStorage<T extends EntityWithId>(config: StorageConfig<T>) 
   function remove(id: string): boolean {
     const items = getAll();
     const filtered = items.filter(item => item.id !== id);
-    
+
     if (filtered.length === items.length) return false; // Not found
-    
+
     saveAll(filtered);
     return true;
   }
@@ -170,11 +167,11 @@ export function createStorage<T extends EntityWithId>(config: StorageConfig<T>) 
     const idsSet = new Set(ids);
     const filtered = items.filter(item => !idsSet.has(item.id));
     const deletedCount = items.length - filtered.length;
-    
+
     if (deletedCount > 0) {
       saveAll(filtered);
     }
-    
+
     return deletedCount;
   }
 

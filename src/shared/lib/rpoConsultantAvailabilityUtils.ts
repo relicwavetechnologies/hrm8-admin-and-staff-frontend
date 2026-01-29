@@ -1,6 +1,5 @@
-import type { Consultant } from '@/shared/types/consultant';
 import { getAllConsultants } from './consultantStorage';
-import { getRPODashboardMetrics, type RPOContractSummary } from './rpoTrackingUtils';
+import { getRPODashboardMetrics } from './rpoTrackingUtils';
 
 export interface ConsultantRPOAvailability {
   consultant: {

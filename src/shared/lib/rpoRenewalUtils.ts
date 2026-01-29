@@ -1,5 +1,5 @@
 import { differenceInDays } from 'date-fns';
-import type { RPOContractSummary } from './rpoTrackingUtils';
+import type { RPOContractSummary, RPODashboardMetrics } from './rpoTrackingUtils';
 import { getRPODashboardMetrics } from './rpoTrackingUtils';
 
 export type RenewalUrgency = 'critical' | 'urgent' | 'upcoming';

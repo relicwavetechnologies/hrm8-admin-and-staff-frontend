@@ -1,4 +1,4 @@
-import { subMonths, format, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
+import { subMonths, format, eachDayOfInterval } from 'date-fns';
 
 export interface TrendDataPoint {
     name: string;
@@ -26,7 +26,7 @@ export function generateRealisticTrend(config: TrendConfig): TrendDataPoint[] {
         baseValue,
         currentValue,
         dataPoints = 12,
-        growthRate = 0,
+        // growthRate = 0,
         volatility = 0.05,
         seasonality = false,
         trend = 'stable'
@@ -36,7 +36,7 @@ export function generateRealisticTrend(config: TrendConfig): TrendDataPoint[] {
     const now = new Date();
 
     // Calculate the actual growth rate from base to current
-    const actualGrowthRate = ((currentValue - baseValue) / baseValue) / dataPoints;
+    // const actualGrowthRate = ((currentValue - baseValue) / baseValue) / dataPoints;
 
     for (let i = 0; i < dataPoints; i++) {
         const date = subMonths(now, dataPoints - 1 - i);
@@ -146,7 +146,7 @@ export function generatePercentageTrend(config: {
         currentValue,
         dataPoints = 12,
         volatility = 0.01,
-        targetRange = [95, 100]
+        // targetRange = [95, 100]
     } = config;
 
     const data: TrendDataPoint[] = [];

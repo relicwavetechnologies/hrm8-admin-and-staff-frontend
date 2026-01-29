@@ -4,7 +4,7 @@ import { getTimeOffRequests } from './timeoffStorage';
 import { getServiceHours, MONTHLY_HOURS_AVAILABLE } from './serviceHoursConfig';
 import { getJobById } from './mockJobStorage';
 import type { ServiceProject } from '@/shared/types/recruitmentService';
-import { addMonths, startOfMonth, endOfMonth, isWithinInterval, differenceInMonths } from 'date-fns';
+import { addMonths, startOfMonth, endOfMonth } from 'date-fns';
 
 export interface MonthlyForecast {
   month: Date;

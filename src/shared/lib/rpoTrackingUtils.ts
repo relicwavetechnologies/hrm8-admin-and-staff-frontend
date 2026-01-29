@@ -62,7 +62,7 @@ export async function getRPOContractSummary(service: ServiceProject): Promise<RP
     return null;
   }
 
-  const startDate = new Date(service.rpoStartDate || service.startDate);
+
   const endDate = service.rpoEndDate ? new Date(service.rpoEndDate) : undefined;
   const now = new Date();
 

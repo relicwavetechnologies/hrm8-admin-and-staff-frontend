@@ -37,13 +37,13 @@ export function getATSIntegrations(): ATSIntegration[] {
 export function saveATSIntegration(integration: ATSIntegration): void {
   const integrations = getATSIntegrations();
   const index = integrations.findIndex(i => i.id === integration.id);
-  
+
   if (index >= 0) {
     integrations[index] = integration;
   } else {
     integrations.push(integration);
   }
-  
+
   localStorage.setItem(STORAGE_KEY, JSON.stringify(integrations));
 }
 
@@ -87,7 +87,7 @@ export async function connectATSProvider(
         syncEnabled: true,
         syncDirection,
       };
-      
+
       saveATSIntegration(integration);
       resolve(integration);
     }, 1500);
@@ -98,9 +98,9 @@ export async function connectATSProvider(
  * Test ATS connection
  */
 export async function testATSConnection(
-  provider: ATSProvider,
+  _provider: ATSProvider,
   apiKey: string,
-  apiUrl?: string
+  _apiUrl?: string
 ): Promise<boolean> {
   // Mock connection test - in production this would make an API call
   return new Promise((resolve, reject) => {
@@ -119,7 +119,7 @@ export async function testATSConnection(
  */
 export async function syncWithATS(integrationId: string): Promise<ATSSyncResult> {
   const integration = getATSIntegration(integrationId);
-  
+
   if (!integration || !integration.connected) {
     throw new Error('ATS integration not found or not connected');
   }
@@ -155,7 +155,7 @@ export async function importCandidatesFromATS(
   }
 ): Promise<any[]> {
   const integration = getATSIntegration(integrationId);
-  
+
   if (!integration || !integration.connected) {
     throw new Error('ATS integration not found or not connected');
   }
@@ -178,7 +178,7 @@ export async function exportCandidatesToATS(
   candidateIds: string[]
 ): Promise<void> {
   const integration = getATSIntegration(integrationId);
-  
+
   if (!integration || !integration.connected) {
     throw new Error('ATS integration not found or not connected');
   }

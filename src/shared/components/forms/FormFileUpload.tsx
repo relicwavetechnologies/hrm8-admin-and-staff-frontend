@@ -3,7 +3,7 @@ import { UseFormReturn, FieldPath, FieldValues } from 'react-hook-form';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/shared/components/ui/form';
 import { Button } from '@/shared/components/ui/button';
 import { Upload, X, File } from 'lucide-react';
-import { cn } from '@/shared/lib/utils';
+
 
 interface FormFileUploadProps<TFieldValues extends FieldValues = FieldValues> {
   form: UseFormReturn<TFieldValues>;

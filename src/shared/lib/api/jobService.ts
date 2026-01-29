@@ -4,7 +4,7 @@
  */
 
 import { apiClient } from '../api';
-import { Job, JobFormData } from '@/shared/types/job';
+import { Job } from '@/shared/types/job';
 
 export type UserRole = 'SUPER_ADMIN' | 'ADMIN' | 'USER' | 'VISITOR';
 export type JobStatus = 'DRAFT' | 'OPEN' | 'CLOSED' | 'ON_HOLD' | 'FILLED' | 'CANCELLED' | 'TEMPLATE';

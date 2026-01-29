@@ -1,5 +1,5 @@
 import { format, subMonths } from 'date-fns';
-import type { RPOContractSummary } from './rpoTrackingUtils';
+import type { RPOContractSummary, RPODashboardMetrics } from './rpoTrackingUtils';
 import { getRPODashboardMetrics } from './rpoTrackingUtils';
 
 export interface ContractPerformanceMetrics {
@@ -181,11 +181,11 @@ export async function getPerformanceMetricsSummary() {
   };
 }
 
-export function getYearOverYearComparison(): YearOverYearComparison[] {
+export async function getYearOverYearComparison(): Promise<YearOverYearComparison[]> {
   // In a real system, this would compare actual data from previous year
   // For now, generating realistic comparison data
 
-  const currentYearMetrics = getPerformanceMetricsSummary();
+  const currentYearMetrics = await getPerformanceMetricsSummary();
 
   // Simulate previous year data with slight variations
   const generatePreviousYear = (current: number, variance: number = 0.1) => {
@@ -284,8 +284,8 @@ export function getMonthlyPerformanceTrend(months: number = 12): MonthlyPerforma
   return trends;
 }
 
-export function getPerformanceBenchmarks(): PerformanceBenchmark[] {
-  const summary = getPerformanceMetricsSummary();
+export async function getPerformanceBenchmarks(): Promise<PerformanceBenchmark[]> {
+  const summary = await getPerformanceMetricsSummary();
 
   const benchmarks: PerformanceBenchmark[] = [
     {

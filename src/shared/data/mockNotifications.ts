@@ -54,7 +54,7 @@ export const NOTIFICATION_TEMPLATES = {
     priority: 'critical' as NotificationPriority,
     title: 'Integration Down',
     getMessage: (data: any) => `${data.integrationName} integration is not responding`,
-    getLink: (data: any) => `/settings/integrations`,
+    getLink: (_data: any) => `/settings/integrations`,
     actionType: 'review' as const,
   },
   system_error: {
@@ -63,7 +63,7 @@ export const NOTIFICATION_TEMPLATES = {
     priority: 'high' as NotificationPriority,
     title: 'System Error Detected',
     getMessage: (data: any) => `Error in ${data.module}: ${data.error}`,
-    getLink: (data: any) => `/system/logs`,
+    getLink: (_data: any) => `/system/logs`,
     actionType: 'review' as const,
   },
   security_alert: {
@@ -72,7 +72,7 @@ export const NOTIFICATION_TEMPLATES = {
     priority: 'critical' as NotificationPriority,
     title: 'Security Alert',
     getMessage: (data: any) => `${data.alertType}: ${data.description}`,
-    getLink: (data: any) => `/security/alerts`,
+    getLink: (_data: any) => `/security/alerts`,
     actionType: 'review' as const,
   },
   trial_expiring: {
@@ -137,7 +137,7 @@ export function generateMockNotification(
   userId: string = MOCK_USER_ID
 ): Omit<Notification, 'id' | 'createdAt'> {
   const template = NOTIFICATION_TEMPLATES[templateKey];
-  
+
   return {
     userId,
     category: template.category,
@@ -156,10 +156,10 @@ export function generateMockNotification(
 export function generateRandomNotification(userId: string = MOCK_USER_ID): Omit<Notification, 'id' | 'createdAt'> {
   const templates = Object.keys(NOTIFICATION_TEMPLATES) as Array<keyof typeof NOTIFICATION_TEMPLATES>;
   const weights = [15, 5, 20, 10, 8, 3, 5, 2, 5, 5, 15, 8, 4, 5]; // Probability weights
-  
+
   const totalWeight = weights.reduce((sum, w) => sum + w, 0);
   let random = Math.random() * totalWeight;
-  
+
   let selectedIndex = 0;
   for (let i = 0; i < weights.length; i++) {
     random -= weights[i];
@@ -168,10 +168,10 @@ export function generateRandomNotification(userId: string = MOCK_USER_ID): Omit<
       break;
     }
   }
-  
+
   const templateKey = templates[selectedIndex];
   const mockData = generateMockData(templateKey);
-  
+
   return generateMockNotification(templateKey, mockData, userId);
 }
 
@@ -180,7 +180,7 @@ function generateMockData(templateKey: keyof typeof NOTIFICATION_TEMPLATES): any
   const users = ['John Smith', 'Sarah Johnson', 'Michael Chen', 'Emily Davis', 'Robert Brown'];
   const integrations = ['Slack', 'Google Workspace', 'Microsoft Teams', 'Zoom', 'Salesforce'];
   const plans = ['Basic', 'Professional', 'Enterprise'];
-  
+
   switch (templateKey) {
     case 'support_ticket_created':
     case 'support_ticket_urgent':
@@ -260,18 +260,18 @@ function generateMockData(templateKey: keyof typeof NOTIFICATION_TEMPLATES): any
 export function initializeMockNotifications() {
   // Generate 100 notifications with varying timestamps
   const notifications: Omit<Notification, 'id' | 'createdAt'>[] = [];
-  const now = new Date();
-  
+  // const now = new Date();
+
   for (let i = 0; i < 100; i++) {
-    const daysAgo = Math.floor(Math.random() * 30);
-    const hoursAgo = Math.floor(Math.random() * 24);
-    const minutesAgo = Math.floor(Math.random() * 60);
-    
+    // const daysAgo = Math.floor(Math.random() * 30);
+    // const hoursAgo = Math.floor(Math.random() * 24);
+    // const minutesAgo = Math.floor(Math.random() * 60);
+
     notifications.push({
       ...generateRandomNotification(),
       read: Math.random() > 0.4, // 40% unread
     });
   }
-  
+
   return notifications;
 }

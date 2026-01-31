@@ -23,7 +23,7 @@ const COLORS = [
 
 export function CostBreakdownChart() {
   const { toast } = useToast();
-  
+
   return (
     <StandardChartCard
       title="Cost Breakdown"
@@ -31,9 +31,9 @@ export function CostBreakdownChart() {
       showDatePicker={false}
       onDownload={() => toast({ title: "Downloading cost data..." })}
       menuItems={[
-        { label: "View Details", icon: <Eye className="h-4 w-4" />, onClick: () => {} },
-        { label: "View Report", icon: <BarChart3 className="h-4 w-4" />, onClick: () => {} },
-        { label: "Export", icon: <Download className="h-4 w-4" />, onClick: () => {} }
+        { label: "View Details", icon: <Eye className="h-4 w-4" />, onClick: () => { } },
+        { label: "View Report", icon: <BarChart3 className="h-4 w-4" />, onClick: () => { } },
+        { label: "Export", icon: <Download className="h-4 w-4" />, onClick: () => { } }
       ]}
     >
       <ResponsiveContainer width="100%" height={250}>
@@ -48,7 +48,7 @@ export function CostBreakdownChart() {
             fill="hsl(var(--primary))"
             dataKey="value"
           >
-            {data.map((entry, index) => (
+            {data.map((_entry, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>

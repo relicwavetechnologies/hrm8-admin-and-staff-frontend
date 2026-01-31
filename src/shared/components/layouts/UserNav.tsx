@@ -15,8 +15,10 @@ import { useAuth } from "@/shared/contexts/AuthContext";
 export function UserNav() {
   const { user, logout } = useAuth();
 
-  const getInitials = (firstName: string, lastName: string) => {
-    return (firstName[0] || '') + (lastName[0] || '');
+  const getInitials = (firstName?: string, lastName?: string) => {
+    const f = firstName?.trim()?.[0] || '';
+    const l = lastName?.trim()?.[0] || '';
+    return (f + l).toUpperCase();
   };
 
   const handleLogout = async () => {
@@ -27,7 +29,7 @@ export function UserNav() {
     return null;
   }
 
-  const fullName = `${user.firstName} ${user.lastName}`;
+  const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email;
 
   return (
     <DropdownMenu>

@@ -11,7 +11,7 @@ import type { AuthAdapter, DashboardType } from "@/shared/types/dashboard";
  * Hook that provides a unified auth interface for any dashboard type.
  * Automatically maps to the unified auth context.
  */
-export function useAuthAdapter(dashboardType: DashboardType): AuthAdapter {
+export function useAuthAdapter(_dashboardType: DashboardType): AuthAdapter {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
 
   return useMemo(() => {

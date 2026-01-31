@@ -3,11 +3,12 @@
  * Manages consultant authentication state
  */
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { consultantAuthService } from '@/shared/lib/consultantAuthService';
 import { useToast } from '@/shared/hooks/use-toast';
 import { consultantService, ConsultantProfile } from '@/shared/lib/consultant/consultantService';
+import { useAuth } from '@/shared/contexts/AuthContext';
 
 export interface ConsultantUser {
   id: string;
@@ -57,12 +58,12 @@ export function ConsultantAuthProvider({ children }: { children: ReactNode }) {
 
   const isProfileComplete = (profile: ConsultantProfile): boolean => {
     const hasBasicInfo =
-      !!profile.firstName &&
-      !!profile.lastName &&
+      !!profile.first_name &&
+      !!profile.last_name &&
       !!profile.phone &&
       !!profile.address &&
       !!profile.city &&
-      !!profile.stateProvince &&
+      !!profile.state_province &&
       !!profile.country;
 
     const hasLanguages =
@@ -71,15 +72,15 @@ export function ConsultantAuthProvider({ children }: { children: ReactNode }) {
       profile.languages.every((l) => l.language && l.proficiency);
 
     const hasIndustries =
-      Array.isArray(profile.industryExpertise) &&
-      profile.industryExpertise.length > 0 &&
-      profile.industryExpertise.length <= 5;
+      Array.isArray(profile.industry_expertise) &&
+      profile.industry_expertise.length > 0 &&
+      profile.industry_expertise.length <= 5;
 
     const hasPayment =
-      !!profile.paymentMethod && Object.keys(profile.paymentMethod || {}).length > 0;
+      !!profile.payment_method && Object.keys(profile.payment_method || {}).length > 0;
 
     const hasTax =
-      !!profile.taxInformation && Object.keys(profile.taxInformation || {}).length > 0;
+      !!profile.tax_information && Object.keys(profile.tax_information || {}).length > 0;
 
     return hasBasicInfo && hasLanguages && hasIndustries && hasPayment && hasTax;
   };
@@ -126,7 +127,10 @@ export function ConsultantAuthProvider({ children }: { children: ReactNode }) {
         console.log('[ConsultantAuth] User is RECRUITER. Checking profile completeness...');
         try {
           const profileResponse = await consultantService.getProfile();
-          const profile = profileResponse.success ? profileResponse.data?.consultant : null;
+          // Backend returns consultant directly in response.data, not response.data.consultant
+          const profile = profileResponse.success ? ((profileResponse.data?.consultant || profileResponse.data) as ConsultantProfile) : null;
+          console.log('[ConsultantAuth] Profile data:', profile);
+
           if (profile && !isProfileComplete(profile)) {
             console.log('[ConsultantAuth] Profile incomplete. Redirecting to onboarding.');
             navigate('/consultant/profile?onboarding=1', { replace: true });
@@ -214,9 +218,20 @@ export function ConsultantAuthProvider({ children }: { children: ReactNode }) {
 }
 
 export function useConsultantAuth() {
-  const context = useContext(ConsultantAuthContext);
-  if (context === undefined) {
-    throw new Error('useConsultantAuth must be used within a ConsultantAuthProvider');
-  }
-  return context;
+  const { user, userType, isLoading, isAuthenticated, login, logout, refreshUser } = useAuth();
+
+  return {
+    consultant: (userType === 'CONSULTANT' || userType === 'SALES_AGENT' || userType === 'CONSULTANT360')
+      ? (user?.rawUser as ConsultantUser)
+      : null,
+    isLoading,
+    isAuthenticated: isAuthenticated && (userType === 'CONSULTANT' || userType === 'SALES_AGENT' || userType === 'CONSULTANT360'),
+    login: async (email: string, password: string) => {
+      // Default to CONSULTANT type for legacy login calls
+      const res = await login(email, password, 'CONSULTANT');
+      return { success: res.success, error: res.error };
+    },
+    logout,
+    refreshConsultant: refreshUser,
+  };
 }

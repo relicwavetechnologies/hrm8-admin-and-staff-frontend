@@ -42,11 +42,11 @@ export function JobDistributionChart() {
             value={dateRange}
             onChange={setDateRange}
           />
-          
+
           <Button variant="ghost" size="icon-sm">
             <Download className="h-4 w-4" />
           </Button>
-          
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon-sm">
@@ -69,7 +69,7 @@ export function JobDistributionChart() {
           <PieChart>
             <ChartTooltip
               content={<ChartTooltipContent />}
-              formatter={(value, name, props) => [
+              formatter={(value, _name, props) => [
                 `${value} jobs (${Math.round((Number(value) / 120) * 100)}%)`,
                 props.payload.department,
               ]}
@@ -90,7 +90,7 @@ export function JobDistributionChart() {
             <Legend
               verticalAlign="bottom"
               height={36}
-              formatter={(value, entry: any) => (
+              formatter={(_value, entry: any) => (
                 <span className="text-xs text-muted-foreground">
                   {entry.payload.department}: {entry.payload.value}
                 </span>

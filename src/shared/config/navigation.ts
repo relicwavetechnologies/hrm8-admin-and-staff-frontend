@@ -15,7 +15,7 @@ import {
     Wallet,
     User,
     Building2,
-    Globe,
+
     ArrowRightLeft
 } from "lucide-react";
 import { SidebarConfig, MenuItem } from "../types/dashboard";
@@ -30,7 +30,7 @@ const adminMenuItems: MenuItem[] = [
     { id: "regions", path: "/hrm8/regions", label: "Regions", icon: MapPin, adminOnly: true },
     { id: "licensees", path: "/hrm8/licensees", label: "Licensees", icon: Users, adminOnly: true },
     { id: "staff", path: "/hrm8/staff", label: "Staff", icon: UserCog },
-    { id: "job-allocation", path: "/hrm8/jobs", label: "Job Allocation", icon: Briefcase },
+    { id: "job-allocation", path: "/hrm8/allocations", label: "Job Allocation", icon: Briefcase },
     { id: "leads", path: "/hrm8/leads", label: "Leads", icon: Target },
     { id: "pipeline", path: "/hrm8/sales-pipeline", label: "Pipeline", icon: BarChart3 },
     { id: "commissions", path: "/hrm8/commissions", label: "Commissions", icon: DollarSign },
@@ -39,6 +39,7 @@ const adminMenuItems: MenuItem[] = [
     { id: "reports", path: "/hrm8/reports", label: "Reports", icon: FileText },
     { id: "settings", path: "/hrm8/settings", label: "Account Settings", icon: Settings },
     { id: "system", path: "/hrm8/system-settings", label: "System Settings", icon: Settings, adminOnly: true },
+    { id: "email-templates", path: "/hrm8/email-templates", label: "Email Templates", icon: FileText, adminOnly: true },
     { id: "audit", path: "/hrm8/audit-logs", label: "Audit Logs", icon: ClipboardList, adminOnly: true },
 ];
 
@@ -71,9 +72,14 @@ const salesMenuItems: MenuItem[] = [
  * Navigation items for Consultant 360 (Combined)
  */
 const consultant360MenuItems: MenuItem[] = [
-    { id: "overview", path: "/consultant360/dashboard", label: "360 Overview", icon: Globe },
-    ...consultantMenuItems.map(item => ({ ...item, id: `c-${item.id}` })),
-    ...salesMenuItems.map(item => ({ ...item, id: `s-${item.id}` })),
+    { id: "overview", path: "/consultant360/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "earnings", path: "/consultant360/earnings", label: "Earnings", icon: DollarSign },
+    { id: "recruitment-jobs", path: "/consultant360/jobs", label: "My Jobs", icon: Briefcase },
+    { id: "recruitment-messages", path: "/consultant360/messages", label: "Messages", icon: MessageSquare },
+    { id: "sales-leads", path: "/consultant360/leads", label: "Leads", icon: Target },
+    { id: "sales-pipeline", path: "/consultant360/pipeline", label: "Pipeline", icon: BarChart3 },
+    { id: "profile", path: "/consultant360/profile", label: "Profile", icon: User },
+    { id: "settings", path: "/consultant360/settings", label: "Settings", icon: Settings },
 ];
 
 export const getSidebarConfig = (userType: UserType, _user: any): SidebarConfig => {

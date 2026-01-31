@@ -1,10 +1,4 @@
-/**
- * Commissions Management Page
- * HRM8 Global Admin commission tracking
- */
-
 import { useState, useEffect } from 'react';
-// import { useAuth } from '@/shared/contexts/AuthContext';
 import { commissionService, Commission } from '@/shared/lib/hrm8/commissionService';
 import { DataTable } from '@/shared/components/tables/DataTable';
 import { Button } from '@/shared/components/ui/button';
@@ -15,14 +9,13 @@ import { toast } from 'sonner';
 import { DollarSign, CheckCircle, Clock, XCircle, CreditCard } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
 import { Label } from '@/shared/components/ui/label';
-import { Hrm8PageLayout } from '@/shared/components/layouts/Hrm8PageLayout';
 import { CommissionPaymentDialog } from '@/shared/components/hrm8/CommissionPaymentDialog';
 
 const columns = [
   {
     key: 'consultantId',
     label: 'Consultant',
-    render: (commission: Commission) => commission.consultantId.substring(0, 8) + '...',
+    render: (commission: Commission) => commission.consultantId ? (commission.consultantId.substring(0, 8) + '...') : 'N/A',
   },
   {
     key: 'amount',
@@ -69,14 +62,11 @@ const columns = [
 ];
 
 export default function CommissionsPage() {
-  // const { user } = useAuth();
   const [commissions, setCommissions] = useState<Commission[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [selectedCommissions, setSelectedCommissions] = useState<Commission[]>([]);
-
-  // const isGlobalAdmin = user?.role === 'GLOBAL_ADMIN';
 
   useEffect(() => {
     loadCommissions();
@@ -101,38 +91,7 @@ export default function CommissionsPage() {
     }
   };
 
-  /*
-  const handleConfirm = async (id: string) => {
-    try {
-      const response = await commissionService.confirm(id);
-      if (response.success) {
-        toast.success('Commission confirmed');
-        await loadCommissions();
-      } else {
-        toast.error(response.error || 'Failed to confirm commission');
-      }
-    } catch (error) {
-      toast.error('Failed to confirm commission');
-    }
-  };
-
-  const handleMarkAsPaid = async (id: string, paymentReference?: string) => {
-    try {
-      const response = await commissionService.markAsPaid(id, paymentReference);
-      if (response.success) {
-        toast.success('Commission marked as paid');
-        await loadCommissions();
-      } else {
-        toast.error(response.error || 'Failed to mark commission as paid');
-      }
-    } catch (error) {
-      toast.error('Failed to mark commission as paid');
-    }
-  };
-  */
-
   const handleOpenPaymentDialog = () => {
-    // Get pending/confirmed commissions that can be paid
     const payableCommissions = commissions.filter(
       c => c.status === 'PENDING' || c.status === 'CONFIRMED'
     );
@@ -150,10 +109,13 @@ export default function CommissionsPage() {
   const totalPaid = commissions.filter(c => c.status === 'PAID').reduce((sum, c) => sum + c.amount, 0);
 
   return (
-    <Hrm8PageLayout
-      title="Commissions"
-      subtitle="Track and manage consultant commissions"
-      actions={
+
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Commissions</h1>
+          <p className="text-muted-foreground">Track and manage consultant commissions</p>
+        </div>
         <div className="flex items-center gap-2">
           <Label>Filter by Status:</Label>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -175,66 +137,64 @@ export default function CommissionsPage() {
             </Button>
           )}
         </div>
-      }
-    >
-      <div className="p-6 space-y-6">
+      </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <EnhancedStatCard
-            title="Total Pending"
-            value=""
-            change="All time"
-            isCurrency={true}
-            rawValue={totalPending}
-            icon={<Clock className="h-6 w-6" />}
-            variant="warning"
-          />
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <EnhancedStatCard
+          title="Total Pending"
+          value=""
+          change="All time"
+          isCurrency={true}
+          rawValue={totalPending}
+          icon={<Clock className="h-6 w-6" />}
+          variant="warning"
+        />
 
-          <EnhancedStatCard
-            title="Total Paid"
-            value=""
-            change="All time"
-            isCurrency={true}
-            rawValue={totalPaid}
-            icon={<CheckCircle className="h-6 w-6" />}
-            variant="success"
-          />
+        <EnhancedStatCard
+          title="Total Paid"
+          value=""
+          change="All time"
+          isCurrency={true}
+          rawValue={totalPaid}
+          icon={<CheckCircle className="h-6 w-6" />}
+          variant="success"
+        />
 
-          <EnhancedStatCard
-            title="Total Commissions"
-            value={commissions.length.toString()}
-            change="Current filter"
-            icon={<DollarSign className="h-6 w-6" />}
-            variant="neutral"
-          />
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Commissions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="text-center py-8">Loading commissions...</div>
-            ) : (
-              <DataTable
-                data={commissions}
-                columns={columns}
-                searchable
-                searchKeys={['consultantId', 'type', 'commissionType']}
-                emptyMessage="No commissions found"
-              />
-            )}
-          </CardContent>
-        </Card>
-
-        <CommissionPaymentDialog
-          open={paymentDialogOpen}
-          onOpenChange={setPaymentDialogOpen}
-          commissions={selectedCommissions}
-          onSuccess={handlePaymentSuccess}
+        <EnhancedStatCard
+          title="Total Commissions"
+          value={commissions.length.toString()}
+          change="Current filter"
+          icon={<DollarSign className="h-6 w-6" />}
+          variant="neutral"
         />
       </div>
-    </Hrm8PageLayout>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Commissions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="text-center py-8">Loading commissions...</div>
+          ) : (
+            <DataTable
+              data={commissions}
+              columns={columns}
+              searchable
+              searchKeys={['consultantId', 'type', 'commissionType']}
+              emptyMessage="No commissions found"
+            />
+          )}
+        </CardContent>
+      </Card>
+
+      <CommissionPaymentDialog
+        open={paymentDialogOpen}
+        onOpenChange={setPaymentDialogOpen}
+        commissions={selectedCommissions}
+        onSuccess={handlePaymentSuccess}
+      />
+    </div>
+
   );
 }

@@ -1,7 +1,6 @@
-import type { Application, ApplicationStatus, ApplicationStage, ParsedResume } from '@/shared/types/application';
+import type { Application, ApplicationStatus, ApplicationStage } from '@/shared/types/application';
 import { mockCandidatesData } from './mockCandidatesData';
 import { mockJobs } from './mockTableData';
-import { TeamMemberFeedback } from '@/shared/types/collaborativeFeedback';
 
 const statuses: ApplicationStatus[] = ['applied', 'screening', 'interview', 'offer', 'hired', 'rejected', 'withdrawn'];
 
@@ -24,21 +23,21 @@ for (let i = 0; i < 200; i++) {
   const status = statuses[i % statuses.length];
   const stageOptions = stagesByStatus[status];
   const stage = stageOptions[i % stageOptions.length];
-  
+
   const daysAgo = i % 60;
   const appliedDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
   const createdAt = appliedDate;
   const updatedAt = new Date(appliedDate.getTime() + (i % 10) * 24 * 60 * 60 * 1000);
-  
+
   // AI Match Score: 45-98 range for variety
   const aiMatchScore = 45 + Math.floor(Math.random() * 54);
-  
+
   // New applications (last 2 days)
   const isNew = daysAgo <= 2;
-  
+
   // 30% of applications are unread
   const isRead = Math.random() > 0.3;
-  
+
   // Generate sample tags based on application characteristics
   const tags: string[] = [];
   if (aiMatchScore >= 90) tags.push('High Potential');
@@ -61,16 +60,16 @@ for (let i = 0; i < 200; i++) {
     jobId: job.id,
     jobTitle: job.title,
     employerName: job.employer,
-    
+
     appliedDate,
     status,
     stage,
-    
+
     resumeUrl: candidate.resumeUrl,
     coverLetterUrl: candidate.coverLetterUrl,
     portfolioUrl: candidate.portfolioUrl,
     linkedInUrl: candidate.linkedInUrl,
-    
+
     // Add parsed resume data for some applications
     parsedResume: i % 3 === 0 ? {
       workHistory: [
@@ -192,7 +191,7 @@ for (let i = 0; i < 200; i++) {
       summary: `Experienced ${candidate.currentPosition || 'software engineer'} with ${candidate.experienceYears}+ years of experience in building scalable web applications. Strong expertise in ${candidate.skills.slice(0, 3).join(', ')}. Passionate about clean code, best practices, and continuous learning. Proven track record of delivering high-quality solutions and leading technical initiatives.`,
       parsedAt: new Date(Date.now() - (i % 5) * 24 * 60 * 60 * 1000)
     } : undefined,
-    
+
     customAnswers: [
       {
         questionId: 'q1',
@@ -205,7 +204,7 @@ for (let i = 0; i < 200; i++) {
         answer: `$${candidate.salaryMin} - $${candidate.salaryMax}`,
       },
     ],
-    
+
     // Add questionnaire data for some applications
     questionnaireData: i % 2 === 0 ? {
       responses: [
@@ -272,7 +271,7 @@ for (let i = 0; i < 200; i++) {
         {
           questionId: 'qq4',
           question: 'What is your preferred work environment and why?',
-          answer: candidate.workArrangement === 'remote' 
+          answer: candidate.workArrangement === 'remote'
             ? 'I thrive in remote work environments where I can focus deeply on complex problems while maintaining flexibility. I value the autonomy remote work provides and have developed strong communication practices to stay connected with my team through regular video calls, Slack channels, and project management tools.'
             : 'I prefer collaborative office environments where I can easily brainstorm with teammates and build strong working relationships. I find that in-person interactions often lead to more creative solutions and faster problem-solving. However, I also appreciate flexibility for focused work when needed.',
           type: 'text',
@@ -314,14 +313,14 @@ for (let i = 0; i < 200; i++) {
       completionRate: 100,
       timeSpent: 15 + Math.floor(Math.random() * 10)
     } : undefined,
-    
+
     score: i % 3 === 0 ? 60 + Math.floor(Math.random() * 40) : undefined,
     rating: i % 4 === 0 ? Math.floor(Math.random() * 3) + 3 : undefined,
     aiMatchScore,
     isRead,
     isNew,
     tags,
-    
+
     notes: [],
     activities: [
       {
@@ -406,7 +405,7 @@ for (let i = 0; i < 200; i++) {
         isRead: false,
       }] : []),
     ],
-    
+
     interviews: status === 'interview' || status === 'offer' || status === 'hired' ? [
       // Completed phone screen
       {
@@ -439,7 +438,7 @@ for (let i = 0; i < 200; i++) {
       ...(status === 'interview' ? [{
         id: `interview-${i}-3`,
         type: 'behavioral' as const,
-        scheduledDate: i % 3 === 0 
+        scheduledDate: i % 3 === 0
           ? new Date(Date.now() + 2 * 60 * 60 * 1000) // Today, in 2 hours
           : new Date(Date.now() + (3 + i % 5) * 24 * 60 * 60 * 1000), // Future
         duration: 60,
@@ -454,11 +453,7 @@ for (let i = 0; i < 200; i++) {
         type: 'onsite' as const,
         scheduledDate: new Date(appliedDate.getTime() + 14 * 24 * 60 * 60 * 1000),
         duration: 180,
-        interviewers: [
-          'David Kim - VP Engineering',
-          'Emily Wong - CTO',
-          'Alex Johnson - Team Lead'
-        ],
+        interviewers: ['System'],
         location: 'Main Office - 5th Floor',
         status: 'completed' as const,
         feedback: 'Exceptional final round performance. Candidate impressed all panel members with their technical depth, leadership potential, and cultural fit. Strong recommendation to proceed with offer. Team consensus on hire.',
@@ -473,12 +468,21 @@ for (let i = 0; i < 200; i++) {
         scheduledDate: new Date(appliedDate.getTime() + 5 * 24 * 60 * 60 * 1000),
         duration: 45,
         interviewers: ['Tom Brown - Engineering Manager'],
-        meetingLink: 'https://zoom.us/j/cancelled',
         status: 'cancelled' as const,
         notes: 'Rescheduled due to interviewer availability conflict.',
       }] : []),
     ] : [],
-    
+
+    shortlisted: false,
+    manuallyAdded: false,
+    // Status is already defined above? No, step 2137 added it below.
+    // original: status: 'Applied' as ApplicationStatus, (line 80-ish)
+    // duplicate at 482.
+    // I should remove the added block or merge correctly.
+    // I will remove the block I added and add missing props to the main object definition if possible,
+    // OR just remove duplicate status line here.
+
+
     // Add scorecards for candidates in interview or later stages
     scorecards: (status === 'interview' || status === 'offer' || status === 'hired') && i % 2 === 0 ? [
       {
@@ -596,7 +600,7 @@ for (let i = 0; i < 200; i++) {
         createdAt: new Date(appliedDate.getTime() + 11 * 24 * 60 * 60 * 1000)
       }
     ] : undefined,
-    
+
     // Team Reviews (add for interview, offer, or hired status)
     teamReviews: (status === 'interview' || status === 'offer' || status === 'hired') ? [
       {
@@ -717,13 +721,13 @@ for (let i = 0; i < 200; i++) {
         updatedAt: new Date(appliedDate.getTime() + 9 * 24 * 60 * 60 * 1000).toISOString(),
       },
     ] : undefined,
-    
+
     assignedTo: i % 3 === 0 ? 'recruiter-1' : i % 3 === 1 ? 'recruiter-2' : undefined,
     assignedToName: i % 3 === 0 ? 'John Recruiter' : i % 3 === 1 ? 'Jane Recruiter' : undefined,
-    
+
     rejectionReason: status === 'rejected' ? 'Not enough experience with required technologies' : undefined,
     rejectionDate: status === 'rejected' ? updatedAt : undefined,
-    
+
     createdAt,
     updatedAt,
   };

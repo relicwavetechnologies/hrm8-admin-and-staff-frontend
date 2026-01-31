@@ -75,8 +75,8 @@ class BrowserNotificationManager {
   private playNotificationSound(priority: string) {
     // In production, you'd load actual sound files
     // For now, we'll use the system default sound
-    const audio = new Audio();
-    
+    // const audio = new Audio();
+
     // Different frequencies for different priorities
     const context = new AudioContext();
     const oscillator = context.createOscillator();

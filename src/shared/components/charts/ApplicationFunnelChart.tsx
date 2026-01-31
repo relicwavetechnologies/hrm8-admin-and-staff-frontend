@@ -43,11 +43,11 @@ export function ApplicationFunnelChart() {
             value={dateRange}
             onChange={setDateRange}
           />
-          
+
           <Button variant="ghost" size="icon-sm">
             <Download className="h-4 w-4" />
           </Button>
-          
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon-sm">
@@ -85,7 +85,7 @@ export function ApplicationFunnelChart() {
             <YAxis tickLine={false} axisLine={false} tickMargin={8} className="text-xs" />
             <ChartTooltip
               content={<ChartTooltipContent />}
-              formatter={(value, name, props) => [
+              formatter={(value, _name, props) => [
                 `${value} (${props.payload.conversion}%)`,
                 "Candidates",
               ]}

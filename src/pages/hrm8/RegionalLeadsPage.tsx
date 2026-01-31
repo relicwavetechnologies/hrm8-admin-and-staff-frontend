@@ -1,16 +1,14 @@
-
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { DataTable, Column } from '@/shared/components/tables/DataTable';
 import { Badge } from '@/shared/components/ui/badge';
-import { useToast } from '@/shared/hooks/use-toast';
+import { toast } from 'sonner';
 import { regionalSalesService, RegionalLead } from '@/shared/lib/hrm8/regionalSalesService';
 import { regionService, Region } from '@/shared/lib/hrm8/regionService';
-import { useAuth } from '@/shared/contexts/AuthContext';
+import { useHrm8Auth } from '@/contexts/Hrm8AuthContext';
 import {
-  Building2,
   Mail,
   Phone,
   Globe,
@@ -44,8 +42,7 @@ interface Consultant {
 }
 
 export default function RegionalLeadsPage() {
-  const { user } = useAuth();
-  const { toast } = useToast();
+  const { } = useHrm8Auth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [leads, setLeads] = useState<RegionalLead[]>([]);
@@ -80,12 +77,7 @@ export default function RegionalLeadsPage() {
 
         let defaultRegionId = urlRegionId;
 
-        // If no URL region, try to find region for licensee if applicable
-        if (!defaultRegionId && user?.role === 'LICENSEE' && user.id) {
-          // Assuming we can match by some property, or just default to first if restricted
-          // For now, let's default to first if urlRegionId is missing
-          defaultRegionId = response.data.regions[0].id;
-        } else if (!defaultRegionId) {
+        if (!defaultRegionId) {
           defaultRegionId = response.data.regions[0].id;
         }
 
@@ -94,7 +86,7 @@ export default function RegionalLeadsPage() {
         }
       }
     } catch (error) {
-      toast({ title: 'Error', description: 'Failed to fetch regions', variant: 'destructive' });
+      toast.error('Failed to fetch regions');
     }
   };
 
@@ -104,7 +96,7 @@ export default function RegionalLeadsPage() {
       const data = await regionalSalesService.getLeads(regionId);
       setLeads(data);
     } catch (error) {
-      toast({ title: 'Error', description: 'Failed to fetch regional leads', variant: 'destructive' });
+      toast.error('Failed to fetch regional leads');
     } finally {
       setLoading(false);
     }
@@ -129,15 +121,14 @@ export default function RegionalLeadsPage() {
     try {
       const response = await regionalSalesService.reassignLead(selectedLead.id, targetConsultantId);
       if (response.success) {
-        toast({ title: 'Success', description: 'Lead reassigned successfully' });
+        toast.success('Lead reassigned successfully');
         setReassignDialogOpen(false);
         fetchLeads(selectedRegionId);
       } else {
-        toast({ title: 'Error', description: response.error || 'Failed to reassign lead', variant: 'destructive' });
+        toast.error(response.error || 'Failed to reassign lead');
       }
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to reassign lead';
-      toast({ title: 'Error', description: message, variant: 'destructive' });
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to reassign lead');
     } finally {
       setReassigning(false);
     }
@@ -258,115 +249,117 @@ export default function RegionalLeadsPage() {
   ];
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Regional Leads</h1>
-          <p className="text-muted-foreground">Manage and reassign sales leads across your region.</p>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <Select
-              value={selectedRegionId}
-              onValueChange={(val) => {
-                setSelectedRegionId(val);
-                const params = new URLSearchParams(searchParams);
-                params.set('region', val);
-                setSearchParams(params);
-              }}
-            >
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Select Region" />
-              </SelectTrigger>
-              <SelectContent>
-                {regions.map((region) => (
-                  <SelectItem key={region.id} value={region.id}>
-                    {region.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+    
+      <div className="p-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Regional Leads</h1>
+            <p className="text-muted-foreground">Manage and reassign sales leads across your region.</p>
           </div>
-        </div>
-      </div>
 
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Sales Leads</CardTitle>
-              <CardDescription>
-                Total leads in this region: {leads.length}
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <TableSkeleton columns={7} />
-          ) : (
-            <DataTable
-              data={leads}
-              columns={columns}
-              searchable
-              searchKeys={['company_name', 'email', 'country']}
-              emptyMessage="No leads found for this region"
-            />
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Reassign Lead Dialog */}
-      <Dialog open={reassignDialogOpen} onOpenChange={setReassignDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Reassign Lead</DialogTitle>
-            <DialogDescription>
-              Select a new sales agent for {selectedLead?.company_name}.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">New Sales Agent</label>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
               <Select
-                value={targetConsultantId}
-                onValueChange={setTargetConsultantId}
+                value={selectedRegionId}
+                onValueChange={(val) => {
+                  setSelectedRegionId(val);
+                  const params = new URLSearchParams(searchParams);
+                  params.set('region', val);
+                  setSearchParams(params);
+                }}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Agent" />
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Select Region" />
                 </SelectTrigger>
                 <SelectContent>
-                  {consultants.map((agent) => (
-                    <SelectItem key={agent.id} value={agent.id}>
-                      {agent.first_name} {agent.last_name} ({agent.email})
+                  {regions.map((region) => (
+                    <SelectItem key={region.id} value={region.id}>
+                      {region.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
+        </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setReassignDialogOpen(false)}>Cancel</Button>
-            <Button
-              onClick={handleReassign}
-              disabled={reassigning || !targetConsultantId || targetConsultantId === selectedLead?.assigned_consultant_id}
-            >
-              {reassigning ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Reassigning...
-                </>
-              ) : (
-                'Confirm Reassignment'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Sales Leads</CardTitle>
+                <CardDescription>
+                  Total leads in this region: {leads.length}
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <TableSkeleton columns={7} />
+            ) : (
+              <DataTable
+                data={leads}
+                columns={columns}
+                searchable
+                searchKeys={['company_name', 'email', 'country']}
+                emptyMessage="No leads found for this region"
+              />
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Reassign Lead Dialog */}
+        <Dialog open={reassignDialogOpen} onOpenChange={setReassignDialogOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Reassign Lead</DialogTitle>
+              <DialogDescription>
+                Select a new sales agent for {selectedLead?.company_name}.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">New Sales Agent</label>
+                <Select
+                  value={targetConsultantId}
+                  onValueChange={setTargetConsultantId}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Agent" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {consultants.map((agent) => (
+                      <SelectItem key={agent.id} value={agent.id}>
+                        {agent.first_name} {agent.last_name} ({agent.email})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setReassignDialogOpen(false)}>Cancel</Button>
+              <Button
+                onClick={handleReassign}
+                disabled={reassigning || !targetConsultantId || targetConsultantId === selectedLead?.assigned_consultant_id}
+              >
+                {reassigning ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Reassigning...
+                  </>
+                ) : (
+                  'Confirm Reassignment'
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    
   );
 }

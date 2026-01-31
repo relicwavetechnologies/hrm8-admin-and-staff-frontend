@@ -35,13 +35,13 @@ export function GeographicRevenueChart({ data, title = "Geographic Revenue Distr
               outerRadius={100}
               label={(entry) => `${entry.country}: $${entry.revenue.toLocaleString()}`}
             >
-              {data.map((entry, index) => (
+              {data.map((_entry, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
-            <Tooltip 
+            <Tooltip
               formatter={(value: number) => `$${value.toLocaleString()}`}
-              contentStyle={{ 
+              contentStyle={{
                 backgroundColor: 'hsl(var(--popover))',
                 border: '1px solid hsl(var(--border))',
                 borderRadius: '6px'

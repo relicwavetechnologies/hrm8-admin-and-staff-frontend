@@ -3,10 +3,11 @@
  * Manages candidate authentication state across the application
  */
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { candidateAuthService, Candidate, CandidateLoginRequest, CandidateRegisterRequest } from '@/shared/lib/candidateAuthService';
+import { candidateAuthService, Candidate, CandidateRegisterRequest } from '@/shared/lib/candidateAuthService';
 import { useToast } from '@/shared/hooks/use-toast';
+import { useAuth } from '@/shared/contexts/AuthContext';
 
 interface CandidateAuthContextType {
   candidate: Candidate | null;
@@ -161,10 +162,23 @@ export function CandidateAuthProvider({ children }: { children: ReactNode }) {
 }
 
 export function useCandidateAuth() {
-  const context = useContext(CandidateAuthContext);
-  if (context === undefined) {
-    throw new Error('useCandidateAuth must be used within a CandidateAuthProvider');
-  }
-  return context;
+  const { user, userType, isLoading, isAuthenticated, login: _login, logout, refreshUser } = useAuth();
+
+  return {
+    candidate: userType === 'ADMIN' ? null : (user?.rawUser as unknown as Candidate), // Placeholder as unified user might not have Candidate yet
+    isLoading,
+    isAuthenticated: isAuthenticated && userType !== 'ADMIN',
+    login: async (_email: string, _password: string) => {
+      // Typically candidates use a different login endpoint or type
+      // For now, mapping to a placeholder if needed
+      return { success: false, error: 'Candidate login via unified context not yet supported' };
+    },
+    register: async (_data: CandidateRegisterRequest) => {
+      // Placeholder
+      return { success: false, error: 'Registration via unified context not yet supported' };
+    },
+    logout,
+    refreshCandidate: refreshUser,
+  };
 }
 

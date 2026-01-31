@@ -1,5 +1,5 @@
 import { StandardChartCard } from "./StandardChartCard";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Area, ComposedChart } from "recharts";
+import { Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Area, ComposedChart } from "recharts";
 import { TrendingUp, TrendingDown, Minus, Download, AlertCircle } from "lucide-react";
 import { ForecastResult, getForecastSummary } from "@/shared/lib/forecasting/revenueForecast";
 import { Badge } from "@/shared/components/ui/badge";
@@ -12,14 +12,14 @@ interface RevenueProjectionChartProps {
   onDownload?: () => void;
 }
 
-export function RevenueProjectionChart({ 
-  title, 
+export function RevenueProjectionChart({
+  title,
   description = "Historical revenue and projected trends with confidence intervals",
   forecast,
-  onDownload 
+  onDownload
 }: RevenueProjectionChartProps) {
   const summary = getForecastSummary(forecast);
-  
+
   // Combine historical and forecast data for chart
   const chartData = [
     ...forecast.historicalData.map(point => ({
@@ -77,7 +77,7 @@ export function RevenueProjectionChart({
       showDatePicker={false}
       onDownload={onDownload}
       menuItems={[
-        { label: "Download Forecast", icon: <Download className="h-4 w-4" />, onClick: onDownload || (() => {}) }
+        { label: "Download Forecast", icon: <Download className="h-4 w-4" />, onClick: onDownload || (() => { }) }
       ]}
     >
       <div className="space-y-4">
@@ -118,22 +118,22 @@ export function RevenueProjectionChart({
         <ResponsiveContainer width="100%" height={350}>
           <ComposedChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis 
-              dataKey="month" 
+            <XAxis
+              dataKey="month"
               className="text-xs"
               tick={{ fontSize: 11 }}
             />
-            <YAxis 
+            <YAxis
               className="text-xs"
               tick={{ fontSize: 11 }}
               tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
             />
-            <Tooltip 
+            <Tooltip
               formatter={(value: number) => [`$${value.toLocaleString()}`, '']}
               contentStyle={{ fontSize: '12px' }}
             />
             <Legend wrapperStyle={{ fontSize: '12px' }} />
-            
+
             {/* Confidence Interval Area */}
             <Area
               type="monotone"
@@ -151,7 +151,7 @@ export function RevenueProjectionChart({
               fillOpacity={0.1}
               name="Lower Confidence"
             />
-            
+
             {/* Historical Actual Revenue */}
             <Line
               type="monotone"
@@ -162,7 +162,7 @@ export function RevenueProjectionChart({
               dot={{ r: 4 }}
               connectNulls={false}
             />
-            
+
             {/* Predicted Revenue */}
             <Line
               type="monotone"

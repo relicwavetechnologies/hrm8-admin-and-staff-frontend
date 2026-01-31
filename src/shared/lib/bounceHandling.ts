@@ -65,7 +65,7 @@ export function recordBounce(
   emailId?: string
 ): BounceRecord {
   const records = getBounceRecords();
-  const statuses = getEmailHealthStatuses();
+  // const statuses = getEmailHealthStatuses();
 
   // Create bounce record
   const bounceRecord: BounceRecord = {
@@ -95,12 +95,12 @@ function updateEmailHealthStatus(email: string): void {
   const softBounces = emailBounces.filter(r => r.bounceType === 'soft').length;
   const hardBounces = emailBounces.filter(r => r.bounceType === 'hard').length;
   const complaints = emailBounces.filter(r => r.bounceType === 'complaint').length;
-  const lastBounce = emailBounces.length > 0 
-    ? emailBounces[emailBounces.length - 1].timestamp 
+  const lastBounce = emailBounces.length > 0
+    ? emailBounces[emailBounces.length - 1].timestamp
     : undefined;
 
   // Determine blocking status
-  const isBlocked = 
+  const isBlocked =
     hardBounces >= HARD_BOUNCE_BLOCK_THRESHOLD ||
     softBounces >= SOFT_BOUNCE_BLOCK_THRESHOLD ||
     complaints >= COMPLAINT_BLOCK_THRESHOLD;
@@ -179,7 +179,7 @@ export function cleanEmailList(emails: string[]): {
 export function unblockEmail(email: string): void {
   const statuses = getEmailHealthStatuses();
   const status = statuses.find(s => s.email === email);
-  
+
   if (status) {
     status.isBlocked = false;
     status.status = 'healthy';

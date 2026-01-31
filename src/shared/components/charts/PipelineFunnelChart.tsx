@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 interface PipelineFunnelChartProps {
   data: Array<{ stage: string; candidates: number; conversionRate: number }>;
@@ -42,7 +42,7 @@ export function PipelineFunnelChart({ data }: PipelineFunnelChartProps) {
               }}
             />
             <Bar dataKey="candidates" radius={[0, 4, 4, 0]} barSize={32}>
-              {data.map((entry, index) => (
+              {data.map((_entry, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Bar>

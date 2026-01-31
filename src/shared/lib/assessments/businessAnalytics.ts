@@ -1,8 +1,8 @@
 import { getAssessments } from '@/shared/lib/mockAssessmentStorage';
-import type { 
-  RevenueMetrics, 
-  UsageMetrics, 
-  ProfitabilityMetrics, 
+import type {
+  RevenueMetrics,
+  UsageMetrics,
+  ProfitabilityMetrics,
   TrendData,
   ClientRevenueData,
   GeographicData,
@@ -48,7 +48,7 @@ export function getAssessmentRevenueMetrics(
   region?: string
 ): RevenueMetrics {
   let assessments = getAssessments().filter(a => a.status === 'completed');
-  
+
   // Apply filters
   if (dateRange) {
     assessments = assessments.filter(a => {
@@ -56,33 +56,33 @@ export function getAssessmentRevenueMetrics(
       return completedDate >= dateRange.from && completedDate <= dateRange.to;
     });
   }
-  
+
   if (country && country !== 'all') {
     assessments = assessments.filter(a => a.country === country);
   }
-  
+
   if (region && region !== 'all') {
     assessments = assessments.filter(a => a.region === region);
   }
-  
+
   const totalRevenue = assessments.reduce((sum, a) => sum + getAssessmentPrice(a.assessmentType), 0);
   const totalCosts = assessments.reduce((sum, a) => sum + getProviderCost(a.provider), 0);
   const profitMargin = totalRevenue > 0 ? ((totalRevenue - totalCosts) / totalRevenue) * 100 : 0;
-  
+
   // Calculate revenue by type
   const revenueByType: Record<string, number> = {};
   assessments.forEach(a => {
     const type = a.assessmentType;
     revenueByType[type] = (revenueByType[type] || 0) + getAssessmentPrice(type);
   });
-  
+
   // Calculate unique clients
   const uniqueClients = new Set(assessments.map(a => a.billedTo)).size;
   const revenuePerClient = uniqueClients > 0 ? totalRevenue / uniqueClients : 0;
-  
+
   // Mock month-over-month growth
   const monthOverMonthGrowth = 12.5;
-  
+
   return {
     totalRevenue,
     revenueByType,
@@ -98,7 +98,7 @@ export function getAssessmentUsageMetrics(
   region?: string
 ): UsageMetrics {
   let assessments = getAssessments();
-  
+
   // Apply filters
   if (dateRange) {
     assessments = assessments.filter(a => {
@@ -106,24 +106,24 @@ export function getAssessmentUsageMetrics(
       return createdDate >= dateRange.from && createdDate <= dateRange.to;
     });
   }
-  
+
   if (country && country !== 'all') {
     assessments = assessments.filter(a => a.country === country);
   }
-  
+
   if (region && region !== 'all') {
     assessments = assessments.filter(a => a.region === region);
   }
-  
+
   const totalVolume = assessments.length;
-  
+
   // Calculate volume by location
   const locationMap = new Map<string, GeographicData>();
   assessments.forEach(a => {
     const key = `${a.country || 'Unknown'}-${a.region || 'Unknown'}`;
     const existing = locationMap.get(key);
     const revenue = a.status === 'completed' ? getAssessmentPrice(a.assessmentType) : 0;
-    
+
     if (existing) {
       existing.count++;
       existing.revenue += revenue;
@@ -136,10 +136,10 @@ export function getAssessmentUsageMetrics(
       });
     }
   });
-  
+
   const volumeByLocation = Array.from(locationMap.values())
     .sort((a, b) => b.revenue - a.revenue);
-  
+
   // Calculate top clients
   const clientMap = new Map<string, ClientRevenueData>();
   assessments.forEach(a => {
@@ -147,7 +147,7 @@ export function getAssessmentUsageMetrics(
     const clientName = a.billedToName || 'Unknown Client';
     const existing = clientMap.get(clientId);
     const revenue = a.status === 'completed' ? getAssessmentPrice(a.assessmentType) : 0;
-    
+
     if (existing) {
       existing.volume++;
       existing.revenue += revenue;
@@ -162,16 +162,16 @@ export function getAssessmentUsageMetrics(
       });
     }
   });
-  
+
   const topClients = Array.from(clientMap.values())
     .sort((a, b) => b.revenue - a.revenue)
     .slice(0, 10);
-  
+
   // Mock client adoption rate
   const totalPossibleClients = 100; // Mock value
   const activeClients = new Set(assessments.map(a => a.billedTo)).size;
   const clientAdoptionRate = (activeClients / totalPossibleClients) * 100;
-  
+
   return {
     totalVolume,
     volumeByLocation,
@@ -186,7 +186,7 @@ export function getAssessmentProfitability(
   region?: string
 ): ProfitabilityMetrics {
   let assessments = getAssessments().filter(a => a.status === 'completed');
-  
+
   // Apply filters
   if (dateRange) {
     assessments = assessments.filter(a => {
@@ -194,22 +194,22 @@ export function getAssessmentProfitability(
       return completedDate >= dateRange.from && completedDate <= dateRange.to;
     });
   }
-  
+
   if (country && country !== 'all') {
     assessments = assessments.filter(a => a.country === country);
   }
-  
+
   if (region && region !== 'all') {
     assessments = assessments.filter(a => a.region === region);
   }
-  
+
   const totalRevenue = assessments.reduce((sum, a) => sum + getAssessmentPrice(a.assessmentType), 0);
   const providerCosts = assessments.reduce((sum, a) => sum + getProviderCost(a.provider), 0);
   const internalCosts = assessments.length * 5; // Mock internal operational cost per assessment
   const netProfit = totalRevenue - providerCosts - internalCosts;
   const costPerUnit = assessments.length > 0 ? (providerCosts + internalCosts) / assessments.length : 0;
   const marginPercentage = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
-  
+
   return {
     providerCosts,
     internalCosts,
@@ -222,7 +222,7 @@ export function getAssessmentProfitability(
 export function getAssessmentRevenueTrends(): TrendData[] {
   const assessments = getAssessments();
   const monthMap = new Map<string, TrendData>();
-  
+
   // Generate last 6 months
   const months = [];
   for (let i = 5; i >= 0; i--) {
@@ -238,13 +238,13 @@ export function getAssessmentRevenueTrends(): TrendData[] {
       newClients: 0,
     });
   }
-  
+
   // Populate with assessment data
   assessments.forEach(a => {
     const date = new Date(a.completedDate || a.createdAt);
     const monthKey = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
     const data = monthMap.get(monthKey);
-    
+
     if (data && a.status === 'completed') {
       const revenue = getAssessmentPrice(a.assessmentType);
       const cost = getProviderCost(a.provider) + 5;
@@ -253,25 +253,25 @@ export function getAssessmentRevenueTrends(): TrendData[] {
       data.profit += (revenue - cost);
     }
   });
-  
+
   // Mock new clients per month
-  monthMap.forEach((data, key) => {
+  monthMap.forEach((data, _key) => {
     data.newClients = Math.floor(Math.random() * 5) + 2;
   });
-  
+
   return months.map(m => monthMap.get(m)!);
 }
 
 export function getRevenueByTypeDistribution(): TypeDistribution[] {
   const assessments = getAssessments().filter(a => a.status === 'completed');
   const typeMap = new Map<string, TypeDistribution>();
-  
+
   assessments.forEach(a => {
     const type = a.assessmentType;
     const existing = typeMap.get(type);
     const revenue = getAssessmentPrice(type);
     const providerCost = getProviderCost(a.provider);
-    
+
     if (existing) {
       existing.revenue += revenue;
       existing.volume++;
@@ -289,20 +289,20 @@ export function getRevenueByTypeDistribution(): TypeDistribution[] {
       });
     }
   });
-  
+
   return Array.from(typeMap.values()).sort((a, b) => b.revenue - a.revenue);
 }
 
 export function getTopClientsByRevenue(limit: number = 10): ClientRevenueData[] {
   const assessments = getAssessments().filter(a => a.status === 'completed');
   const clientMap = new Map<string, ClientRevenueData>();
-  
+
   assessments.forEach(a => {
     const clientId = a.billedTo || 'unknown';
     const clientName = a.billedToName || 'Unknown Client';
     const existing = clientMap.get(clientId);
     const revenue = getAssessmentPrice(a.assessmentType);
-    
+
     if (existing) {
       existing.volume++;
       existing.revenue += revenue;
@@ -317,7 +317,7 @@ export function getTopClientsByRevenue(limit: number = 10): ClientRevenueData[] 
       });
     }
   });
-  
+
   return Array.from(clientMap.values())
     .sort((a, b) => b.revenue - a.revenue)
     .slice(0, limit);
@@ -326,12 +326,12 @@ export function getTopClientsByRevenue(limit: number = 10): ClientRevenueData[] 
 export function getGeographicRevenueDistribution(): GeographicData[] {
   const assessments = getAssessments().filter(a => a.status === 'completed');
   const locationMap = new Map<string, GeographicData>();
-  
+
   assessments.forEach(a => {
     const key = a.country || 'Unknown';
     const existing = locationMap.get(key);
     const revenue = getAssessmentPrice(a.assessmentType);
-    
+
     if (existing) {
       existing.count++;
       existing.revenue += revenue;
@@ -344,7 +344,7 @@ export function getGeographicRevenueDistribution(): GeographicData[] {
       });
     }
   });
-  
+
   return Array.from(locationMap.values())
     .sort((a, b) => b.revenue - a.revenue);
 }
@@ -352,14 +352,14 @@ export function getGeographicRevenueDistribution(): GeographicData[] {
 export function getConversionMetrics(): ConversionMetrics {
   const assessments = getAssessments().filter(a => a.status === 'completed');
   const totalAssessments = assessments.length;
-  
+
   // Mock: assume 35% of completed assessments lead to hire
   const leadsToHire = Math.round(totalAssessments * 0.35);
   const conversionRate = totalAssessments > 0 ? (leadsToHire / totalAssessments) * 100 : 0;
-  
+
   const totalRevenue = assessments.reduce((sum, a) => sum + getAssessmentPrice(a.assessmentType), 0);
   const revenuePerHire = leadsToHire > 0 ? totalRevenue / leadsToHire : 0;
-  
+
   return {
     totalAssessments,
     leadsToHire,
@@ -405,20 +405,20 @@ export function getClientLifetimeValues(): ClientLifetimeValue[] {
   // Calculate CLV metrics
   const clvData: ClientLifetimeValue[] = [];
   clientMap.forEach((data, clientId) => {
-    const monthsActive = Math.max(1, 
+    const monthsActive = Math.max(1,
       Math.floor((data.lastDate.getTime() - data.firstDate.getTime()) / (1000 * 60 * 60 * 24 * 30))
     );
     const avgMonthlyRevenue = data.revenue / monthsActive;
     const avgTransactionValue = data.revenue / data.transactions;
-    
+
     // Simple prediction: average monthly revenue * growth factor
     const growthFactor = data.transactions > 5 ? 1.1 : data.transactions > 2 ? 1.05 : 1.0;
     const predictedNextMonth = avgMonthlyRevenue * growthFactor;
     const predictedAnnual = predictedNextMonth * 12;
-    
+
     // Retention probability based on recency and frequency
     const daysSinceLastPurchase = Math.floor((Date.now() - data.lastDate.getTime()) / (1000 * 60 * 60 * 24));
-    const retentionProbability = Math.max(20, Math.min(95, 
+    const retentionProbability = Math.max(20, Math.min(95,
       100 - (daysSinceLastPurchase / 10) + (data.transactions * 2)
     ));
 
@@ -451,7 +451,7 @@ export function getRetentionMetrics(): RetentionMetrics {
   const now = Date.now();
   const thirtyDaysAgo = now - (30 * 24 * 60 * 60 * 1000);
 
-  const activeClients = clvData.filter(c => 
+  const activeClients = clvData.filter(c =>
     new Date(c.lastPurchaseDate).getTime() > thirtyDaysAgo
   ).length;
 

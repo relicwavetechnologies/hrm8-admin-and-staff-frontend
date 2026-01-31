@@ -1,5 +1,5 @@
 import { getAssessments } from '@/shared/lib/mockAssessmentStorage';
-import type { Assessment } from '@/shared/types/assessment';
+// import type { Assessment } from '@/shared/types/assessment';
 import { startOfMonth, endOfMonth, eachMonthOfInterval, subMonths, format } from 'date-fns';
 
 export interface AssessmentStats {
@@ -45,19 +45,19 @@ export function getAssessmentStats(
   }
 
   const total = assessments.length;
-  const active = assessments.filter(a => 
+  const active = assessments.filter(a =>
     a.status === 'invited' || a.status === 'in-progress'
   ).length;
   const completed = assessments.filter(a => a.status === 'completed').length;
-  
+
   const completedAssessments = assessments.filter(a => a.status === 'completed' && a.overallScore);
   const avgScore = completedAssessments.length > 0
     ? completedAssessments.reduce((sum, a) => sum + (a.overallScore || 0), 0) / completedAssessments.length
     : 0;
 
   const passedCount = completedAssessments.filter(a => a.passed).length;
-  const passRate = completedAssessments.length > 0 
-    ? (passedCount / completedAssessments.length) * 100 
+  const passRate = completedAssessments.length > 0
+    ? (passedCount / completedAssessments.length) * 100
     : 0;
 
   const assessmentsWithTime = completedAssessments.filter(a => a.result?.timeSpent);
@@ -67,7 +67,7 @@ export function getAssessmentStats(
 
   const now = new Date();
   const pendingInvitations = assessments.filter(a => a.status === 'pending-invitation').length;
-  
+
   const threeDaysFromNow = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
   const expiringSoon = assessments.filter(a => {
     if (a.status === 'completed' || a.status === 'expired' || a.status === 'cancelled') return false;
@@ -75,11 +75,11 @@ export function getAssessmentStats(
     return expiryDate <= threeDaysFromNow && expiryDate > now;
   }).length;
 
-  const needsReview = completedAssessments.filter(a => 
+  const needsReview = completedAssessments.filter(a =>
     a.result?.status === 'needs-review'
   ).length;
 
-  const lowScores = completedAssessments.filter(a => 
+  const lowScores = completedAssessments.filter(a =>
     (a.overallScore || 0) < 50
   ).length;
 
@@ -87,18 +87,18 @@ export function getAssessmentStats(
   const lastMonth = subMonths(now, 1);
   const lastMonthStart = startOfMonth(lastMonth);
   const lastMonthEnd = endOfMonth(lastMonth);
-  
+
   const lastMonthAssessments = getAssessments().filter(a => {
     const date = new Date(a.invitedDate);
     return date >= lastMonthStart && date <= lastMonthEnd;
   });
 
   const lastMonthTotal = lastMonthAssessments.length;
-  const lastMonthActive = lastMonthAssessments.filter(a => 
+  const lastMonthActive = lastMonthAssessments.filter(a =>
     a.status === 'invited' || a.status === 'in-progress'
   ).length;
   const lastMonthCompleted = lastMonthAssessments.filter(a => a.status === 'completed').length;
-  
+
   const lastMonthCompletedAssessments = lastMonthAssessments.filter(a => a.status === 'completed' && a.overallScore);
   const lastMonthAvgScore = lastMonthCompletedAssessments.length > 0
     ? lastMonthCompletedAssessments.reduce((sum, a) => sum + (a.overallScore || 0), 0) / lastMonthCompletedAssessments.length
@@ -125,7 +125,7 @@ export function getAssessmentStats(
 }
 
 export function getAssessmentVolumeData(
-  dateRange?: { from: Date; to: Date },
+  _dateRange?: { from: Date; to: Date },
   country?: string,
   region?: string
 ) {
@@ -146,7 +146,7 @@ export function getAssessmentVolumeData(
   return months.map(month => {
     const monthStart = startOfMonth(month);
     const monthEnd = endOfMonth(month);
-    
+
     const monthAssessments = assessments.filter(a => {
       const date = new Date(a.invitedDate);
       return date >= monthStart && date <= monthEnd;
@@ -186,7 +186,7 @@ export function getAssessmentTypeDistribution(
   }
 
   const distribution: Record<string, number> = {};
-  
+
   assessments.forEach(a => {
     distribution[a.assessmentType] = (distribution[a.assessmentType] || 0) + 1;
   });
@@ -240,7 +240,7 @@ export function getProviderPerformanceData(
     provider,
     total: stats.total,
     completionRate: stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0,
-    avgScore: stats.scores.length > 0 
+    avgScore: stats.scores.length > 0
       ? Math.round((stats.scores.reduce((sum, s) => sum + s, 0) / stats.scores.length) * 10) / 10
       : 0
   }));
@@ -279,7 +279,7 @@ export function getScoreDistributionData(
 
   return ranges.map(range => ({
     range: range.label,
-    count: assessments.filter(a => 
+    count: assessments.filter(a =>
       (a.overallScore || 0) >= range.min && (a.overallScore || 0) <= range.max
     ).length
   }));

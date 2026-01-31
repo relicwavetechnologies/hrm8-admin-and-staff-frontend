@@ -51,7 +51,7 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[], enabled = tr
 }
 
 export function useGlobalKeyboardShortcuts() {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   return [
     {
@@ -106,7 +106,7 @@ export function useNavigationShortcuts() {
 
   useEffect(() => {
     let gPressed = false;
-    let timeout: NodeJS.Timeout;
+    let timeoutId: ReturnType<typeof setTimeout>;
 
     const handleKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement;
@@ -120,7 +120,7 @@ export function useNavigationShortcuts() {
 
       if (event.key === 'g' && !gPressed) {
         gPressed = true;
-        timeout = setTimeout(() => {
+        timeoutId = setTimeout(() => {
           gPressed = false;
         }, 1000);
         return;
@@ -128,7 +128,7 @@ export function useNavigationShortcuts() {
 
       if (gPressed) {
         event.preventDefault();
-        clearTimeout(timeout);
+        clearTimeout(timeoutId);
         gPressed = false;
 
         const shortcuts: Record<string, string> = {
@@ -151,7 +151,7 @@ export function useNavigationShortcuts() {
     window.addEventListener('keydown', handleKeyDown);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      clearTimeout(timeout);
+      clearTimeout(timeoutId);
     };
   }, [navigate]);
 }

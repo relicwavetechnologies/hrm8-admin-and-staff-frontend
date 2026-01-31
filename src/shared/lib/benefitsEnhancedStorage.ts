@@ -133,7 +133,7 @@ export function createCOBRAEvent(
   return newEvent;
 }
 
-export function calculateBenefitsCost(planId: string, tier: string, employeeId: string): BenefitsCostBreakdown {
+export function calculateBenefitsCost(planId: string, tier: string, _employeeId: string): BenefitsCostBreakdown {
   // Mock cost calculation
   const tierMultipliers = {
     'employee': 1,
@@ -157,7 +157,7 @@ export function calculateBenefitsCost(planId: string, tier: string, employeeId: 
   };
 }
 
-export function checkEligibility(employeeId: string, planId: string): boolean {
+export function checkEligibility(_employeeId: string, _planId: string): boolean {
   // Mock eligibility check
   return true;
 }

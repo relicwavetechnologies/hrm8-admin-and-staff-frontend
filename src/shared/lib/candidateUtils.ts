@@ -67,14 +67,14 @@ export function getExperienceLevelLabel(level: Candidate['experienceLevel']): st
 
 export function filterCandidatesBySkills(candidates: Candidate[], skills: string[], matchAll: boolean = false): Candidate[] {
   if (skills.length === 0) return candidates;
-  
+
   return candidates.filter(candidate => {
     if (matchAll) {
-      return skills.every(skill => 
+      return skills.every(skill =>
         candidate.skills.some(cs => cs.toLowerCase() === skill.toLowerCase())
       );
     } else {
-      return skills.some(skill => 
+      return skills.some(skill =>
         candidate.skills.some(cs => cs.toLowerCase() === skill.toLowerCase())
       );
     }
@@ -83,7 +83,7 @@ export function filterCandidatesBySkills(candidates: Candidate[], skills: string
 
 export function sortCandidatesByRelevance(candidates: Candidate[], criteria: 'score' | 'experience' | 'recent'): Candidate[] {
   const sorted = [...candidates];
-  
+
   switch (criteria) {
     case 'score':
       return sorted.sort((a, b) => (b.score || 0) - (a.score || 0));
@@ -98,22 +98,22 @@ export function sortCandidatesByRelevance(candidates: Candidate[], criteria: 'sc
 
 export function calculateMatchScore(candidate: Candidate, job?: Job): number {
   if (!job) return candidate.score || 0;
-  
+
   // Simple matching algorithm based on skills
   // In a real app, this would be more sophisticated
   let score = 0;
-  const totalFactors = 3;
-  
+  // const totalFactors = 3;
+
   // Factor 1: Experience level match (33%)
   score += 33;
-  
+
   // Factor 2: Skills match (34%)
   // This would need job skills to be available
   score += 34;
-  
+
   // Factor 3: Location match (33%)
   score += 33;
-  
+
   return Math.min(100, Math.max(0, score));
 }
 

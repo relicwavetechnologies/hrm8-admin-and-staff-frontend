@@ -47,9 +47,9 @@ export interface BulkScoringResult {
 
 // Note: Individual scoring is now handled by backend bulk endpoint
 // This function is kept for compatibility but bulk scoring happens server-side
-async function scoreCandidate(
-  application: Application,
-  criteria: ScoringCriteria
+export async function scoreCandidate(
+  _application: Application,
+  _criteria: ScoringCriteria
 ): Promise<{ score: number; fullAnalysis?: any }> {
   // This should not be called directly - use bulkScoreCandidates instead
   throw new Error('Individual scoring should use backend bulk endpoint');
@@ -71,7 +71,7 @@ export async function bulkScoreCandidates(
   try {
     // Call backend API for bulk scoring
     const response = await applicationService.bulkScoreCandidates(applicationIds, jobId);
-    
+
     if (!response.success || !response.data) {
       throw new Error(response.error || 'Bulk scoring failed');
     }
@@ -81,15 +81,15 @@ export async function bulkScoreCandidates(
     // Map backend results to frontend format
     const results: BulkScoringResult[] = applications.map((application) => {
       const backendResult = backendResults.find(r => r.applicationId === application.id);
-      
+
       if (backendResult && backendResult.success) {
         return {
-        applicationId: application.id,
-        candidateName: application.candidateName,
+          applicationId: application.id,
+          candidateName: application.candidateName,
           oldScore: application.aiMatchScore,
           newScore: backendResult.score,
           scoreDelta: application.aiMatchScore ? backendResult.score - application.aiMatchScore : 0,
-        success: true,
+          success: true,
           fullAnalysis: backendResult.analysis,
         };
       } else {
@@ -133,20 +133,20 @@ export async function bulkScoreCandidates(
     });
 
     return results;
-    } catch (error) {
+  } catch (error) {
     console.error('❌ Bulk scoring failed:', error);
-    
+
     // Return failed results for all candidates
     return applications.map((application) => ({
-        applicationId: application.id,
-        candidateName: application.candidateName,
-        oldScore: application.aiMatchScore,
-        newScore: application.aiMatchScore || 0,
-        scoreDelta: 0,
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+      applicationId: application.id,
+      candidateName: application.candidateName,
+      oldScore: application.aiMatchScore,
+      newScore: application.aiMatchScore || 0,
+      scoreDelta: 0,
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
     }));
-    }
+  }
 }
 
 export function getScoreChangeLabel(delta: number): string {

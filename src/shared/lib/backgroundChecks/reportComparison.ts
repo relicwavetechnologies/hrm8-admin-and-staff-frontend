@@ -88,7 +88,7 @@ function analyzeCategoryScores(reports: AITranscriptionSummary[]): CategoryCompa
     const scores = data.scores.map((s) => s.score);
     const averageScore = scores.reduce((a, b) => a + b, 0) / scores.length;
     const variance = calculateVariance(scores);
-    
+
     let consensus: 'high' | 'medium' | 'low' = 'high';
     if (variance > 1.5) consensus = 'low';
     else if (variance > 0.8) consensus = 'medium';
@@ -117,7 +117,7 @@ function findConsensusAreas(reports: AITranscriptionSummary[]): ConsensusArea[] 
       const entry = strengthCounts.get(normalized)!;
       entry.count++;
       entry.referees.push(report.refereeInfo.name);
-      
+
       // Find evidence from category breakdown
       report.categoryBreakdown.forEach((cat) => {
         cat.evidence.forEach((ev) => {
@@ -151,7 +151,7 @@ function findConsensusAreas(reports: AITranscriptionSummary[]): ConsensusArea[] 
       const entry = concernCounts.get(normalized)!;
       entry.count++;
       entry.referees.push(report.refereeInfo.name);
-      
+
       report.categoryBreakdown.forEach((cat) => {
         cat.evidence.forEach((ev) => {
           if (ev.toLowerCase().includes(normalized.split(' ')[0])) {
@@ -177,7 +177,7 @@ function findConsensusAreas(reports: AITranscriptionSummary[]): ConsensusArea[] 
 }
 
 function findDivergentAreas(
-  reports: AITranscriptionSummary[],
+  _reports: AITranscriptionSummary[],
   categoryComparisons: CategoryComparison[]
 ): DivergentArea[] {
   const divergentAreas: DivergentArea[] = [];
@@ -253,6 +253,6 @@ function generateAggregateSummary(score: number, recommendation: string, referee
   else scoreSummary = 'below expectations';
 
   const recText = recommendation.replace(/-/g, ' ');
-  
+
   return `Based on ${refereeCount} referee ${refereeCount === 1 ? 'interview' : 'interviews'}, the candidate received ${scoreSummary} feedback with a majority recommendation to ${recText}. Review individual reports and divergent areas for comprehensive assessment.`;
 }

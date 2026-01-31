@@ -23,7 +23,7 @@ interface UseVotingOptions {
   currentUserId: string;
 }
 
-export const useVoting = ({ candidateId, currentUserId }: UseVotingOptions) => {
+export const useVoting = ({ candidateId: _candidateId, currentUserId }: UseVotingOptions) => {
   const [votes, setVotes] = useState<Vote[]>([
     {
       userId: 'user-1',
@@ -74,7 +74,7 @@ export const useVoting = ({ candidateId, currentUserId }: UseVotingOptions) => {
         const decision = decisions[Math.floor(Math.random() * decisions.length)];
 
         const existingVoteIndex = votes.findIndex(v => v.userId === user.id);
-        
+
         if (existingVoteIndex === -1) {
           const newVote: Vote = {
             userId: user.id,
@@ -143,7 +143,7 @@ export const useVoting = ({ candidateId, currentUserId }: UseVotingOptions) => {
     // Determine recommendation
     const positiveVotes = distribution['strong-hire'] + distribution['hire'];
     const negativeVotes = distribution['no-hire'] + distribution['strong-no-hire'];
-    
+
     let recommendation: VoteDecision = 'maybe';
     if (positiveVotes > negativeVotes + 1) {
       recommendation = distribution['strong-hire'] > distribution['hire'] ? 'strong-hire' : 'hire';

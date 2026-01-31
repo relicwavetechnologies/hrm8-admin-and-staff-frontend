@@ -13,7 +13,7 @@ const COMMENTS_KEY = 'hrm8_assessment_comments';
 const RATINGS_KEY = 'hrm8_assessment_ratings';
 const DECISIONS_KEY = 'hrm8_assessment_decisions';
 const ACTIVITIES_KEY = 'hrm8_assessment_activities';
-const COLLABORATORS_KEY = 'hrm8_assessment_collaborators';
+// const COLLABORATORS_KEY = 'hrm8_assessment_collaborators';
 
 // Mock current user
 const CURRENT_USER = {
@@ -158,7 +158,7 @@ export function addAssessmentComment(
 ): AssessmentComment {
   initializeStorage();
   const comments = JSON.parse(localStorage.getItem(COMMENTS_KEY) || '[]');
-  
+
   const newComment: AssessmentComment = {
     id: `comment-${Date.now()}`,
     assessmentId,
@@ -172,13 +172,13 @@ export function addAssessmentComment(
     updatedAt: new Date().toISOString(),
     isEdited: false,
   };
-  
+
   comments.push(newComment);
   localStorage.setItem(COMMENTS_KEY, JSON.stringify(comments));
-  
+
   // Log activity
   logActivity(assessmentId, 'commented', `Added a comment`);
-  
+
   return newComment;
 }
 
@@ -186,7 +186,7 @@ export function updateAssessmentComment(commentId: string, content: string): voi
   initializeStorage();
   const comments = JSON.parse(localStorage.getItem(COMMENTS_KEY) || '[]');
   const index = comments.findIndex((c: AssessmentComment) => c.id === commentId);
-  
+
   if (index >= 0) {
     comments[index].content = content;
     comments[index].updatedAt = new Date().toISOString();
@@ -217,13 +217,13 @@ export function addAssessmentRating(
 ): AssessmentRating {
   initializeStorage();
   const ratings = JSON.parse(localStorage.getItem(RATINGS_KEY) || '[]');
-  
+
   // Remove existing rating for same user and category
   const filtered = ratings.filter(
     (r: AssessmentRating) =>
       !(r.assessmentId === assessmentId && r.userId === CURRENT_USER.id && r.category === category)
   );
-  
+
   const newRating: AssessmentRating = {
     id: `rating-${Date.now()}`,
     assessmentId,
@@ -236,13 +236,13 @@ export function addAssessmentRating(
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
-  
+
   filtered.push(newRating);
   localStorage.setItem(RATINGS_KEY, JSON.stringify(filtered));
-  
+
   // Log activity
   logActivity(assessmentId, 'rated', `Rated ${category}: ${score}/5`);
-  
+
   return newRating;
 }
 
@@ -260,13 +260,13 @@ export function addAssessmentDecision(
 ): AssessmentDecision {
   initializeStorage();
   const decisions = JSON.parse(localStorage.getItem(DECISIONS_KEY) || '[]');
-  
+
   // Remove existing decision for same user
   const filtered = decisions.filter(
     (d: AssessmentDecision) =>
       !(d.assessmentId === assessmentId && d.userId === CURRENT_USER.id)
   );
-  
+
   const newDecision: AssessmentDecision = {
     id: `decision-${Date.now()}`,
     assessmentId,
@@ -278,13 +278,13 @@ export function addAssessmentDecision(
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
-  
+
   filtered.push(newDecision);
   localStorage.setItem(DECISIONS_KEY, JSON.stringify(filtered));
-  
+
   // Log activity
   logActivity(assessmentId, 'decided', `Decision: ${decision}`);
-  
+
   return newDecision;
 }
 
@@ -295,7 +295,7 @@ function logActivity(
   details: string
 ): void {
   const activities = JSON.parse(localStorage.getItem(ACTIVITIES_KEY) || '[]');
-  
+
   const newActivity: CollaboratorActivity = {
     id: `activity-${Date.now()}`,
     assessmentId,
@@ -305,7 +305,7 @@ function logActivity(
     details,
     timestamp: new Date().toISOString(),
   };
-  
+
   activities.push(newActivity);
   localStorage.setItem(ACTIVITIES_KEY, JSON.stringify(activities));
 }
@@ -315,7 +315,7 @@ export function getAssessmentActivities(assessmentId: string): CollaboratorActiv
   const activities = JSON.parse(localStorage.getItem(ACTIVITIES_KEY) || '[]');
   return activities
     .filter((a: CollaboratorActivity) => a.assessmentId === assessmentId)
-    .sort((a: CollaboratorActivity, b: CollaboratorActivity) => 
+    .sort((a: CollaboratorActivity, b: CollaboratorActivity) =>
       new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
 }
@@ -326,7 +326,7 @@ export function getCollaborationSummary(assessmentId: string): CollaborationSumm
   const ratings = getAssessmentRatings(assessmentId);
   const decisions = getAssessmentDecisions(assessmentId);
   const activities = getAssessmentActivities(assessmentId);
-  
+
   // Calculate average ratings by category
   const categories: RatingCategory[] = [
     'technical-skills',
@@ -335,7 +335,7 @@ export function getCollaborationSummary(assessmentId: string): CollaborationSumm
     'cultural-fit',
     'overall',
   ];
-  
+
   const averageRatings: Record<RatingCategory, number> = {} as any;
   categories.forEach((category) => {
     const categoryRatings = ratings.filter((r) => r.category === category);
@@ -346,7 +346,7 @@ export function getCollaborationSummary(assessmentId: string): CollaborationSumm
       averageRatings[category] = 0;
     }
   });
-  
+
   // Count decisions
   const decisionCounts = {
     proceed: decisions.filter((d) => d.decision === 'proceed').length,
@@ -354,16 +354,16 @@ export function getCollaborationSummary(assessmentId: string): CollaborationSumm
     maybe: decisions.filter((d) => d.decision === 'maybe').length,
     pending: decisions.filter((d) => d.decision === 'pending').length,
   };
-  
+
   // Get unique collaborators
   const collaboratorMap = new Map<string, AssessmentCollaborator>();
-  
+
   [...comments, ...ratings, ...decisions].forEach((item) => {
     if (!collaboratorMap.has(item.userId)) {
       const userComments = comments.filter((c) => c.userId === item.userId);
       const userRatings = ratings.filter((r) => r.userId === item.userId);
       const userDecisions = decisions.filter((d) => d.userId === item.userId);
-      
+
       collaboratorMap.set(item.userId, {
         userId: item.userId,
         userName: item.userName,
@@ -377,7 +377,7 @@ export function getCollaborationSummary(assessmentId: string): CollaborationSumm
       });
     }
   });
-  
+
   return {
     totalComments: comments.length,
     totalRatings: ratings.length,

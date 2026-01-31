@@ -1,15 +1,9 @@
-/**
- * Job Allocation Page
- * HRM8 Global Admin job allocation management
- */
-
 import { useEffect, useState } from 'react';
 import { jobAllocationService, JobForAllocation } from '@/shared/lib/hrm8/jobAllocationService';
 import { regionService } from '@/shared/lib/hrm8/regionService';
 import { DataTable } from '@/shared/components/tables/DataTable';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { Hrm8PageLayout } from '@/shared/components/layouts/Hrm8PageLayout';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
 import { Label } from '@/shared/components/ui/label';
 import { Input } from '@/shared/components/ui/input';
@@ -18,7 +12,6 @@ import { Badge } from '@/shared/components/ui/badge';
 import { TableSkeleton } from '@/shared/components/tables/TableSkeleton';
 import { toast } from 'sonner';
 import { Briefcase, Users, Filter, X } from 'lucide-react';
-
 import { useDebounce } from '@/shared/hooks/use-debounce';
 
 export default function JobAllocationPage() {
@@ -68,13 +61,7 @@ export default function JobAllocationPage() {
       } = {};
 
       if (regionFilter && regionFilter !== 'all') filters.regionId = regionFilter;
-      // Only generic search supported for company name via main search
       if (debouncedCompany) {
-        // If strictly need company filter, it assumes ID currently. 
-        // If typed text, we might want to use it as search or ignore. 
-        // For now, let's treat it as ID or exact match if backend supported it, 
-        // but backend expects UUID. Let's skip sending it if not UUID-like to avoid 500s?
-        // Or just let it fail/return empty. 
         filters.companyId = debouncedCompany;
       }
       filters.assignmentStatus = assignmentStatusFilter;
@@ -119,9 +106,6 @@ export default function JobAllocationPage() {
   };
 
   const hasActiveFilters = (regionFilter && regionFilter !== 'all') || companyFilter || industryFilter || searchTerm;
-
-  // Client side search removed as backend handles it
-  const filteredJobs = jobs;
 
   const columns = [
     {
@@ -200,11 +184,13 @@ export default function JobAllocationPage() {
   ];
 
   return (
-    <Hrm8PageLayout
-      title="Job Allocation"
-      subtitle="Manage open jobs and assign the best consultant"
-    >
+    
       <div className="p-6 space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Job Allocation</h1>
+          <p className="text-muted-foreground">Manage open jobs and assign the best consultant</p>
+        </div>
+
         {/* Filters */}
         <Card>
           <CardHeader>
@@ -290,7 +276,7 @@ export default function JobAllocationPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Briefcase className="h-5 w-5" />
-              Open Jobs ({filteredJobs.length})
+              Open Jobs ({jobs.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -298,7 +284,7 @@ export default function JobAllocationPage() {
               <TableSkeleton columns={8} />
             ) : (
               <DataTable
-                data={filteredJobs}
+                data={jobs}
                 columns={columns}
                 searchable={false}
                 emptyMessage="No unassigned jobs found"
@@ -317,6 +303,6 @@ export default function JobAllocationPage() {
           />
         )}
       </div>
-    </Hrm8PageLayout>
+    
   );
 }

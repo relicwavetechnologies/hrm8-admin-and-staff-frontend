@@ -95,7 +95,7 @@ export function UnifiedSidebar({ config, auth }: UnifiedSidebarProps) {
             <img src={iconMark} alt="HRM8" className="h-8 w-8 opacity-100" />
           )}
         </NavLink>
-        {isExpanded && auth.user && (
+        {isExpanded && !!auth.user && (
           <p className="text-xs text-muted-foreground mt-2 px-2">
             {userSubtitle || userName}
           </p>

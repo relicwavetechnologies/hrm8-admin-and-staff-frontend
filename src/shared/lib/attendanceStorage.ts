@@ -27,7 +27,8 @@ export function saveAttendanceRecord(record: Omit<AttendanceRecord, 'id' | 'crea
   const records = getAttendanceRecords();
   const newRecord: AttendanceRecord = {
     ...record,
-    
+
+    id: `att-${Date.now()}`,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -40,7 +41,7 @@ export function updateAttendanceRecord(id: string, updates: Partial<AttendanceRe
   const records = getAttendanceRecords();
   const index = records.findIndex(r => r.id === id);
   if (index === -1) return null;
-  
+
   records[index] = {
     ...records[index],
     ...updates,
@@ -60,7 +61,8 @@ export function saveOvertimeRequest(request: Omit<OvertimeRequest, 'id' | 'reque
   const requests = getOvertimeRequests();
   const newRequest: OvertimeRequest = {
     ...request,
-    
+
+    id: `req-${Date.now()}`,
     requestedAt: new Date().toISOString(),
   };
   requests.push(newRequest);
@@ -72,7 +74,7 @@ export function updateOvertimeRequest(id: string, updates: Partial<OvertimeReque
   const requests = getOvertimeRequests();
   const index = requests.findIndex(r => r.id === id);
   if (index === -1) return null;
-  
+
   requests[index] = { ...requests[index], ...updates };
   localStorage.setItem(OVERTIME_KEY, JSON.stringify(requests));
   return requests[index];

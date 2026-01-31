@@ -1,4 +1,4 @@
-import type { Employer, Job, Candidate, Consultant, Department, Location } from '@/shared/types/entities';
+import type { Employer, Job, Consultant, Department, Location } from '@/shared/types/entities';
 
 // Helper functions to generate varied data
 const industries = ['Technology', 'Finance', 'Healthcare', 'Retail', 'Education', 'Manufacturing', 'Media', 'Construction', 'Consulting', 'Legal', 'Transportation', 'Energy', 'Pharmaceuticals', 'Real Estate', 'Telecommunications'];
@@ -40,7 +40,7 @@ const createLocations = (locationNames: string[], companyId: number): Location[]
     const parts = name.split(',').map(p => p.trim());
     const city = parts[1] || parts[0];
     const state = parts[2] || '';
-    
+
     return {
       id: `loc-${companyId}-${idx}`,
       name: name,
@@ -69,7 +69,7 @@ export const mockEmployers: Employer[] = Array.from({ length: 60 }, (_, i) => {
   const baseLocation = locations[i % locations.length];
   const deptNames = commonDepartments[i % commonDepartments.length];
   const locationNames = [baseLocation, `${baseLocation} - Downtown`, `${baseLocation} - Tech Hub`];
-  
+
   // Assign subscription tiers to different employers
   let subscriptionTier: 'ats-lite' | 'payg' | 'small' | 'medium' | 'large' | 'enterprise' = 'ats-lite';
   let accountType: 'approved' | 'payg' = 'payg';
@@ -84,7 +84,7 @@ export const mockEmployers: Employer[] = Array.from({ length: 60 }, (_, i) => {
   let hrmsEmployeeCount = 0;
   let enabledAddons: string[] = [];
   let salesStage: 'lead' | 'prospect' | 'trial' | 'customer' | 'at-risk' | 'churned' = 'customer';
-  
+
   if (i % 5 === 0) {
     // ATS Lite tier
     subscriptionTier = 'ats-lite';
@@ -140,15 +140,15 @@ export const mockEmployers: Employer[] = Array.from({ length: 60 }, (_, i) => {
     currentUsers = Math.floor(Math.random() * 8) + 1;
     salesStage = i % 3 === 0 ? 'prospect' : 'customer';
   }
-  
+
   const totalJobsPosted = currentOpenJobs + Math.floor(Math.random() * 50);
   const createdDate = new Date(2023, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1);
   const totalCandidates = Math.floor(Math.random() * 500) + 50;
   const totalEmployees = hrmsEnabled ? hrmsEmployeeCount : 0;
   const tags = ['tech', 'healthcare', 'finance', 'retail', 'manufacturing'].filter(() => Math.random() > 0.7);
-  const leadSources: Array<'website' | 'referral' | 'cold-outreach' | 'event' | 'partner' | 'other'> = 
+  const leadSources: Array<'website' | 'referral' | 'cold-outreach' | 'event' | 'partner' | 'other'> =
     ['website', 'referral', 'cold-outreach', 'event', 'partner', 'other'];
-  
+
   return {
     id: `${i + 1}`,
     name: companyNames[i],
@@ -170,7 +170,7 @@ export const mockEmployers: Employer[] = Array.from({ length: 60 }, (_, i) => {
     billingCycle: i % 3 === 0 ? 'annual' : 'monthly',
     paymentStatus: i % 15 === 0 ? 'past_due' : 'current',
     trialEndsAt: salesStage === 'trial' ? new Date(2024, 11, 31) : undefined,
-    
+
     // Module Configuration
     modules: {
       atsEnabled,
@@ -178,12 +178,12 @@ export const mockEmployers: Employer[] = Array.from({ length: 60 }, (_, i) => {
       hrmsEmployeeCount: hrmsEnabled ? hrmsEmployeeCount : undefined,
       enabledAddons
     },
-    
+
     maxOpenJobs,
     currentOpenJobs,
     maxUsers,
     currentUsers,
-    
+
     // Usage Metrics
     usage: {
       activeJobs: currentOpenJobs,
@@ -197,7 +197,7 @@ export const mockEmployers: Employer[] = Array.from({ length: 60 }, (_, i) => {
       apiCallsThisMonth: Math.floor(Math.random() * 10000) + 500,
       lastLoginAt: new Date(2024, 11, Math.floor(Math.random() * 5) + 20)
     },
-    
+
     // CRM Fields
     crm: {
       salesStage,
@@ -215,7 +215,7 @@ export const mockEmployers: Employer[] = Array.from({ length: 60 }, (_, i) => {
       lifetimeValue: monthlySubscriptionFee ? monthlySubscriptionFee * Math.floor(Math.random() * 24) + monthlySubscriptionFee * 6 : Math.floor(Math.random() * 15000) + 5000,
       notes: i % 3 === 0 ? 'Great client, very responsive. Interested in HRMS upgrade.' : undefined
     },
-    
+
     activeJobCount: currentOpenJobs,
     userCount: currentUsers,
     totalJobsPosted,
@@ -255,7 +255,7 @@ export const mockJobs: Job[] = Array.from({ length: 60 }, (_, i) => {
   const employer = companyNames[i % companyNames.length];
   const totalApplicants = Math.floor(Math.random() * 100);
   const unread = i % 3 === 0 ? 0 : Math.floor(Math.random() * (totalApplicants * 0.3));
-  
+
   return {
     id: `${i + 1}`,
     title: jobTitles[i % jobTitles.length],
@@ -271,22 +271,22 @@ export const mockJobs: Job[] = Array.from({ length: 60 }, (_, i) => {
   };
 });
 
-const positions = ['Software Engineer', 'Data Analyst', 'Marketing Manager', 'Product Designer', 'Financial Advisor', 'DevOps Engineer', 'HR Specialist', 'Sales Executive', 'Account Manager', 'Business Analyst', 'Content Writer', 'UX Designer', 'Network Engineer', 'Project Coordinator', 'Operations Analyst', 'Customer Support', 'Brand Strategist', 'Quality Engineer', 'Creative Director', 'Systems Administrator'];
+// const positions = ['Software Engineer', 'Data Analyst', 'Marketing Manager', 'Product Designer', 'Financial Advisor', 'DevOps Engineer', 'HR Specialist', 'Sales Executive', 'Account Manager', 'Business Analyst', 'Content Writer', 'UX Designer', 'Network Engineer', 'Project Coordinator', 'Operations Analyst', 'Customer Support', 'Brand Strategist', 'Quality Engineer', 'Creative Director', 'Systems Administrator'];
 
-const skillSets = [
-  ['React', 'TypeScript', 'Node.js', 'AWS', 'GraphQL'],
-  ['Python', 'SQL', 'Tableau', 'Excel', 'PowerBI'],
-  ['SEO', 'Content Strategy', 'Analytics', 'Social Media', 'Brand Management'],
-  ['Figma', 'UI/UX', 'Prototyping', 'Design Systems', 'User Research'],
-  ['Investment Strategy', 'Risk Management', 'Portfolio Analysis', 'Client Relations'],
-  ['Docker', 'Kubernetes', 'CI/CD', 'Terraform', 'AWS'],
-  ['Recruitment', 'Employee Relations', 'HRIS', 'Training', 'Compliance'],
-  ['B2B Sales', 'Negotiation', 'CRM', 'Lead Generation', 'Account Management'],
-  ['Project Management', 'Agile', 'Scrum', 'JIRA', 'Stakeholder Management'],
-  ['JavaScript', 'Vue.js', 'Angular', 'REST APIs', 'MongoDB']
-];
+// const skillSets = [
+//   ['React', 'TypeScript', 'Node.js', 'AWS', 'GraphQL'],
+//   ['Python', 'SQL', 'Tableau', 'Excel', 'PowerBI'],
+//   ['SEO', 'Content Strategy', 'Analytics', 'Social Media', 'Brand Management'],
+//   ['Figma', 'UI/UX', 'Prototyping', 'Design Systems', 'User Research'],
+//   ['Investment Strategy', 'Risk Management', 'Portfolio Analysis', 'Client Relations'],
+//   ['Docker', 'Kubernetes', 'CI/CD', 'Terraform', 'AWS'],
+//   ['Recruitment', 'Employee Relations', 'HRIS', 'Training', 'Compliance'],
+//   ['B2B Sales', 'Negotiation', 'CRM', 'Lead Generation', 'Account Management'],
+//   ['Project Management', 'Agile', 'Scrum', 'JIRA', 'Stakeholder Management'],
+//   ['JavaScript', 'Vue.js', 'Angular', 'REST APIs', 'MongoDB']
+// ];
 
-const candidateStatuses: ('active' | 'placed' | 'inactive')[] = ['active', 'active', 'active', 'placed', 'inactive'];
+// const candidateStatuses: ('active' | 'placed' | 'inactive')[] = ['active', 'active', 'active', 'placed', 'inactive'];
 
 // Re-exporting from the comprehensive mockCandidatesData
 export { mockCandidatesData as mockCandidates } from './mockCandidatesData';

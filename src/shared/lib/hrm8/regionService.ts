@@ -57,11 +57,34 @@ class RegionService {
     ownerType?: 'HRM8' | 'LICENSEE';
     licenseeId?: string;
   }) {
-    return apiClient.post<{ region: Region }>('/api/hrm8/regions', data);
+    // Transform camelCase to snake_case for API
+    const apiData = {
+      name: data.name,
+      code: data.code,
+      country: data.country,
+      state_province: data.stateProvince,
+      city: data.city,
+      boundaries: data.boundaries,
+      owner_type: data.ownerType,
+      licensee_id: data.licenseeId,
+    };
+    return apiClient.post<{ region: Region }>('/api/hrm8/regions', apiData);
   }
 
   async update(id: string, data: Partial<Region>) {
-    return apiClient.put<{ region: Region }>(`/api/hrm8/regions/${id}`, data);
+    // Transform camelCase to snake_case for API
+    const apiData: Record<string, any> = {};
+    if (data.name !== undefined) apiData.name = data.name;
+    if (data.code !== undefined) apiData.code = data.code;
+    if (data.country !== undefined) apiData.country = data.country;
+    if (data.stateProvince !== undefined) apiData.state_province = data.stateProvince;
+    if (data.city !== undefined) apiData.city = data.city;
+    if (data.boundaries !== undefined) apiData.boundaries = data.boundaries;
+    if (data.ownerType !== undefined) apiData.owner_type = data.ownerType;
+    if (data.licenseeId !== undefined) apiData.licensee_id = data.licenseeId;
+    if (data.isActive !== undefined) apiData.is_active = data.isActive;
+
+    return apiClient.put<{ region: Region }>(`/api/hrm8/regions/${id}`, apiData);
   }
 
   async delete(id: string) {

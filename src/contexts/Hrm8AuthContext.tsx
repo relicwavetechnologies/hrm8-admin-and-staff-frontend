@@ -3,10 +3,11 @@
  * Manages HRM8 Global Admin and Regional Licensee authentication state
  */
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { hrm8AuthService } from '@/shared/lib/hrm8AuthService';
 import { useToast } from '@/shared/hooks/use-toast';
+import { useAuth } from '@/shared/contexts/AuthContext';
 
 export interface Hrm8User {
   id: string;
@@ -133,10 +134,18 @@ export function Hrm8AuthProvider({ children }: { children: ReactNode }) {
 }
 
 export function useHrm8Auth() {
-  const context = useContext(Hrm8AuthContext);
-  if (context === undefined) {
-    throw new Error('useHrm8Auth must be used within a Hrm8AuthProvider');
-  }
-  return context;
+  const { user, userType, isLoading, isAuthenticated, login, logout, refreshUser } = useAuth();
+
+  return {
+    hrm8User: userType === 'ADMIN' ? (user?.rawUser as Hrm8User) : null,
+    isLoading,
+    isAuthenticated: isAuthenticated && userType === 'ADMIN',
+    login: async (email: string, password: string) => {
+      const res = await login(email, password, 'ADMIN');
+      return { success: res.success, error: res.error };
+    },
+    logout,
+    refreshHrm8User: refreshUser,
+  };
 }
 

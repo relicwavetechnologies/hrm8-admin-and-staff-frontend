@@ -1,21 +1,19 @@
 import { v4 as uuidv4 } from 'uuid';
 import type { AIInterviewSession, InterviewStatus, InterviewMode, QuestionSource } from '@/shared/types/aiInterview';
-import type { InterviewReport, ReportComment, ReportVersion } from '@/shared/types/aiInterviewReport';
+import type { ReportVersion, ReportComment } from '@/shared/types/aiInterviewReport';
 import { getCandidates } from '@/shared/lib/mockCandidateStorage';
 import { getJobs } from '@/shared/lib/mockJobStorage';
-import { 
-  saveAIInterviewSession, 
-  getAIInterviewSessions,
-  updateAIInterviewSession 
+import {
+  saveAIInterviewSession,
+  updateAIInterviewSession
 } from './aiInterviewStorage';
 import {
   saveInterviewReport,
-  getInterviewReports,
   saveReportComment,
   saveReportVersion
 } from './aiInterviewReportStorage';
 import { generateQuestionsForJob } from './questionGenerator';
-import { calculateInterviewScore } from './scoreCalculator';
+// import { calculateInterviewScore } from './scoreCalculator';
 import { generateReportFromSession } from './reportGenerator';
 
 const INIT_VERSION_KEY = 'hrm8_ai_interview_init_version';
@@ -168,23 +166,23 @@ function generateAnalysis(score: number) {
   else if (score >= 55) recommendation = 'maybe';
   else recommendation = 'not-recommend';
 
-  const strengths = score >= 70 
+  const strengths = score >= 70
     ? ['Strong technical skills', 'Excellent communication', 'Good problem-solving approach', 'Relevant experience']
     : score >= 55
-    ? ['Shows potential', 'Basic understanding of concepts', 'Willing to learn']
-    : ['Enthusiasm for the role'];
+      ? ['Shows potential', 'Basic understanding of concepts', 'Willing to learn']
+      : ['Enthusiasm for the role'];
 
   const concerns = score >= 70
     ? ['Could provide more leadership examples', 'Limited experience with distributed systems']
     : score >= 55
-    ? ['Needs more hands-on experience', 'Communication could be more detailed', 'Technical depth could improve']
-    : ['Lacks required technical experience', 'Unclear communication', 'Insufficient problem-solving examples'];
+      ? ['Needs more hands-on experience', 'Communication could be more detailed', 'Technical depth could improve']
+      : ['Lacks required technical experience', 'Unclear communication', 'Insufficient problem-solving examples'];
 
   const redFlags = score < 50
     ? ['Insufficient technical knowledge for role', 'Unable to provide concrete examples']
     : score < 65
-    ? ['Limited practical experience']
-    : [];
+      ? ['Limited practical experience']
+      : [];
 
   return {
     overallScore: score,
@@ -210,10 +208,10 @@ function generateAnalysis(score: number) {
     summary: score >= 80
       ? 'Excellent candidate with strong technical skills and clear communication. Highly recommended for next round.'
       : score >= 70
-      ? 'Solid candidate with good technical foundation. Recommend proceeding to next stage.'
-      : score >= 55
-      ? 'Candidate shows potential but needs more experience. Consider for junior positions or with additional training.'
-      : 'Candidate does not meet the requirements for this position at this time.'
+        ? 'Solid candidate with good technical foundation. Recommend proceeding to next stage.'
+        : score >= 55
+          ? 'Candidate shows potential but needs more experience. Consider for junior positions or with additional training.'
+          : 'Candidate does not meet the requirements for this position at this time.'
   };
 }
 
@@ -223,7 +221,7 @@ function generateAnalysis(score: number) {
 function generateMockSessions(): AIInterviewSession[] {
   const candidates = getCandidates();
   const jobs = getJobs();
-  
+
   if (candidates.length === 0 || jobs.length === 0) {
     console.warn('No candidates or jobs found. Using fallback data.');
     return generateFallbackSessions();
@@ -246,9 +244,9 @@ function generateMockSessions(): AIInterviewSession[] {
 
     const daysAgo = i < 5 ? i : i < 10 ? Math.floor(Math.random() * 30) : Math.floor(Math.random() * 60) + 30;
     const scheduledDate = new Date(Date.now() - daysAgo * 86400000);
-    
+
     const questions = generateQuestionsForJob(job.title, 8);
-    
+
     const session: AIInterviewSession = {
       id: `ai-int-${uuidv4()}`,
       candidateId: candidate.id,
@@ -275,7 +273,7 @@ function generateMockSessions(): AIInterviewSession[] {
       const startedAt = new Date(scheduledDate.getTime() + 3600000);
       session.startedAt = startedAt.toISOString();
       session.currentQuestionIndex = status === 'completed' ? questions.length : Math.floor(questions.length / 2);
-      
+
       if (status === 'completed') {
         const completedAt = new Date(startedAt.getTime() + 3600000);
         session.completedAt = completedAt.toISOString();
@@ -302,7 +300,7 @@ function generateFallbackSessions(): AIInterviewSession[] {
     { id: 'cand-2', name: 'Michael Chen', email: 'michael.c@email.com' },
     { id: 'cand-3', name: 'Emily Rodriguez', email: 'emily.r@email.com' }
   ];
-  
+
   const mockJobs = [
     { id: 'job-1', title: 'Senior Software Engineer' },
     { id: 'job-2', title: 'Product Manager' },
@@ -405,11 +403,11 @@ export function initializeAIInterviewMockData(): void {
   // Generate reports for completed sessions
   let reportCount = 0;
   let commentCount = 0;
-  
+
   sessions.forEach(session => {
     if (session.status === 'completed' && session.analysis) {
       const report = generateReportFromSession(session);
-      
+
       // Some reports are finalized
       if (Math.random() > 0.5) {
         report.status = 'finalized';
@@ -418,7 +416,7 @@ export function initializeAIInterviewMockData(): void {
       } else if (Math.random() > 0.5) {
         report.status = 'in-review';
       }
-      
+
       saveInterviewReport(report);
       reportCount++;
 
@@ -443,7 +441,7 @@ export function initializeAIInterviewMockData(): void {
   });
 
   console.log(`Generated ${reportCount} reports with ${commentCount} comments`);
-  
+
   markAsInitialized();
   console.log('AI Interview mock data initialization complete');
 }

@@ -68,13 +68,13 @@ export function getEscalationRules(): EscalationRule[] {
 export function saveEscalationRule(rule: EscalationRule): void {
   const rules = getEscalationRules();
   const index = rules.findIndex(r => r.id === rule.id);
-  
+
   if (index !== -1) {
     rules[index] = { ...rule, updatedAt: new Date().toISOString() };
   } else {
     rules.push(rule);
   }
-  
+
   localStorage.setItem(RULES_KEY, JSON.stringify(rules));
 }
 
@@ -98,10 +98,10 @@ export function getCheckEscalations(checkId: string): EscalationEvent[] {
   return getEscalationEvents().filter(e => e.checkId === checkId);
 }
 
-export function acknowledgeEscalation(eventId: string, userId: string, userName: string): void {
+export function acknowledgeEscalation(eventId: string, userId: string, _userName: string): void {
   const events = getEscalationEvents();
   const index = events.findIndex(e => e.id === eventId);
-  
+
   if (index !== -1) {
     events[index].acknowledged = true;
     events[index].acknowledgedBy = userId;
@@ -110,10 +110,10 @@ export function acknowledgeEscalation(eventId: string, userId: string, userName:
   }
 }
 
-export function resolveEscalation(eventId: string, userId: string, userName: string, notes?: string): void {
+export function resolveEscalation(eventId: string, userId: string, _userName: string, notes?: string): void {
   const events = getEscalationEvents();
   const index = events.findIndex(e => e.id === eventId);
-  
+
   if (index !== -1) {
     events[index].resolved = true;
     events[index].resolvedBy = userId;
@@ -127,26 +127,26 @@ export function processEscalations(): void {
   const rules = getEscalationRules().filter(r => r.enabled);
   const checks = getBackgroundChecks();
   const now = new Date();
-  
+
   rules.forEach(rule => {
     const eligibleChecks = checks.filter(check => {
       if (check.status !== rule.status) return false;
-      
+
       const statusDate = new Date(check.initiatedDate);
       const daysPending = Math.floor((now.getTime() - statusDate.getTime()) / (1000 * 60 * 60 * 24));
-      
+
       if (daysPending < rule.daysThreshold) return false;
-      
+
       // Check if already escalated recently
       const recentEscalations = getCheckEscalations(check.id).filter(e => {
         const escalatedDate = new Date(e.escalatedAt);
         const hoursSince = (now.getTime() - escalatedDate.getTime()) / (1000 * 60 * 60);
         return hoursSince < 24; // Don't escalate more than once per day
       });
-      
+
       return recentEscalations.length === 0;
     });
-    
+
     eligibleChecks.forEach(check => {
       triggerEscalation(rule, check);
     });
@@ -157,7 +157,7 @@ function triggerEscalation(rule: EscalationRule, check: BackgroundCheck): void {
   const now = new Date();
   const statusDate = new Date(check.initiatedDate);
   const daysPending = Math.floor((now.getTime() - statusDate.getTime()) / (1000 * 60 * 60 * 24));
-  
+
   const event: EscalationEvent = {
     id: `esc-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     ruleId: rule.id,
@@ -171,9 +171,9 @@ function triggerEscalation(rule: EscalationRule, check: BackgroundCheck): void {
     acknowledged: false,
     resolved: false,
   };
-  
+
   saveEscalationEvent(event);
-  
+
   // Send notifications to escalation targets
   rule.escalateTo.forEach(userId => {
     createNotification({
@@ -194,7 +194,7 @@ function triggerEscalation(rule: EscalationRule, check: BackgroundCheck): void {
       }
     });
   });
-  
+
   // Notify original initiator if configured
   if (rule.notifyOriginalInitiator) {
     createNotification({
@@ -224,7 +224,7 @@ export function getEscalationStats() {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     return date >= thirtyDaysAgo;
   });
-  
+
   return {
     totalEscalations: events.length,
     escalationsLast30Days: last30Days.length,
@@ -236,12 +236,12 @@ export function getEscalationStats() {
 
 function calculateAverageResolutionTime(resolvedEvents: EscalationEvent[]): number {
   if (resolvedEvents.length === 0) return 0;
-  
+
   const totalHours = resolvedEvents.reduce((sum, event) => {
     const escalated = new Date(event.escalatedAt).getTime();
     const resolved = new Date(event.resolvedAt!).getTime();
     return sum + (resolved - escalated) / (1000 * 60 * 60);
   }, 0);
-  
+
   return Math.round(totalHours / resolvedEvents.length);
 }

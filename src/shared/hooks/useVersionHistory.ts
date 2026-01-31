@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 
 export interface DocumentVersion {
   id: string;
@@ -20,8 +20,8 @@ interface UseVersionHistoryOptions {
 }
 
 export const useVersionHistory = ({
-  documentId,
-  currentContent,
+  documentId: _documentId,
+  currentContent: _currentContent,
 }: UseVersionHistoryOptions) => {
   const [versions, setVersions] = useState<DocumentVersion[]>([
     {
@@ -81,7 +81,7 @@ export const useVersionHistory = ({
   const compareVersions = useCallback((version1Id: string, version2Id: string) => {
     const v1 = versions.find(v => v.id === version1Id);
     const v2 = versions.find(v => v.id === version2Id);
-    
+
     if (!v1 || !v2) return null;
 
     return {

@@ -27,15 +27,15 @@ interface UseCollaborativeEditorOptions {
 }
 
 export const useCollaborativeEditor = ({
-  documentId,
+  documentId: _documentId,
   currentUserId,
-  currentUserName,
+  currentUserName: _currentUserName,
   onContentChange,
 }: UseCollaborativeEditorOptions) => {
   const [content, setContent] = useState('');
   const [activeUsers, setActiveUsers] = useState<CollaborativeUser[]>([]);
   const [cursors, setCursors] = useState<EditorCursor[]>([]);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const userColors = [
     '#3b82f6', // blue

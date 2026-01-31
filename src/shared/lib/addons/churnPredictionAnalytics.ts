@@ -16,7 +16,7 @@ const getRiskLevel = (probability: number): ChurnRiskLevel => {
   return 'low';
 };
 
-const generateInterventions = (riskLevel: ChurnRiskLevel, probability: number): InterventionStrategy[] => {
+const generateInterventions = (riskLevel: ChurnRiskLevel, _probability: number): InterventionStrategy[] => {
   const baseInterventions: InterventionStrategy[] = [
     {
       id: 'int-1',
@@ -150,7 +150,7 @@ export const getChurnPredictions = (): ChurnPrediction[] => {
         npsScore: Math.floor(Math.random() * 30) + 20
       },
       interventions: generateInterventions(riskLevel, churnProbability),
-      predictedChurnDate: churnProbability > 60 
+      predictedChurnDate: churnProbability > 60
         ? format(addDays(new Date(), daysUntilRenewal + Math.floor(Math.random() * 30)), 'yyyy-MM-dd')
         : undefined,
       confidenceScore: Math.round(75 + Math.random() * 20),
@@ -164,7 +164,7 @@ export const getChurnPredictions = (): ChurnPrediction[] => {
 export const getChurnMetrics = (): ChurnMetrics => {
   const predictions = getChurnPredictions();
   const atRisk = predictions.filter(p => p.riskLevel === 'high' || p.riskLevel === 'critical');
-  
+
   return {
     totalAtRisk: atRisk.length,
     criticalRisk: predictions.filter(p => p.riskLevel === 'critical').length,
@@ -192,7 +192,7 @@ export const getChurnTrendData = () => {
   });
 };
 
-export const getEngagementTrendData = (customerId: string) => {
+export const getEngagementTrendData = (_customerId: string) => {
   const weeks = 12;
   return Array.from({ length: weeks }, (_, i) => {
     const date = subDays(new Date(), (weeks - i - 1) * 7);

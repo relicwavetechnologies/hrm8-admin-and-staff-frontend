@@ -22,7 +22,7 @@ export function exportAnalyticsReport(
   let yPos = 20;
 
   // Helper function to add page header
-  const addHeader = (title: string) => {
+  const addHeader = (_title: string) => {
     pdf.setFontSize(10);
     pdf.setTextColor(100, 100, 100);
     pdf.text(`Background Checks Analytics Report | ${dateRange}`, pageWidth / 2, 10, { align: 'center' });
@@ -52,15 +52,15 @@ export function exportAnalyticsReport(
   // Cover Page
   pdf.setFillColor(59, 130, 246);
   pdf.rect(0, 0, pageWidth, 80, 'F');
-  
+
   pdf.setTextColor(255, 255, 255);
   pdf.setFontSize(28);
   pdf.text('Background Checks', pageWidth / 2, 35, { align: 'center' });
   pdf.text('Analytics Report', pageWidth / 2, 50, { align: 'center' });
-  
+
   pdf.setFontSize(14);
   pdf.text(dateRange, pageWidth / 2, 65, { align: 'center' });
-  
+
   pdf.setTextColor(100, 100, 100);
   pdf.setFontSize(10);
   pdf.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, 100, { align: 'center' });
@@ -69,7 +69,7 @@ export function exportAnalyticsReport(
   pdf.addPage();
   yPos = 20;
   addHeader('Executive Summary');
-  
+
   pdf.setFontSize(18);
   pdf.setTextColor(0, 0, 0);
   pdf.text('Executive Summary', 15, yPos);
@@ -83,10 +83,10 @@ export function exportAnalyticsReport(
 
   pdf.setFontSize(10);
   pdf.setTextColor(0, 0, 0);
-  
-      const efficiencyColor = predictiveData.efficiency >= 80 ? [34, 197, 94] as [number, number, number] : 
-                          predictiveData.efficiency >= 60 ? [234, 179, 8] as [number, number, number] : [239, 68, 68] as [number, number, number];
-  
+
+  const efficiencyColor = predictiveData.efficiency >= 80 ? [34, 197, 94] as [number, number, number] :
+    predictiveData.efficiency >= 60 ? [234, 179, 8] as [number, number, number] : [239, 68, 68] as [number, number, number];
+
   pdf.setFillColor(...efficiencyColor);
   pdf.roundedRect(15, yPos, 50, 15, 2, 2, 'F');
   pdf.setTextColor(255, 255, 255);
@@ -94,7 +94,7 @@ export function exportAnalyticsReport(
   pdf.text(`${predictiveData.efficiency}%`, 40, yPos + 10, { align: 'center' });
   pdf.setFontSize(8);
   pdf.text('Efficiency Score', 40, yPos + 14, { align: 'center' });
-  
+
   pdf.setTextColor(0, 0, 0);
   pdf.setFontSize(10);
   pdf.text(`Predicted Completion Time: ${predictiveData.predictedCompletionTime} days`, 70, yPos + 8);
@@ -122,7 +122,7 @@ export function exportAnalyticsReport(
   pdf.addPage();
   yPos = 20;
   addHeader('Trends Analysis');
-  
+
   pdf.setFontSize(16);
   pdf.setTextColor(0, 0, 0);
   pdf.text('Volume & Completion Trends', 15, yPos);
@@ -151,7 +151,7 @@ export function exportAnalyticsReport(
 
   // Check Type Comparison
   checkNewPage(80);
-  
+
   pdf.setFontSize(16);
   pdf.setTextColor(0, 0, 0);
   pdf.text('Check Type Performance', 15, yPos);
@@ -182,7 +182,7 @@ export function exportAnalyticsReport(
   pdf.addPage();
   yPos = 20;
   addHeader('Recruiter Performance');
-  
+
   pdf.setFontSize(16);
   pdf.setTextColor(0, 0, 0);
   pdf.text('Individual Recruiter Metrics', 15, yPos);
@@ -212,38 +212,38 @@ export function exportAnalyticsReport(
   // Bottleneck Analysis
   if (bottleneckData.length > 0) {
     checkNewPage(100);
-    
+
     pdf.setFontSize(16);
     pdf.setTextColor(0, 0, 0);
     pdf.text('Bottleneck Analysis', 15, yPos);
     yPos += 10;
 
-    bottleneckData.forEach((bottleneck, index) => {
+    bottleneckData.forEach((bottleneck, _index) => {
       checkNewPage(35);
-      
+
       const severityColors: Record<string, [number, number, number]> = {
         high: [239, 68, 68],
         medium: [234, 179, 8],
         low: [34, 197, 94]
       };
-      
+
       const color = severityColors[bottleneck.severity] || [200, 200, 200] as [number, number, number];
       pdf.setFillColor(...color);
       pdf.roundedRect(15, yPos, 5, 5, 1, 1, 'F');
-      
+
       pdf.setFontSize(11);
       pdf.setTextColor(0, 0, 0);
       pdf.text(bottleneck.stage, 22, yPos + 4);
-      
+
       pdf.setFontSize(9);
       pdf.setTextColor(100, 100, 100);
       pdf.text(`Avg. Duration: ${bottleneck.avgDuration} days | Checks Affected: ${bottleneck.checksAffected}`, 22, yPos + 9);
-      
+
       pdf.setFontSize(9);
       pdf.setTextColor(0, 0, 0);
       const splitRec = pdf.splitTextToSize(bottleneck.recommendation, pageWidth - 40);
       pdf.text(splitRec, 22, yPos + 14);
-      
+
       yPos += 30;
     });
 

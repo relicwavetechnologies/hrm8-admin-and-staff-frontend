@@ -1,16 +1,10 @@
-/**
- * Regional Licensees Management Page
- * HRM8 Global Admin licensee management
- */
-
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/shared/contexts/AuthContext';
+import { useHrm8Auth } from '@/contexts/Hrm8AuthContext';
 import { licenseeService, RegionalLicensee } from '@/shared/lib/hrm8/licenseeService';
 import { DataTable } from '@/shared/components/tables/DataTable';
 import { Button } from '@/shared/components/ui/button';
 import { Plus, Edit, Trash2, Ban, ShieldAlert, CheckCircle, History, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { Hrm8PageLayout } from '@/shared/components/layouts/Hrm8PageLayout';
 import { toast } from 'sonner';
 import { FormDrawer } from '@/shared/components/ui/form-drawer';
 import { LicenseeForm } from '@/shared/components/hrm8/LicenseeForm';
@@ -48,6 +42,7 @@ const columns = [
         SUSPENDED: 'bg-amber-100 text-amber-800 border-amber-200',
         TERMINATED: 'bg-red-100 text-red-800 border-red-200',
       };
+      // @ts-ignore
       return (
         <Badge variant="outline" className={statusColors[licensee.status]}>
           {licensee.status}
@@ -63,7 +58,7 @@ const columns = [
 ];
 
 export default function LicenseesPage() {
-  const { user } = useAuth();
+  const { hrm8User } = useHrm8Auth();
   const [licensees, setLicensees] = useState<RegionalLicensee[]>([]);
   const [loading, setLoading] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -82,7 +77,7 @@ export default function LicenseesPage() {
   } | null>(null);
   const [loadingImpact, setLoadingImpact] = useState(false);
 
-  const isGlobalAdmin = user?.role === 'GLOBAL_ADMIN';
+  const isGlobalAdmin = hrm8User?.role === 'GLOBAL_ADMIN';
 
   useEffect(() => {
     loadLicensees();
@@ -231,27 +226,28 @@ export default function LicenseesPage() {
 
   if (!isGlobalAdmin) {
     return (
-      <Hrm8PageLayout
-        title="Regional Licensees"
-        subtitle="Global Admin access required"
-      >
-        <div className="p-6" />
-      </Hrm8PageLayout>
+      
+        <div className="p-6">
+          <h1 className="text-2xl font-bold tracking-tight">Regional Licensees</h1>
+          <p className="text-muted-foreground">Global Admin access required</p>
+        </div>
+      
     );
   }
 
   return (
-    <Hrm8PageLayout
-      title="Regional Licensees"
-      subtitle="Manage regional licensees"
-      actions={
-        <Button onClick={handleCreate}>
-          <Plus className="mr-2 h-4 w-4" />
-          Create Licensee
-        </Button>
-      }
-    >
+    
       <div className="p-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Regional Licensees</h1>
+            <p className="text-muted-foreground">Manage regional licensees</p>
+          </div>
+          <Button onClick={handleCreate}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create Licensee
+          </Button>
+        </div>
 
         <Card>
           <CardHeader>
@@ -375,6 +371,6 @@ export default function LicenseesPage() {
           entityName={historyLicensee?.name || ''}
         />
       </div>
-    </Hrm8PageLayout>
+    
   );
 }

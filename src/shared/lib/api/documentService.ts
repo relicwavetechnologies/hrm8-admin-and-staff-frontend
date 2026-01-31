@@ -3,7 +3,7 @@
  * Handles document parsing and job extraction API calls
  */
 
-import { apiClient } from '../api';
+// import { apiClient } from '../api';
 
 export interface ExtractedJobData {
   title?: string;

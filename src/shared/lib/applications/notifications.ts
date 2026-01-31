@@ -25,7 +25,7 @@ const NOTIFICATIONS_KEY = 'review_notifications';
 const FOLLOWERS_KEY = 'application_followers';
 
 // Notifications
-export function getNotifications(userId: string): ReviewNotification[] {
+export function getNotifications(_userId: string): ReviewNotification[] {
   const notifications = JSON.parse(localStorage.getItem(NOTIFICATIONS_KEY) || '[]');
   return notifications;
 }
@@ -43,7 +43,7 @@ export function markAsRead(notificationId: string): void {
   localStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(updated));
 }
 
-export function markAllAsRead(userId: string): void {
+export function markAllAsRead(_userId: string): void {
   const notifications = JSON.parse(localStorage.getItem(NOTIFICATIONS_KEY) || '[]');
   const updated = notifications.map((n: ReviewNotification) => ({ ...n, isRead: true }));
   localStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(updated));
@@ -71,12 +71,12 @@ export function followApplication(
   options: { emailNotifications?: boolean; inAppNotifications?: boolean } = {}
 ): void {
   const followers = JSON.parse(localStorage.getItem(FOLLOWERS_KEY) || '[]');
-  
+
   // Remove existing follow if any
   const filtered = followers.filter(
     (f: ApplicationFollower) => !(f.userId === userId && f.applicationId === applicationId)
   );
-  
+
   filtered.push({
     userId,
     applicationId,
@@ -84,7 +84,7 @@ export function followApplication(
     emailNotifications: options.emailNotifications ?? true,
     inAppNotifications: options.inAppNotifications ?? true,
   });
-  
+
   localStorage.setItem(FOLLOWERS_KEY, JSON.stringify(filtered));
 }
 
@@ -132,7 +132,7 @@ export function notifyReviewAdded(
   reviewerAvatar?: string
 ): void {
   const followers = getFollowers(applicationId);
-  
+
   followers.forEach((follower) => {
     if (follower.userId !== reviewerId && follower.inAppNotifications) {
       createNotification({
@@ -146,7 +146,7 @@ export function notifyReviewAdded(
         content: `${reviewerName} added a review`,
         link: `/applications/${applicationId}`,
       });
-      
+
       // Mock email sending - would be replaced with actual edge function call
       if (follower.emailNotifications) {
         console.log(`[Mock Email] Sending review notification to user ${follower.userId}`);
@@ -165,7 +165,7 @@ export function notifyVoteAdded(
   voterAvatar?: string
 ): void {
   const followers = getFollowers(applicationId);
-  
+
   followers.forEach((follower) => {
     if (follower.userId !== voterId && follower.inAppNotifications) {
       createNotification({
@@ -179,7 +179,7 @@ export function notifyVoteAdded(
         content: `${voterName} voted to ${decision}`,
         link: `/applications/${applicationId}`,
       });
-      
+
       if (follower.emailNotifications) {
         console.log(`[Mock Email] Sending vote notification to user ${follower.userId}`);
       }
@@ -198,7 +198,7 @@ export function notifyCommentAdded(
   commenterAvatar?: string
 ): void {
   const followers = getFollowers(applicationId);
-  
+
   followers.forEach((follower) => {
     if (follower.userId !== commenterId && follower.inAppNotifications) {
       createNotification({
@@ -212,7 +212,7 @@ export function notifyCommentAdded(
         content: `${commenterName} ${isReply ? 'replied' : 'commented'}: ${commentPreview.substring(0, 50)}...`,
         link: `/applications/${applicationId}`,
       });
-      
+
       if (follower.emailNotifications) {
         console.log(`[Mock Email] Sending comment notification to user ${follower.userId}`);
       }

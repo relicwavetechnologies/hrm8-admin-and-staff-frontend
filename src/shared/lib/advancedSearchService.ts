@@ -24,7 +24,7 @@ export function performFuzzySearch<T>(
   if (query.minScore !== undefined) {
     filtered = filtered.filter((_, index) => {
       const score = results[index].score;
-      return score !== undefined && score <= (1 - query.minScore / 100);
+      return score !== undefined && score <= (1 - query.minScore! / 100);
     });
   }
 
@@ -33,7 +33,7 @@ export function performFuzzySearch<T>(
 
 export function highlightMatches(text: string, query: string): string {
   if (!query.trim()) return text;
-  
+
   const regex = new RegExp(`(${query})`, 'gi');
   return text.replace(regex, '<mark>$1</mark>');
 }

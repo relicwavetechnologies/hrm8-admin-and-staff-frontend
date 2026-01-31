@@ -40,7 +40,7 @@ export function createBackgroundCheckNotification(
   recipientUserId: string = 'user-1' // Default mock user, should be actual recruiter ID
 ): Notification {
   const notificationConfig = getNotificationConfig(event, context);
-  
+
   return createNotification({
     userId: recipientUserId,
     category: 'document', // Background checks fall under document category
@@ -53,8 +53,6 @@ export function createBackgroundCheckNotification(
     archived: false,
     actionType: notificationConfig.actionType,
     metadata: {
-      checkId: context.checkId,
-      candidateName: context.candidateName,
       event,
       ...context,
     },

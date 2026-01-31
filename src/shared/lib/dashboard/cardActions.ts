@@ -1,8 +1,8 @@
-import { 
-  Eye, Plus, Filter, Download, Settings, RefreshCw, 
-  Users, Briefcase, FileText, UserCheck, Building2, 
+import {
+  Eye, Plus, Filter, Download, Settings,
+  Users, Briefcase, FileText, UserCheck, Building2,
   DollarSign, Calendar, FolderKanban, UserCircle,
-  TrendingUp, BarChart3, Mail, Phone, Target
+  TrendingUp, BarChart3, Mail, Target
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 

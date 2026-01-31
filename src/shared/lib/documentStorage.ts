@@ -24,7 +24,7 @@ export function saveDocument(document: Omit<Document, 'id' | 'createdAt' | 'upda
   const documents = getDocuments();
   const newDocument: Document = {
     ...document,
-    
+    id: `doc-${Date.now()}`,
     viewCount: 0,
     downloadCount: 0,
     createdAt: new Date().toISOString(),
@@ -39,7 +39,7 @@ export function updateDocument(id: string, updates: Partial<Document>): Document
   const documents = getDocuments();
   const index = documents.findIndex(d => d.id === id);
   if (index === -1) return null;
-  
+
   documents[index] = {
     ...documents[index],
     ...updates,
@@ -59,7 +59,7 @@ export function saveFolder(folder: Omit<DocumentFolder, 'id' | 'createdAt'>): Do
   const folders = getFolders();
   const newFolder: DocumentFolder = {
     ...folder,
-    
+    id: `folder-${Date.now()}`,
     createdAt: new Date().toISOString(),
   };
   folders.push(newFolder);
@@ -81,7 +81,7 @@ export function calculateDocumentStats(): DocumentStats {
   return {
     totalDocuments: documents.length,
     activeDocuments: documents.filter(d => d.status === 'active').length,
-    expiringDocuments: documents.filter(d => 
+    expiringDocuments: documents.filter(d =>
       d.expiryDate && new Date(d.expiryDate) <= thirtyDaysFromNow && new Date(d.expiryDate) > now
     ).length,
     totalStorage: documents.reduce((sum, d) => sum + d.fileSize, 0),

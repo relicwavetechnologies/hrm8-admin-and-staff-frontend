@@ -24,7 +24,7 @@ export function saveExpense(expense: Omit<Expense, 'id' | 'createdAt' | 'updated
   const expenses = getExpenses();
   const newExpense: Expense = {
     ...expense,
-    
+    id: `exp-${Date.now()}`,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -37,7 +37,7 @@ export function updateExpense(id: string, updates: Partial<Expense>): Expense | 
   const expenses = getExpenses();
   const index = expenses.findIndex(e => e.id === id);
   if (index === -1) return null;
-  
+
   expenses[index] = {
     ...expenses[index],
     ...updates,
@@ -56,7 +56,7 @@ export function saveExpenseReport(report: Omit<ExpenseReport, 'id'>): ExpenseRep
   const reports = getExpenseReports();
   const newReport: ExpenseReport = {
     ...report,
-    
+    id: `rpt-${Date.now()}`,
   };
   reports.push(newReport);
   localStorage.setItem(REPORTS_KEY, JSON.stringify(reports));
@@ -71,7 +71,7 @@ export function getExpensePolicies(): ExpensePolicy[] {
 
 export function calculateExpenseStats(): ExpenseStats {
   const expenses = getExpenses();
-  
+
   return {
     totalExpenses: expenses.length,
     pendingAmount: expenses.filter(e => e.status === 'submitted').reduce((sum, e) => sum + e.amount, 0),

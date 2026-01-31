@@ -1,4 +1,4 @@
-import type { Commission, CommissionStructure, CommissionTier } from '@/shared/types/commission';
+import type { CommissionStructure, CommissionTier } from '@/shared/types/commission';
 
 export interface CommissionCalculationInput {
   baseAmount: number;
@@ -28,13 +28,13 @@ export function calculateCommission(
   switch (structure) {
     case 'percentage':
       return calculatePercentageCommission(baseAmount, rate || 0);
-    
+
     case 'flat':
       return calculateFlatCommission(baseAmount, rate || 0);
-    
+
     case 'tiered':
       return calculateTieredCommission(baseAmount, tiers || []);
-    
+
     case 'custom':
       if (customLogic) {
         const commissionAmount = customLogic(baseAmount);
@@ -46,7 +46,7 @@ export function calculateCommission(
       }
       // Fall back to percentage if no custom logic
       return calculatePercentageCommission(baseAmount, rate || 0);
-    
+
     default:
       return {
         baseAmount,
@@ -61,7 +61,7 @@ function calculatePercentageCommission(
   rate: number
 ): CommissionCalculationResult {
   const commissionAmount = (amount * rate) / 100;
-  
+
   return {
     baseAmount: amount,
     commissionRate: rate,
@@ -94,7 +94,7 @@ function calculateTieredCommission(
 
   // Sort tiers by 'from' amount
   const sortedTiers = [...tiers].sort((a, b) => a.from - b.from);
-  
+
   let remainingAmount = amount;
   let totalCommission = 0;
   const breakdown: CommissionCalculationResult['breakdown'] = [];
@@ -104,7 +104,7 @@ function calculateTieredCommission(
 
     const tierStart = tier.from;
     const tierEnd = tier.to || Infinity;
-    
+
     // Amount that falls in this tier
     const amountInTier = Math.min(
       remainingAmount,
@@ -117,7 +117,7 @@ function calculateTieredCommission(
       const totalTierCommission = tierCommission + tierBonus;
 
       totalCommission += totalTierCommission;
-      
+
       breakdown.push({
         tier: tier.to ? `$${tierStart.toLocaleString()} - $${tierEnd.toLocaleString()}` : `$${tierStart.toLocaleString()}+`,
         amount: amountInTier,
@@ -139,7 +139,7 @@ function calculateTieredCommission(
 
 export function estimateCommission(
   placementFee: number,
-  consultantId: string,
+  _consultantId: string,
   structure: CommissionStructure = 'percentage',
   rate: number = 15
 ): number {
@@ -148,7 +148,7 @@ export function estimateCommission(
     structure,
     rate,
   });
-  
+
   return result.commissionAmount;
 }
 
@@ -158,7 +158,7 @@ export function splitCommission(
 ): { consultantId: string; amount: number }[] {
   // Ensure splits add up to 100%
   const totalPercentage = consultants.reduce((sum, c) => sum + c.splitPercentage, 0);
-  
+
   if (totalPercentage !== 100) {
     throw new Error('Commission split percentages must add up to 100%');
   }

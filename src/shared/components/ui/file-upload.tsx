@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Upload, X, FileIcon, Loader2 } from 'lucide-react';
+import { Upload, X, FileIcon } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/components/ui/button';
 
@@ -28,7 +28,7 @@ export function FileUpload({
 
   const validateFiles = (files: File[]): boolean => {
     setError('');
-    
+
     if (files.length > maxFiles) {
       setError(`Maximum ${maxFiles} files allowed`);
       return false;

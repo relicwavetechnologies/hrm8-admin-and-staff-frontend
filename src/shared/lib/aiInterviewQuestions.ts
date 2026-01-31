@@ -28,14 +28,14 @@ export interface QuestionGenerationConfig {
  */
 export function generateAIInterviewQuestions(config: QuestionGenerationConfig): AIInterviewQuestion[] {
   const {
-    candidateName,
+    candidateName: _candidateName,
     candidateSkills,
     candidateExperience,
     jobTitle,
     jobRequirements = [],
-    jobLevel = 'mid',
+    jobLevel: _jobLevel = 'mid',
     companyName,
-    focusAreas = [],
+    focusAreas: _focusAreas = [],
     questionCount = 8
   } = config;
 
@@ -159,12 +159,12 @@ export function generateQuestionsFromApplication(
     .filter(a => a.question.toLowerCase().includes('skill'))
     .flatMap(a => Array.isArray(a.answer) ? a.answer : [a.answer])
     .filter(Boolean);
-  
+
   // Extract experience info
   const experienceAnswers = application.customAnswers.find(
     a => a.question.toLowerCase().includes('experience') || a.question.toLowerCase().includes('years')
   );
-  
+
   const candidateSkills = skillAnswers.length > 0 ? skillAnswers : ['Leadership', 'Communication', 'Problem Solving'];
   const candidateExperience = experienceAnswers?.answer as string || undefined;
 

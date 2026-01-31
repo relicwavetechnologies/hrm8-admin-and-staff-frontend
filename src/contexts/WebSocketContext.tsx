@@ -50,7 +50,6 @@ const RECONNECT_CONFIG = {
 export function WebSocketProvider({
   children,
   isAuthenticated,
-  userEmail,
 }: WebSocketProviderProps) {
   const [connectionState, setConnectionState] =
     useState<ConnectionState>('disconnected');

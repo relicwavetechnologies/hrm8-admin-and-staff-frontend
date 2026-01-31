@@ -18,10 +18,10 @@ export function getConsultantCapacity(consultantId: string): ConsultantCapacityI
   if (!consultant) return null;
 
   const capacityPercentage = (consultant.currentEmployers / consultant.maxEmployers) * 100;
-  
+
   let status: ConsultantCapacityInfo['status'];
   let statusColor: ConsultantCapacityInfo['statusColor'];
-  
+
   if (capacityPercentage >= 95) {
     status = 'at-capacity';
     statusColor = 'red';
@@ -36,7 +36,7 @@ export function getConsultantCapacity(consultantId: string): ConsultantCapacityI
   return {
     id: consultant.id,
     name: `${consultant.firstName} ${consultant.lastName}`,
-    title: consultant.title,
+    title: consultant.title || 'Consultant',
     avatar: consultant.photo,
     specialization: consultant.specialization,
     currentLoad: consultant.currentEmployers,

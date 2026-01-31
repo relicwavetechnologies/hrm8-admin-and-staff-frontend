@@ -9,6 +9,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAuth } from '@/shared/contexts/AuthContext';
 import { UserType } from '@/shared/services/authService';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
@@ -27,7 +29,29 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
-    const { login } = useAuth();
+    const { login, isAuthenticated, userType } = useAuth();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (isAuthenticated && userType) {
+            switch (userType) {
+                case 'ADMIN':
+                    navigate('/hrm8/dashboard');
+                    break;
+                case 'CONSULTANT':
+                    navigate('/consultant/dashboard');
+                    break;
+                case 'SALES_AGENT':
+                    navigate('/sales-agent/dashboard');
+                    break;
+                case 'CONSULTANT360':
+                    navigate('/consultant360/dashboard');
+                    break;
+                default:
+                    navigate('/hrm8/dashboard');
+            }
+        }
+    }, [isAuthenticated, userType, navigate]);
 
     const {
         register,

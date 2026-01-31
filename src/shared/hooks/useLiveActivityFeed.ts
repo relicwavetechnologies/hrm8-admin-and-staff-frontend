@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-export type ActivityAction = 
+export type ActivityAction =
   | 'viewed'
   | 'commented'
   | 'rated'
@@ -117,45 +117,45 @@ export const useLiveActivityFeed = ({
           getDescription: (user: string) => string;
           getMetadata?: () => any;
         }> = [
-          {
-            action: 'viewed',
-            getDescription: (user) => `viewed the candidate profile`,
-          },
-          {
-            action: 'commented',
-            getDescription: (user) => `added a comment`,
-          },
-          {
-            action: 'rated',
-            getDescription: (user) => {
-              const rating = (Math.random() * 2 + 3).toFixed(1);
-              return `rated the candidate ${rating}/5`;
+            {
+              action: 'viewed',
+              getDescription: (_user) => `viewed the candidate profile`,
             },
-            getMetadata: () => ({ rating: parseFloat((Math.random() * 2 + 3).toFixed(1)) }),
-          },
-          {
-            action: 'status_changed',
-            getDescription: (user) => `moved candidate to Final Round`,
-            getMetadata: () => ({ oldStatus: 'Technical Interview', newStatus: 'Final Round' }),
-          },
-          {
-            action: 'decision_made',
-            getDescription: (user) => `recommended to proceed with offer`,
-            getMetadata: () => ({ decision: 'proceed' }),
-          },
-          {
-            action: 'interview_scheduled',
-            getDescription: (user) => `scheduled a technical interview`,
-          },
-          {
-            action: 'note_added',
-            getDescription: (user) => `added interview notes`,
-          },
-          {
-            action: 'document_uploaded',
-            getDescription: (user) => `uploaded a document`,
-          },
-        ];
+            {
+              action: 'commented',
+              getDescription: (_user) => `added a comment`,
+            },
+            {
+              action: 'rated',
+              getDescription: (_user) => {
+                const rating = (Math.random() * 2 + 3).toFixed(1);
+                return `rated the candidate ${rating}/5`;
+              },
+              getMetadata: () => ({ rating: parseFloat((Math.random() * 2 + 3).toFixed(1)) }),
+            },
+            {
+              action: 'status_changed',
+              getDescription: (_user) => `moved candidate to Final Round`,
+              getMetadata: () => ({ oldStatus: 'Technical Interview', newStatus: 'Final Round' }),
+            },
+            {
+              action: 'decision_made',
+              getDescription: (_user) => `recommended to proceed with offer`,
+              getMetadata: () => ({ decision: 'proceed' }),
+            },
+            {
+              action: 'interview_scheduled',
+              getDescription: (_user) => `scheduled a technical interview`,
+            },
+            {
+              action: 'note_added',
+              getDescription: (_user) => `added interview notes`,
+            },
+            {
+              action: 'document_uploaded',
+              getDescription: (_user) => `uploaded a document`,
+            },
+          ];
 
         const user = users[Math.floor(Math.random() * users.length)];
         const candidate = candidates[Math.floor(Math.random() * candidates.length)];

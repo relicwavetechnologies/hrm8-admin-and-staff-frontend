@@ -3,13 +3,13 @@ import { Separator } from "@/shared/components/ui/separator";
 import { Input } from "@/shared/components/ui/input";
 import { Search, Command } from "lucide-react";
 import { ConsultantUserNav } from "./ConsultantUserNav";
-import { NotificationsDropdown } from "./NotificationsDropdown";
+import { NotificationBell } from "@/shared/components/notifications/NotificationBell";
 import { TooltipProvider } from "@/shared/components/ui/tooltip";
 import { Breadcrumbs } from "@/shared/components/common/Breadcrumbs";
 import { Badge } from "@/shared/components/ui/badge";
 import { ThemeToggle } from "@/shared/components/common/ThemeToggle";
 import { ReactNode } from "react";
-import { useAuth } from "@/shared/contexts/AuthContext";
+import { useConsultantAuth } from "@/contexts/ConsultantAuthContext";
 import { Button } from "@/shared/components/ui/button";
 import { ArrowRightLeft } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -19,9 +19,9 @@ interface ConsultantHeaderProps {
 }
 
 function PortalSwitchButton() {
-  const { user } = useAuth();
+  const { consultant } = useConsultantAuth();
 
-  if (user?.role !== 'CONSULTANT_360') {
+  if (consultant?.role !== 'CONSULTANT_360') {
     return null;
   }
 
@@ -80,7 +80,7 @@ export function ConsultantHeader({ breadcrumbActions }: ConsultantHeaderProps = 
             {/* Portal Switch Button for 360 Consultants */}
             <PortalSwitchButton />
             <ThemeToggle />
-            <NotificationsDropdown />
+            <NotificationBell />
             <ConsultantUserNav />
           </div>
         </div>

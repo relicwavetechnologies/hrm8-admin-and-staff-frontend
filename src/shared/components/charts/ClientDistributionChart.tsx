@@ -21,7 +21,7 @@ const COLORS = [
 
 export function ClientDistributionChart() {
   const { toast } = useToast();
-  
+
   return (
     <StandardChartCard
       title="Client Distribution"
@@ -29,9 +29,9 @@ export function ClientDistributionChart() {
       showDatePicker={false}
       onDownload={() => toast({ title: "Downloading client data..." })}
       menuItems={[
-        { label: "View All Clients", icon: <Eye className="h-4 w-4" />, onClick: () => {} },
-        { label: "Filter by Industry", icon: <Filter className="h-4 w-4" />, onClick: () => {} },
-        { label: "Export", icon: <Download className="h-4 w-4" />, onClick: () => {} }
+        { label: "View All Clients", icon: <Eye className="h-4 w-4" />, onClick: () => { } },
+        { label: "Filter by Industry", icon: <Filter className="h-4 w-4" />, onClick: () => { } },
+        { label: "Export", icon: <Download className="h-4 w-4" />, onClick: () => { } }
       ]}
     >
       <ResponsiveContainer width="100%" height={250}>
@@ -46,7 +46,7 @@ export function ClientDistributionChart() {
             fill="hsl(var(--primary))"
             dataKey="value"
           >
-            {data.map((entry, index) => (
+            {data.map((_entry, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>

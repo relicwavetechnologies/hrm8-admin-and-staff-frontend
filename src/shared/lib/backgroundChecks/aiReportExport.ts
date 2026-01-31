@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import type { EditableReport, AITranscriptionSummary } from '@/shared/types/aiReferenceReport';
+import type { EditableReport } from '@/shared/types/aiReferenceReport';
 import type { AIReferenceCheckSession } from '@/shared/types/aiReferenceCheck';
 import { getRecommendationLabel } from './aiSummaryService';
 
@@ -27,7 +27,7 @@ export function exportAIReferencePDF(
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 20;
   const contentWidth = pageWidth - 2 * margin;
-  
+
   let yPos = margin;
   let pageNumber = 1;
 
@@ -81,7 +81,7 @@ export function exportAIReferencePDF(
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(50);
     const lines = doc.splitTextToSize(text, contentWidth - indent);
-    
+
     for (const line of lines) {
       checkNewPage(7);
       doc.text(line, margin + indent, yPos);
@@ -179,7 +179,7 @@ export function exportAIReferencePDF(
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  
+
   const infoData = [
     ['Candidate:', summary.candidateName],
     ['Referee:', summary.refereeInfo.name],
@@ -263,7 +263,7 @@ export function exportAIReferencePDF(
   const scoreAngle = (summary.recommendation.overallScore / 100) * 360;
   doc.setDrawColor(91, 103, 243);
   doc.setLineWidth(3);
-  
+
   // Draw arc for score
   for (let i = 0; i < scoreAngle; i++) {
     const angle = (i - 90) * (Math.PI / 180);
@@ -337,7 +337,7 @@ export function exportAIReferencePDF(
 
   summary.categoryBreakdown.forEach((category) => {
     checkNewPage(35);
-    
+
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(50);
@@ -345,7 +345,7 @@ export function exportAIReferencePDF(
     yPos += 7;
 
     drawScoreBar(category.score, 5, '');
-    
+
     addBodyText(category.summary);
 
     if (category.evidence.length > 0) {
@@ -441,10 +441,10 @@ export function exportAIReferencePDF(
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(50);
-      
+
       const checkbox = item.verified ? '☑' : '☐';
       doc.text(checkbox, margin, yPos);
-      
+
       const claimLines = doc.splitTextToSize(item.claim, contentWidth - 10);
       doc.text(claimLines, margin + 8, yPos);
       yPos += claimLines.length * 6;
@@ -457,7 +457,7 @@ export function exportAIReferencePDF(
         doc.text(noteLines, margin + 8, yPos);
         yPos += noteLines.length * 5;
       }
-      
+
       yPos += 5;
     });
   } else {
@@ -471,7 +471,7 @@ export function exportAIReferencePDF(
   const boxHeight = 45;
   checkNewPage(boxHeight + 10);
   doc.roundedRect(margin, yPos, contentWidth, boxHeight, 3, 3, 'F');
-  
+
   yPos += 8;
   doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
@@ -506,7 +506,7 @@ export function exportAIReferencePDF(
     doc.text(`Total conversation turns: ${session.transcript.turns.length}`, margin, yPos);
     yPos += 10;
 
-    session.transcript.turns.forEach((turn, index) => {
+    session.transcript.turns.forEach((turn, _index) => {
       checkNewPage(20);
 
       const speaker = turn.speaker === 'ai-recruiter' ? 'AI Recruiter' : 'Referee';
@@ -534,7 +534,7 @@ export function exportAIReferencePDF(
   if (includeSignature) {
     checkNewPage(40);
     yPos += 10;
-    
+
     doc.setDrawColor(200);
     doc.line(margin, yPos, margin + 60, yPos);
     yPos += 5;
@@ -542,7 +542,7 @@ export function exportAIReferencePDF(
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(100);
     doc.text('Reviewed By', margin, yPos);
-    
+
     yPos -= 5;
     doc.line(pageWidth - margin - 60, yPos, pageWidth - margin, yPos);
     yPos += 5;

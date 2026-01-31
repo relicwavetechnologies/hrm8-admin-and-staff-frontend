@@ -6,7 +6,7 @@ import {
   DecisionHistoryEntry,
   RatingCriterion,
   CandidateComparison,
-  StructuredComment,
+  // StructuredComment,
 } from '@/shared/types/collaborativeFeedback';
 
 // Storage keys
@@ -160,18 +160,18 @@ export function getCandidateVotes(candidateId: string): HiringVote[] {
 
 export function saveVote(vote: Omit<HiringVote, 'id' | 'votedAt'>): HiringVote {
   const allVotes: HiringVote[] = JSON.parse(localStorage.getItem(VOTES_KEY) || '[]');
-  
+
   // Remove existing vote from same voter for same candidate
   const filteredVotes = allVotes.filter(
     v => !(v.candidateId === vote.candidateId && v.voterId === vote.voterId)
   );
-  
+
   const newVote: HiringVote = {
     ...vote,
     id: Date.now().toString(),
     votedAt: new Date().toISOString(),
   };
-  
+
   filteredVotes.push(newVote);
   localStorage.setItem(VOTES_KEY, JSON.stringify(filteredVotes));
   return newVote;
@@ -200,7 +200,7 @@ export function saveDecision(decision: Omit<DecisionHistoryEntry, 'id' | 'decide
 export function calculateConsensusMetrics(candidateId: string): ConsensusMetrics {
   const feedback = getCandidateFeedback(candidateId);
   const votes = getCandidateVotes(candidateId);
-  
+
   if (feedback.length === 0) {
     return {
       candidateId,
@@ -216,50 +216,50 @@ export function calculateConsensusMetrics(candidateId: string): ConsensusMetrics
       lastUpdated: new Date().toISOString(),
     };
   }
-  
+
   // Calculate average score
   const scores = feedback.map(f => f.overallScore);
   const averageScore = scores.reduce((a, b) => a + b, 0) / scores.length;
-  
+
   // Calculate standard deviation
   const variance = scores.reduce((sum, score) => sum + Math.pow(score - averageScore, 2), 0) / scores.length;
   const scoreStdDev = Math.sqrt(variance);
-  
+
   // Calculate agreement level (inverse of coefficient of variation, normalized to 0-1)
   const agreementLevel = averageScore > 0 ? Math.max(0, 1 - (scoreStdDev / averageScore)) : 0;
-  
+
   // Aggregate criteria ratings
   const criteriaAverages: Record<string, number> = {};
   const criteria = getRatingCriteria();
-  
+
   criteria.forEach(criterion => {
     const ratings = feedback
       .flatMap(f => f.ratings)
       .filter(r => r.criterionId === criterion.id)
       .map(r => typeof r.value === 'number' ? r.value : parseFloat(r.value as string) || 0);
-    
+
     if (ratings.length > 0) {
       criteriaAverages[criterion.id] = ratings.reduce((a, b) => a + b, 0) / ratings.length;
     }
   });
-  
+
   // Recommendation distribution
   const recommendationDistribution: Record<string, number> = {};
   feedback.forEach(f => {
     recommendationDistribution[f.recommendation] = (recommendationDistribution[f.recommendation] || 0) + 1;
   });
-  
+
   // Vote results
   const voteResults = {
     hire: votes.filter(v => v.decision === 'hire').length,
     noHire: votes.filter(v => v.decision === 'no-hire').length,
     abstain: votes.filter(v => v.decision === 'abstain').length,
   };
-  
+
   // Extract top strengths and concerns
   const strengths: Record<string, number> = {};
   const concerns: Record<string, number> = {};
-  
+
   feedback.forEach(f => {
     f.comments.forEach(comment => {
       if (comment.type === 'strength') {
@@ -271,17 +271,17 @@ export function calculateConsensusMetrics(candidateId: string): ConsensusMetrics
       }
     });
   });
-  
+
   const topStrengths = Object.entries(strengths)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
     .map(([key]) => key);
-  
+
   const topConcerns = Object.entries(concerns)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
     .map(([key]) => key);
-  
+
   return {
     candidateId,
     totalFeedbacks: feedback.length,
@@ -304,11 +304,11 @@ export function generateCandidateComparison(candidateIds: string[]): CandidateCo
     const votes = getCandidateVotes(candidateId);
     const decisionHistory = getCandidateDecisionHistory(candidateId);
     const consensusMetrics = calculateConsensusMetrics(candidateId);
-    
+
     // Get candidate info (mock for now)
     const candidateName = `Candidate ${candidateId}`;
     const jobTitle = 'Position';
-    
+
     return {
       candidateId,
       candidateName,

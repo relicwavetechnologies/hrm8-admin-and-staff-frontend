@@ -1,5 +1,5 @@
 import { getBackgroundChecks } from '@/shared/lib/mockBackgroundCheckStorage';
-import { getReferees, getOverdueReferees } from './refereeStorage';
+import { getOverdueReferees } from './refereeStorage';
 import { getConsentRequests } from './consentStorage';
 import type { BackgroundCheck } from '@/shared/types/backgroundCheck';
 
@@ -24,17 +24,17 @@ export interface BackgroundCheckStats {
 
 export function getBackgroundCheckStats(): BackgroundCheckStats {
   const checks = getBackgroundChecks();
-  const referees = getReferees();
+  // const referees = getReferees();
   const consents = getConsentRequests();
-  
+
   const completed = checks.filter(c => c.status === 'completed').length;
   const active = checks.filter(c => ['pending-consent', 'in-progress'].includes(c.status)).length;
   const issuesFound = checks.filter(c => c.status === 'issues-found').length;
   const cancelled = checks.filter(c => c.status === 'cancelled').length;
-  
+
   const completionRate = checks.length > 0 ? (completed / checks.length) * 100 : 0;
   const avgCompletionTime = calculateAvgCompletionTime(checks);
-  
+
   return {
     total: checks.length,
     active,
@@ -58,14 +58,14 @@ export function getBackgroundCheckStats(): BackgroundCheckStats {
 export function calculateAvgCompletionTime(checks: BackgroundCheck[]): number {
   const completedChecks = checks.filter(c => c.completedDate);
   if (completedChecks.length === 0) return 0;
-  
+
   const totalDays = completedChecks.reduce((sum, check) => {
     const initiated = new Date(check.initiatedDate);
     const completed = new Date(check.completedDate!);
     const days = Math.floor((completed.getTime() - initiated.getTime()) / (1000 * 60 * 60 * 24));
     return sum + days;
   }, 0);
-  
+
   return Math.round(totalDays / completedChecks.length);
 }
 
@@ -95,13 +95,13 @@ export function getStatusDistributionData() {
 export function getCheckTypeDistribution() {
   const checks = getBackgroundChecks();
   const typeCounts: Record<string, number> = {};
-  
+
   checks.forEach(check => {
     check.checkTypes.forEach(ct => {
       typeCounts[ct.type] = (typeCounts[ct.type] || 0) + 1;
     });
   });
-  
+
   return Object.entries(typeCounts).map(([type, count]) => ({
     type: formatCheckType(type),
     count,
@@ -112,7 +112,7 @@ export function getCheckTypeDistribution() {
 export function getProviderUsageData() {
   const checks = getBackgroundChecks();
   const providers = ['checkr', 'sterling', 'hireright', 'manual'];
-  
+
   return providers.map(provider => ({
     provider: provider.charAt(0).toUpperCase() + provider.slice(1),
     count: checks.filter(c => c.provider === provider).length,
@@ -155,7 +155,7 @@ export function getRecentActivity() {
     ])
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
     .slice(0, 10);
-  
+
   return activities;
 }
 

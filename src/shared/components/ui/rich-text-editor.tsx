@@ -4,11 +4,11 @@ import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import { useEffect } from 'react';
 import { Button } from './button';
-import { 
-  Bold, 
-  Italic, 
-  Underline as UnderlineIcon, 
-  List, 
+import {
+  Bold,
+  Italic,
+  Underline as UnderlineIcon,
+  List,
   ListOrdered,
   Link as LinkIcon,
   Undo,
@@ -25,10 +25,10 @@ interface RichTextEditorProps {
   toolbarActions?: React.ReactNode;
 }
 
-export function RichTextEditor({ 
-  content, 
-  onChange, 
-  placeholder = 'Start typing...',
+export function RichTextEditor({
+  content,
+  onChange,
+  placeholder: _placeholder = 'Start typing...',
   className,
   editable = true,
   toolbarActions
@@ -56,7 +56,8 @@ export function RichTextEditor({
   // Update editor content when content prop changes
   useEffect(() => {
     if (editor && content !== undefined && editor.getHTML() !== content) {
-      editor.commands.setContent(content, false);
+      // @ts-ignore - Tiptap types mismatch
+      editor.commands.setContent(content, { emitUpdate: false });
     }
   }, [content, editor]);
 

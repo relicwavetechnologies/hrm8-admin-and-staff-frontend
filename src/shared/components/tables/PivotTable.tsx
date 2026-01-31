@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/shared/components/ui/select";
 import { Badge } from "@/shared/components/ui/badge";
-import { X, Settings2, Download, FileSpreadsheet, FileText, Library, BarChart3, Copy, Save, Filter, ArrowUpDown, Layers, Undo, Redo } from "lucide-react";
+import { X, Settings2, Download, FileSpreadsheet, FileText, Library, BarChart3, Copy, Save, Layers, Undo, Redo } from "lucide-react";
 import { useToast } from "@/shared/hooks/use-toast";
 import {
   Table,
@@ -25,7 +25,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
-import { cn } from "@/shared/lib/utils";
+// import { cn } from "@/shared/lib/utils";
 import * as XLSX from "xlsx";
 import { PivotDrillDown } from "./PivotDrillDown";
 import { PivotTemplates } from "./PivotTemplates";
@@ -35,11 +35,11 @@ import { PivotFilters, FilterConfig } from "./PivotFilters";
 import { PivotFormatting, NumberFormat, formatNumber } from "./PivotFormatting";
 import { PivotConfigManager } from "./PivotConfigManager";
 import { PivotFieldDragDrop } from "./PivotFieldDragDrop";
-import { PivotCalculatedFields, CalculatedField, evaluateCalculatedField } from "./PivotCalculatedFields";
-import { PivotGrouping, GroupingConfig, applyGrouping } from "./PivotGrouping";
+import { PivotCalculatedFields, CalculatedField } from "./PivotCalculatedFields";
+import { PivotGrouping, GroupingConfig } from "./PivotGrouping";
 import { PivotComparison, ComparisonConfig } from "./PivotComparison";
 import { calculateAdvancedAggregate, AdvancedAggregateFunction, ADVANCED_AGGREGATION_OPTIONS } from "./PivotAdvancedAggregations";
-import { PivotEnhancedFormatting, ConditionalFormattingRule, evaluateFormattingRule } from "./PivotEnhancedFormatting";
+import { PivotEnhancedFormatting, ConditionalFormattingRule } from "./PivotEnhancedFormatting";
 
 export type PivotAggregateFunction = "sum" | "avg" | "count" | "min" | "max" | AdvancedAggregateFunction;
 
@@ -243,12 +243,12 @@ export function PivotTable<T extends Record<string, any>>({
   const [showConfigManager, setShowConfigManager] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showDragDrop, setShowDragDrop] = useState(false);
-  
+
   // Undo/Redo state
   const [configHistory, setConfigHistory] = useState<PivotConfig[]>([config]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const isUndoRedoAction = useRef(false);
-  
+
   // Auto-save state
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -319,13 +319,13 @@ export function PivotTable<T extends Record<string, any>>({
 
     // Remove any future history if we're not at the end
     const newHistory = configHistory.slice(0, historyIndex + 1);
-    
+
     // Add new config to history
     const updatedHistory = [...newHistory, newConfig];
-    
+
     // Keep history limited to 50 entries
     const limitedHistory = updatedHistory.slice(-50);
-    
+
     setConfigHistory(limitedHistory);
     setHistoryIndex(limitedHistory.length - 1);
     setConfig(newConfig);
@@ -496,8 +496,8 @@ export function PivotTable<T extends Record<string, any>>({
           typeof value === "number"
             ? value
             : valueConfig.aggregation === "count"
-            ? 1
-            : parseFloat(String(value || 0));
+              ? 1
+              : parseFloat(String(value || 0));
 
         if (!isNaN(numValue)) {
           const currentArray = result[rowKey][colKey][key] as number[];
@@ -518,12 +518,14 @@ export function PivotTable<T extends Record<string, any>>({
     if (config.sortConfig && config.sortConfig.length > 0) {
       config.sortConfig.forEach((sortConfig) => {
         const isValueField = sortConfig.field.includes("_");
-        
+
         if (isValueField) {
           // Sort by value column
           sortedRowKeys.sort((a, b) => {
-            const aVal = Number(result[a]?.[sortedColKeys[0]]?.[sortConfig.field]?.[0] || 0);
-            const bVal = Number(result[b]?.[sortedColKeys[0]]?.[sortConfig.field]?.[0] || 0);
+            // @ts-ignore - Assuming array access is valid for these fields
+            const aVal = Number((result[a]?.[sortedColKeys[0]]?.[sortConfig.field] as any)?.[0] || 0);
+            // @ts-ignore - Assuming array access is valid for these fields
+            const bVal = Number((result[b]?.[sortedColKeys[0]]?.[sortConfig.field] as any)?.[0] || 0);
             return sortConfig.direction === "asc" ? aVal - bVal : bVal - aVal;
           });
         } else {
@@ -624,7 +626,7 @@ export function PivotTable<T extends Record<string, any>>({
     if (!pivotData) return;
 
     const rows: string[] = [];
-    
+
     // Header
     const header1 = [
       config.rows.map((r) => {
@@ -665,14 +667,14 @@ export function PivotTable<T extends Record<string, any>>({
   const availableColFields = availableFields.filter(
     (f) => !config.columns.includes(f.key) && !config.rows.includes(f.key)
   );
-  
+
   // Include calculated fields in available value fields
   const calculatedFieldsAsFields = (config.calculatedFields || []).map(cf => ({
     key: cf.id,
     label: cf.name,
     type: "number" as const
   }));
-  
+
   const availableValueFields = [
     ...availableFields.filter((f) => f.type === "number"),
     ...calculatedFieldsAsFields
@@ -682,7 +684,7 @@ export function PivotTable<T extends Record<string, any>>({
     if (!pivotData) return;
 
     const rows: string[][] = [];
-    
+
     // Header row 1 - Column groups
     const header1 = [
       config.rows.map((r) => {
@@ -737,15 +739,15 @@ export function PivotTable<T extends Record<string, any>>({
   const rgbToHex = (rgb: string): string => {
     const match = rgb.match(/rgb\((\d+)\s+(\d+)\s+(\d+)\s*\/\s*([\d.]+)\)/);
     if (!match) return "FFFFFF";
-    
+
     const [, r, g, b, a] = match;
     const opacity = parseFloat(a);
-    
+
     // Blend with white background
     const blendedR = Math.round(parseInt(r) * opacity + 255 * (1 - opacity));
     const blendedG = Math.round(parseInt(g) * opacity + 255 * (1 - opacity));
     const blendedB = Math.round(parseInt(b) * opacity + 255 * (1 - opacity));
-    
+
     return [blendedR, blendedG, blendedB]
       .map((x) => x.toString(16).padStart(2, "0"))
       .join("")
@@ -789,9 +791,9 @@ export function PivotTable<T extends Record<string, any>>({
       const row: any[] = [rowKey];
       pivotData.colKeys.forEach((colKey) => {
         config.values.forEach((value) => {
-            const key = `${value.field}_${value.aggregation}`;
-            const cellValue = Number(pivotData.data[rowKey]?.[colKey]?.[key] || 0);
-            row.push(cellValue);
+          const key = `${value.field}_${value.aggregation}`;
+          const cellValue = Number(pivotData.data[rowKey]?.[colKey]?.[key] || 0);
+          row.push(cellValue);
         });
       });
       worksheetData.push(row);
@@ -800,8 +802,8 @@ export function PivotTable<T extends Record<string, any>>({
     const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
 
     // Apply formatting
-    const range = XLSX.utils.decode_range(worksheet["!ref"] || "A1");
-    
+    // const range = XLSX.utils.decode_range(worksheet["!ref"] || "A1");
+
     // Merge cells for column headers
     const merges: XLSX.Range[] = [];
     if (config.values.length > 1) {
@@ -819,7 +821,7 @@ export function PivotTable<T extends Record<string, any>>({
     // Apply conditional formatting colors
     if (config.conditionalFormatting?.enabled) {
       const dataStartRow = config.values.length > 1 ? 2 : 1;
-      
+
       pivotData.rowKeys.forEach((rowKey, rowIdx) => {
         let colIdx = 1;
         pivotData.colKeys.forEach((colKey) => {
@@ -835,7 +837,7 @@ export function PivotTable<T extends Record<string, any>>({
 
             const cellRef = XLSX.utils.encode_cell({ r: dataStartRow + rowIdx, c: colIdx });
             if (!worksheet[cellRef]) worksheet[cellRef] = { t: "n", v: cellValue };
-            
+
             if (backgroundColor) {
               worksheet[cellRef].s = {
                 fill: {
@@ -844,7 +846,7 @@ export function PivotTable<T extends Record<string, any>>({
                 alignment: { horizontal: "right" },
               };
             }
-            
+
             colIdx++;
           });
         });
@@ -1527,12 +1529,12 @@ export function PivotTable<T extends Record<string, any>>({
                         pivotData.colTotals?.[colKey]?.[key] || 0
                       );
                       return (
-                      <TableCell
-                        key={`col-total-${colKey}-${idx}`}
-                        className="text-right"
-                      >
-                        {formatNumber(cellValue, config.numberFormat!)}
-                      </TableCell>
+                        <TableCell
+                          key={`col-total-${colKey}-${idx}`}
+                          className="text-right"
+                        >
+                          {formatNumber(cellValue, config.numberFormat!)}
+                        </TableCell>
                       );
                     })
                   )}
@@ -1542,12 +1544,12 @@ export function PivotTable<T extends Record<string, any>>({
                       pivotData.grandTotal?.[key] || 0
                     );
                     return (
-                    <TableCell
-                      key={`grand-total-${idx}`}
-                      className="text-right"
-                    >
-                      {formatNumber(cellValue, config.numberFormat!)}
-                    </TableCell>
+                      <TableCell
+                        key={`grand-total-${idx}`}
+                        className="text-right"
+                      >
+                        {formatNumber(cellValue, config.numberFormat!)}
+                      </TableCell>
                     );
                   })}
                 </TableRow>

@@ -67,7 +67,7 @@ export function calculateEmployerMetrics(employer: Employer): EmployerMetrics {
   const daysAsCustomer = Math.floor(
     (new Date().getTime() - new Date(employer.createdAt).getTime()) / (1000 * 60 * 60 * 24)
   );
-  
+
   return {
     totalRevenue: employer.totalSpent || monthlyRevenue * (daysAsCustomer / 30),
     monthlyRevenue,
@@ -115,7 +115,7 @@ export function sortEmployers(
 ): Employer[] {
   const sorted = [...employers].sort((a, b) => {
     let comparison = 0;
-    
+
     switch (sortBy) {
       case 'name':
         comparison = a.name.localeCompare(b.name);
@@ -135,10 +135,10 @@ export function sortEmployers(
         comparison = aDate - bDate;
         break;
     }
-    
+
     return direction === 'asc' ? comparison : -comparison;
   });
-  
+
   return sorted;
 }
 
@@ -147,7 +147,15 @@ export function sortEmployers(
  */
 export function groupEmployers(employers: Employer[], groupBy: 'status' | 'tier' | 'industry') {
   return employers.reduce((groups, employer) => {
-    const key = employer[groupBy];
+    let key: string;
+    if (groupBy === 'tier') {
+      key = employer.subscriptionTier;
+    } else if (groupBy === 'industry') {
+      key = employer.industry;
+    } else {
+      key = employer.status;
+    }
+
     if (!groups[key]) {
       groups[key] = [];
     }
@@ -181,7 +189,7 @@ export function calculateSubscriptionUsage(employer: Employer): {
   const hasUnlimitedJobs = jobsLimit === Infinity;
   const jobsUsed = employer.activeJobCount;
   const usagePercentage = hasUnlimitedJobs ? 0 : (jobsUsed / jobsLimit) * 100;
-  
+
   return {
     jobsUsed,
     jobsLimit: hasUnlimitedJobs ? 0 : jobsLimit,

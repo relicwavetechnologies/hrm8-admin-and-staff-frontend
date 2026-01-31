@@ -128,14 +128,14 @@ export function getPredefinedQuestions(category?: QuestionCategory): InterviewQu
   return Object.values(PREDEFINED_QUESTIONS).flat();
 }
 
-export function generateQuestionsForJob(jobTitle: string, count: number = 10): InterviewQuestion[] {
+export function generateQuestionsForJob(_jobTitle: string, count: number = 10): InterviewQuestion[] {
   const questions: InterviewQuestion[] = [];
   const categories: QuestionCategory[] = ['technical', 'behavioral', 'cultural', 'experience'];
-  
+
   categories.forEach((category, idx) => {
     const categoryQuestions = PREDEFINED_QUESTIONS[category];
     const questionsToAdd = Math.ceil(count / categories.length);
-    
+
     categoryQuestions.slice(0, questionsToAdd).forEach((q, qIdx) => {
       questions.push({
         ...q,
@@ -144,12 +144,12 @@ export function generateQuestionsForJob(jobTitle: string, count: number = 10): I
       });
     });
   });
-  
+
   return questions.slice(0, count);
 }
 
 export function generateQuestionsForCandidate(
-  candidateName: string,
+  _candidateName: string,
   jobTitle: string,
   count: number = 10
 ): InterviewQuestion[] {
@@ -159,6 +159,6 @@ export function generateQuestionsForCandidate(
 export function generateHybridQuestions(jobTitle: string, count: number = 10): InterviewQuestion[] {
   const predefined = getPredefinedQuestions().slice(0, Math.ceil(count / 2));
   const aiGenerated = generateQuestionsForJob(jobTitle, Math.floor(count / 2));
-  
+
   return [...predefined, ...aiGenerated].slice(0, count);
 }

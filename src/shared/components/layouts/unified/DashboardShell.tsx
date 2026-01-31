@@ -15,6 +15,7 @@ import { useNavigationShortcuts } from "@/shared/hooks/useKeyboardShortcuts";
 import { useSidebarState } from "@/shared/hooks/useSidebarState";
 import { WebSocketProvider } from "@/contexts/WebSocketContext";
 import { UnifiedSidebar } from "./UnifiedSidebar";
+import { UnifiedHeader } from "./UnifiedHeader";
 import type { DashboardConfig, AuthAdapter } from "@/shared/types/dashboard";
 
 interface DashboardShellProps {
@@ -34,6 +35,7 @@ export function DashboardShell({ config, auth, children }: DashboardShellProps) 
     <div className="min-h-screen flex w-full">
       <UnifiedSidebar config={config.sidebar} auth={auth} />
       <SidebarInset className="flex-1">
+        <UnifiedHeader />
         <div className="min-w-0">
           <Outlet />
           {children}

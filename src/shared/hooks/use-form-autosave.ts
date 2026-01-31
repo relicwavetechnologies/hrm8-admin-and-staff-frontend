@@ -24,7 +24,7 @@ export function useFormAutosave<TFieldValues extends FieldValues>({
   excludeFields = [],
 }: UseFormAutosaveOptions<TFieldValues>) {
   const notify = useNotification();
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasRestoredRef = useRef(false);
 
   // Save to localStorage
@@ -59,11 +59,11 @@ export function useFormAutosave<TFieldValues extends FieldValues>({
       if (!stored) return null;
 
       const { data, timestamp } = JSON.parse(stored);
-      
+
       // Check if data is stale (older than 24 hours)
       const age = Date.now() - new Date(timestamp).getTime();
       const maxAge = 24 * 60 * 60 * 1000; // 24 hours
-      
+
       if (age > maxAge) {
         localStorage.removeItem(storageKey);
         return null;
@@ -89,7 +89,7 @@ export function useFormAutosave<TFieldValues extends FieldValues>({
   // Restore on mount
   useEffect(() => {
     const restored = restoreFromStorage();
-    
+
     if (restored && restored.data) {
       // Ask user if they want to restore
       const shouldRestore = window.confirm(

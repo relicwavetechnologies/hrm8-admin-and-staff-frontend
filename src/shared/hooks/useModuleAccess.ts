@@ -1,11 +1,10 @@
 import { useMemo } from 'react';
 import { Employer } from '@/shared/types/entities';
-import { 
-  hasModuleAccess, 
-  getAvailableModules, 
+import {
+  hasModuleAccess,
+  getAvailableModules,
   calculateMonthlyCost,
-  type ModuleName,
-  type ModuleConfig 
+  type ModuleName
 } from '@/shared/lib/moduleAccessControl';
 
 interface UseModuleAccessResult {
@@ -32,7 +31,7 @@ export function useModuleAccess(employer: Employer): UseModuleAccessResult {
   );
 
   const hasAccess = useMemo(
-    () => (module: ModuleName) => 
+    () => (module: ModuleName) =>
       hasModuleAccess(employer.subscriptionTier, employer.modules, module),
     [employer.subscriptionTier, employer.modules]
   );

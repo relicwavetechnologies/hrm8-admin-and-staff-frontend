@@ -6,7 +6,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Bell } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
-import { NotificationsDropdown } from '@/shared/components/layouts/NotificationsDropdown';
+import { NotificationDropdown } from './NotificationDropdown';
 import { useUniversalNotifications } from '@/shared/hooks/useUniversalNotifications';
 import { cn } from '@/shared/lib/utils';
 
@@ -80,7 +80,7 @@ export function NotificationBell({ className }: NotificationBellProps) {
             </Button>
 
             {isOpen && (
-                <NotificationsDropdown
+                <NotificationDropdown
                     notifications={notifications}
                     isLoading={isLoading}
                     onMarkAsRead={async (id: string) => {

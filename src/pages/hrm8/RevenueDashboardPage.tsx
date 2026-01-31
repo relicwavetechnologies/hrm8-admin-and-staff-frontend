@@ -1,14 +1,9 @@
-/**
- * Revenue Dashboard Page
- * Global revenue analytics for HRM8 admins
- */
-
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { Loader2, DollarSign, TrendingUp, TrendingDown, Users, Calendar as CalendarIcon, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
-import { revenueAnalyticsService, type DashboardData, type RevenueSummary } from '@/shared/lib/hrm8/revenueAnalyticsService';
+import { revenueAnalyticsService, type DashboardData } from '@/shared/lib/hrm8/revenueAnalyticsService';
 import { format, subMonths } from 'date-fns';
 import { Calendar } from '@/shared/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover';
@@ -30,7 +25,7 @@ import {
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
-export function RevenueDashboardPage() {
+export default function RevenueDashboardPage() {
     const [data, setData] = useState<DashboardData | null>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -82,30 +77,35 @@ export function RevenueDashboardPage() {
 
     if (loading) {
         return (
+
             <div className="flex items-center justify-center h-96">
                 <Loader2 className="h-8 w-8 animate-spin" />
             </div>
+
         );
     }
 
     if (!data) {
         return (
+
             <div className="p-6">
                 <div className="text-center text-muted-foreground">
                     No data available
                 </div>
             </div>
+
         );
     }
 
     const { summary, byRegion, byCommissionType, topConsultants, timeline } = data;
 
     return (
+
         <div className="p-6 space-y-6">
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold">Revenue Dashboard</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">Revenue Dashboard</h1>
                     <p className="text-muted-foreground">
                         Platform-wide revenue analytics and commission tracking
                     </p>
@@ -251,7 +251,7 @@ export function RevenueDashboardPage() {
                                         outerRadius={80}
                                         label={(entry) => `${entry.type}: ${formatPercentage(entry.percentage)}`}
                                     >
-                                        {byCommissionType.map((entry, index) => (
+                                        {byCommissionType.map((_entry, index) => (
                                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                         ))}
                                     </Pie>
@@ -323,5 +323,6 @@ export function RevenueDashboardPage() {
                 </CardContent>
             </Card>
         </div>
+
     );
 }

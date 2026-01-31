@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getAllFeedback, calculateConsensusMetrics } from '@/shared/lib/collaborativeFeedbackService';
+import { getAllFeedback } from '@/shared/lib/collaborativeFeedbackService';
 import { TeamMemberFeedback } from '@/shared/types/collaborativeFeedback';
 
 export interface FeedbackStats {
@@ -30,7 +30,7 @@ export function useFeedbackStats() {
     const loadStats = () => {
       try {
         const allFeedback = getAllFeedback();
-        
+
         // Calculate week stats
         const weekAgo = new Date();
         weekAgo.setDate(weekAgo.getDate() - 7);

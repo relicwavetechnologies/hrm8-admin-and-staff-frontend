@@ -70,7 +70,7 @@ export function updateESSProfile(userId: string, updates: Partial<ESSProfile>): 
   return essProfiles[index];
 }
 
-export function getESSStats(userId: string): ESSStats {
+export function getESSStats(_userId: string): ESSStats {
   // Mock stats - in production, fetch from various modules
   return {
     leaveBalance: 15,
@@ -81,7 +81,7 @@ export function getESSStats(userId: string): ESSStats {
   };
 }
 
-export function getQuickActions(userId: string): QuickAction[] {
+export function getQuickActions(_userId: string): QuickAction[] {
   return [
     {
       id: 'request-leave',

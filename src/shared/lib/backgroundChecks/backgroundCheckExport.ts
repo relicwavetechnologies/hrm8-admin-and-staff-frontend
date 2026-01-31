@@ -232,7 +232,7 @@ export function exportBackgroundCheckPDF(
     yPos = (doc as any).lastAutoTable.finalY + 15;
 
     // Individual Referee Responses
-    referees.forEach((referee, index) => {
+    referees.forEach((referee, _index) => {
       if (referee.response) {
         doc.addPage();
         yPos = 20;
@@ -280,7 +280,7 @@ export function exportBackgroundCheckPDF(
           } else {
             answerText = String(answer.value);
           }
-          
+
           const answerLines = doc.splitTextToSize(answerText, 165);
           doc.text(answerLines, 25, yPos);
           yPos += answerLines.length * 5 + 8;

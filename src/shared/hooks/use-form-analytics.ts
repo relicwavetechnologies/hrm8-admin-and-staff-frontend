@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { UseFormReturn, FieldValues, FieldPath } from 'react-hook-form';
+import { UseFormReturn, FieldValues } from 'react-hook-form';
 
 interface FieldAnalytics {
   fieldName: string;
@@ -96,7 +96,7 @@ export function useFormAnalytics<TFieldValues extends FieldValues>({
       timeSpent: 0,
       interactionCount: 0,
     };
-    
+
     analytics.errorCount += 1;
     analytics.lastError = errorMessage;
     analyticsRef.current.fields[fieldName] = analytics;
@@ -107,18 +107,18 @@ export function useFormAnalytics<TFieldValues extends FieldValues>({
     if (!enabled) return;
 
     analyticsRef.current.submissionAttempts += 1;
-    
+
     if (success) {
       analyticsRef.current.successfulSubmission = true;
       analyticsRef.current.endTime = Date.now();
-      analyticsRef.current.totalTime = 
+      analyticsRef.current.totalTime =
         (analyticsRef.current.endTime - analyticsRef.current.startTime) / 1000;
-      
+
       onSubmitSuccess?.();
-      
+
       // Log analytics (in production, send to analytics service)
       console.log('Form Analytics:', analyticsRef.current);
-      
+
       // Identify problematic fields
       const problematicFields = Object.values(analyticsRef.current.fields)
         .filter((field) => field.errorCount > 2 || field.timeSpent > 30)
@@ -147,7 +147,7 @@ export function useFormAnalytics<TFieldValues extends FieldValues>({
     if (!enabled) return;
 
     const errors = form.formState.errors;
-    
+
     Object.keys(errors).forEach((fieldName) => {
       const error = errors[fieldName as keyof typeof errors];
       if (error?.message) {

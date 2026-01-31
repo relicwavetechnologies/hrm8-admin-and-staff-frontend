@@ -104,7 +104,7 @@ export function FormFileUpload<TFieldValues extends FieldValues = FieldValues>({
     <FormField
       control={form.control}
       name={name}
-      render={({ field }) => (
+      render={() => (
         <FormItem className={className}>
           <FormLabel>
             {label}

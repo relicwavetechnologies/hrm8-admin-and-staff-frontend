@@ -1,4 +1,4 @@
-import React, { useState, KeyboardEvent } from 'react';
+import { useState, KeyboardEvent } from 'react';
 import { UseFormReturn, FieldPath, FieldValues } from 'react-hook-form';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/shared/components/ui/form';
 import { Input } from '@/shared/components/ui/input';
@@ -33,17 +33,17 @@ export function FormMultiSelect<TFieldValues extends FieldValues = FieldValues>(
 }: FormMultiSelectProps<TFieldValues>) {
   const [inputValue, setInputValue] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
-  
-  const values = form.watch(name) || [];
+
+  const values = (form.watch(name) || []) as string[];
 
   const addValue = (value: string) => {
     const trimmedValue = value.trim();
     if (!trimmedValue) return;
-    
+
     if (maxItems && values.length >= maxItems) {
       return;
     }
-    
+
     if (!values.includes(trimmedValue)) {
       form.setValue(name, [...values, trimmedValue] as any, { shouldValidate: true });
       setInputValue('');
@@ -69,8 +69,8 @@ export function FormMultiSelect<TFieldValues extends FieldValues = FieldValues>(
   };
 
   const filteredSuggestions = suggestions.filter(
-    (s) => 
-      !values.includes(s) && 
+    (s) =>
+      !values.includes(s) &&
       s.toLowerCase().includes(inputValue.toLowerCase())
   );
 
@@ -78,7 +78,7 @@ export function FormMultiSelect<TFieldValues extends FieldValues = FieldValues>(
     <FormField
       control={form.control}
       name={name}
-      render={({ field }) => (
+      render={() => (
         <FormItem className={className}>
           <FormLabel>
             {label}
@@ -99,7 +99,7 @@ export function FormMultiSelect<TFieldValues extends FieldValues = FieldValues>(
                   onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                   disabled={disabled || (maxItems ? values.length >= maxItems : false)}
                 />
-                
+
                 {showSuggestions && filteredSuggestions.length > 0 && (
                   <div className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-md max-h-60 overflow-auto">
                     {filteredSuggestions.map((suggestion) => (
@@ -118,7 +118,7 @@ export function FormMultiSelect<TFieldValues extends FieldValues = FieldValues>(
                   </div>
                 )}
               </div>
-              
+
               {values.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {values.map((value: string) => (
@@ -139,7 +139,7 @@ export function FormMultiSelect<TFieldValues extends FieldValues = FieldValues>(
                   ))}
                 </div>
               )}
-              
+
               {maxItems && (
                 <p className="text-xs text-muted-foreground">
                   {values.length} / {maxItems} items

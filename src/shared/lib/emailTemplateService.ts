@@ -252,7 +252,7 @@ export function getTemplateById(id: string): EmailTemplate | null {
 export function createTemplate(
   data: Omit<EmailTemplate, 'id' | 'version' | 'versionHistory' | 'createdAt' | 'updatedAt'>
 ): EmailTemplate {
-  const validated = templateSchema.parse(data);
+  templateSchema.parse(data);
 
   const newTemplate: EmailTemplate = {
     ...data,
@@ -276,7 +276,7 @@ export function updateTemplate(
   if (index === -1) return null;
 
   const current = mockTemplates[index];
-  
+
   // Create version history entry if content changed
   if (updates.subject || updates.body) {
     const versionEntry: TemplateVersion = {

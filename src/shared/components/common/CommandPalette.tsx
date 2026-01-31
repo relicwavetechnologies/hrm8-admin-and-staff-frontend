@@ -20,7 +20,6 @@ import {
   HelpCircle,
   Plus,
   UserPlus,
-  Search,
   Clock,
   Target,
 } from 'lucide-react';

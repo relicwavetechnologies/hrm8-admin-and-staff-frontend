@@ -4,51 +4,13 @@
  */
 
 import { apiClient } from './api';
+import {
+  Application,
+  SubmitApplicationRequest
+} from '@/shared/types/application';
 
-export interface SubmitApplicationRequest {
-  jobId: string;
-  resumeUrl?: string;
-  coverLetterUrl?: string;
-  portfolioUrl?: string;
-  linkedInUrl?: string;
-  websiteUrl?: string;
-  customAnswers?: Array<{
-    questionId: string;
-    answer: string | string[];
-  }>;
-  questionnaireData?: any;
-  tags?: string[];
-}
+export type { Application, SubmitApplicationRequest };
 
-export interface Application {
-  id: string;
-  candidateId: string;
-  jobId: string;
-  status: string;
-  stage: string;
-  appliedDate: string;
-  resumeUrl?: string;
-  coverLetterUrl?: string;
-  portfolioUrl?: string;
-  linkedInUrl?: string;
-  websiteUrl?: string;
-  customAnswers?: any;
-  questionnaireData?: any;
-  isRead: boolean;
-  isNew: boolean;
-  tags: string[];
-  score?: number;
-  rank?: number;
-  shortlisted: boolean;
-  shortlistedAt?: string;
-  shortlistedBy?: string;
-  manuallyAdded: boolean;
-  addedBy?: string;
-  addedAt?: string;
-  recruiterNotes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
 
 class ApplicationService {
   async submitApplication(data: SubmitApplicationRequest) {

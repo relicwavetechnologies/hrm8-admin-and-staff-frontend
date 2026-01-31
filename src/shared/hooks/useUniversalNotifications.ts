@@ -47,7 +47,7 @@ export function useUniversalNotifications(options: UseUniversalNotificationsOpti
     let wsContext: { onMessage?: (type: string, handler: (payload: unknown) => void) => () => void } | null = null;
     try {
         // eslint-disable-next-line react-hooks/rules-of-hooks
-        wsContext = useWebSocket();
+        wsContext = useWebSocket() as any;
     } catch {
         // WebSocket context not available, that's okay
     }

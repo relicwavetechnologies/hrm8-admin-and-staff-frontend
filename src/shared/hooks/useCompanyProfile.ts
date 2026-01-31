@@ -70,14 +70,14 @@ export function useCompanyProfile(): UseCompanyProfileReturn {
       setData((prev) =>
         prev
           ? {
-              ...prev,
-              profile: response.data.profile,
-            }
+            ...prev,
+            profile: response.data!.profile,
+          }
           : {
-              profile: response.data.profile,
-              requiredSections: [],
-              optionalSections: [],
-            }
+            profile: response.data!.profile,
+            requiredSections: [],
+            optionalSections: [],
+          }
       );
       await refreshProfileSummary();
       toast({
@@ -103,14 +103,14 @@ export function useCompanyProfile(): UseCompanyProfileReturn {
       setData((prev) =>
         prev
           ? {
-              ...prev,
-              profile: response.data.profile,
-            }
+            ...prev,
+            profile: response.data!.profile,
+          }
           : {
-              profile: response.data.profile,
-              requiredSections: [],
-              optionalSections: [],
-            }
+            profile: response.data!.profile,
+            requiredSections: [],
+            optionalSections: [],
+          }
       );
       await refreshProfileSummary();
       toast({

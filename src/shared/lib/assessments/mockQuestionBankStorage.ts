@@ -219,13 +219,13 @@ export function getQuestionById(id: string): QuestionBankItem | undefined {
 export function saveQuestion(question: QuestionBankItem): void {
   const questions = getQuestionBankItems();
   const existingIndex = questions.findIndex((q) => q.id === question.id);
-  
+
   if (existingIndex >= 0) {
     questions[existingIndex] = question;
   } else {
     questions.push(question);
   }
-  
+
   localStorage.setItem(QUESTION_BANK_KEY, JSON.stringify(questions));
 }
 
@@ -238,10 +238,10 @@ export function updateQuestion(
 ): void {
   const questions = getQuestionBankItems();
   const index = questions.findIndex((q) => q.id === id);
-  
+
   if (index >= 0) {
     const currentQuestion = questions[index];
-    
+
     // Create version history entry
     const newVersion: QuestionVersion = {
       version: currentQuestion.version,
@@ -251,7 +251,7 @@ export function updateQuestion(
       updatedAt: new Date().toISOString(),
       changeNotes: changeNotes || 'Updated question',
     };
-    
+
     // Update question
     questions[index] = {
       ...currentQuestion,
@@ -260,7 +260,7 @@ export function updateQuestion(
       versionHistory: [...currentQuestion.versionHistory, newVersion],
       updatedAt: new Date().toISOString(),
     };
-    
+
     localStorage.setItem(QUESTION_BANK_KEY, JSON.stringify(questions));
   }
 }
@@ -273,10 +273,10 @@ export function deleteQuestion(id: string): void {
 }
 
 // Track question usage
-export function trackQuestionUsage(id: string, assessmentId: string): void {
+export function trackQuestionUsage(id: string, _assessmentId: string): void {
   const questions = getQuestionBankItems();
   const index = questions.findIndex((q) => q.id === id);
-  
+
   if (index >= 0) {
     questions[index].usageStats.totalUses += 1;
     questions[index].usageStats.lastUsedDate = new Date().toISOString();
@@ -293,31 +293,31 @@ export function filterQuestions(filters: {
   isActive?: boolean;
 }): QuestionBankItem[] {
   let questions = getQuestionBankItems();
-  
+
   if (filters.categories && filters.categories.length > 0) {
     questions = questions.filter((q) =>
       q.category.some((cat) => filters.categories!.includes(cat))
     );
   }
-  
+
   if (filters.difficulty && filters.difficulty.length > 0) {
     questions = questions.filter((q) => filters.difficulty!.includes(q.difficulty));
   }
-  
+
   if (filters.type && filters.type.length > 0) {
     questions = questions.filter((q) => filters.type!.includes(q.type));
   }
-  
+
   if (filters.tags && filters.tags.length > 0) {
     questions = questions.filter((q) =>
       q.tags.some((tag) => filters.tags!.includes(tag))
     );
   }
-  
+
   if (filters.isActive !== undefined) {
     questions = questions.filter((q) => q.isActive === filters.isActive);
   }
-  
+
   return questions;
 }
 
@@ -341,7 +341,7 @@ export function getAllTags(): string[] {
 export function duplicateQuestion(id: string): QuestionBankItem | null {
   const question = getQuestionById(id);
   if (!question) return null;
-  
+
   const duplicate: QuestionBankItem = {
     ...question,
     id: `q-${Date.now()}`,
@@ -363,7 +363,7 @@ export function duplicateQuestion(id: string): QuestionBankItem | null {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
-  
+
   saveQuestion(duplicate);
   return duplicate;
 }
@@ -371,7 +371,7 @@ export function duplicateQuestion(id: string): QuestionBankItem | null {
 // Get question statistics
 export function getQuestionBankStats() {
   const questions = getQuestionBankItems();
-  
+
   return {
     totalQuestions: questions.length,
     activeQuestions: questions.filter((q) => q.isActive).length,

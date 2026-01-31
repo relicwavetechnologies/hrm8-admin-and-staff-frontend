@@ -114,7 +114,7 @@ export function processMonthlyAccruals(): number {
 }
 
 export function calculateEmployeeAccrual(
-  employeeId: string,
+  _employeeId: string,
   policyId: string,
   tenureYears: number
 ): number {

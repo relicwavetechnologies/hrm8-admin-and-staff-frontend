@@ -23,7 +23,7 @@ export function saveBenefitPlan(plan: Omit<BenefitPlan, 'id' | 'createdAt' | 'up
   const plans = getBenefitPlans();
   const newPlan: BenefitPlan = {
     ...plan,
-    
+    id: `plan-${Date.now()}`,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -42,7 +42,7 @@ export function saveBenefitEnrollment(enrollment: Omit<BenefitEnrollment, 'id' |
   const enrollments = getBenefitEnrollments();
   const newEnrollment: BenefitEnrollment = {
     ...enrollment,
-    
+    id: `enroll-${Date.now()}`,
     enrolledAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -55,7 +55,7 @@ export function updateBenefitEnrollment(id: string, updates: Partial<BenefitEnro
   const enrollments = getBenefitEnrollments();
   const index = enrollments.findIndex(e => e.id === id);
   if (index === -1) return null;
-  
+
   enrollments[index] = {
     ...enrollments[index],
     ...updates,
@@ -68,7 +68,7 @@ export function updateBenefitEnrollment(id: string, updates: Partial<BenefitEnro
 export function calculateBenefitsStats(): BenefitsStats {
   const plans = getBenefitPlans();
   const enrollments = getBenefitEnrollments();
-  
+
   const totalPlans = plans.length;
   const totalEnrolled = enrollments.filter(e => e.status === 'enrolled').length;
   const employeeCost = enrollments.reduce((sum, e) => sum + e.employeeCost, 0);

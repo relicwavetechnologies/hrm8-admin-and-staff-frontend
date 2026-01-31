@@ -1,5 +1,5 @@
 import type { AIInterviewSession, TranscriptEntry } from '@/shared/types/aiInterview';
-import type { InterviewReport, ReportComment } from '@/shared/types/aiInterviewReport';
+// import type { InterviewReport, ReportComment } from '@/shared/types/aiInterviewReport';
 import { generateQuestionsForJob } from './questionGenerator';
 
 export function generateMockTranscript(): TranscriptEntry[] {

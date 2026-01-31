@@ -9,6 +9,7 @@ interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
+  code?: string; // Add code for specific error identification
   details?: Record<string, unknown>;
   status?: number;
   headers?: Record<string, string>; // Add headers to response

@@ -162,10 +162,10 @@ export function getCandidateMatches(
   return matches.slice(0, criteria.maxResults);
 }
 
-function calculateSkillsMatch(job: Job, candidate: any): number {
+function calculateSkillsMatch(_job: Job, candidate: any): number {
   // Extract skills from job requirements (simplified)
   const jobSkills = ["React", "TypeScript", "Node.js", "AWS"]; // In real app, parse from job.requirements
-  
+
   const matchingSkills = candidate.skills.filter((skill: string) =>
     jobSkills.some((js) => js.toLowerCase() === skill.toLowerCase())
   );
@@ -175,8 +175,8 @@ function calculateSkillsMatch(job: Job, candidate: any): number {
 
 function calculateExperienceMatch(job: Job, candidate: any): number {
   const requiredYears = job.experienceLevel === "entry" ? 1 :
-                        job.experienceLevel === "mid" ? 3 :
-                        job.experienceLevel === "senior" ? 5 : 8;
+    job.experienceLevel === "mid" ? 3 :
+      job.experienceLevel === "senior" ? 5 : 8;
 
   if (candidate.experienceYears >= requiredYears) {
     return 100;

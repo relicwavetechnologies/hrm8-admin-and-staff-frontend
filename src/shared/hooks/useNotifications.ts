@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { 
-  getNotifications, 
+import {
+  getNotifications,
   getUnreadNotifications,
   getNotificationStats,
   markAsRead,
@@ -10,7 +10,7 @@ import {
   filterNotifications,
   NotificationFilters
 } from '@/shared/lib/notificationStorage';
-import { Notification } from '@/shared/types/notification';
+// import { Notification } from '@/shared/types/notification';
 
 export function useNotifications(userId: string) {
   const [refreshKey, setRefreshKey] = useState(0);
@@ -23,24 +23,24 @@ export function useNotifications(userId: string) {
 
   const notifications = useMemo(() => {
     let results = getNotifications(userId);
-    
+
     if (searchQuery) {
       results = searchNotifications(userId, searchQuery);
     }
-    
+
     if (Object.keys(filters).length > 0) {
       results = filterNotifications(results, filters);
     }
-    
+
     return results;
   }, [userId, refreshKey, filters, searchQuery]);
 
-  const unreadNotifications = useMemo(() => 
+  const unreadNotifications = useMemo(() =>
     getUnreadNotifications(userId),
     [userId, refreshKey]
   );
 
-  const stats = useMemo(() => 
+  const stats = useMemo(() =>
     getNotificationStats(userId),
     [userId, refreshKey]
   );

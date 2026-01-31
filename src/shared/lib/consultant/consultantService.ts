@@ -9,40 +9,40 @@ import { JobPipelineStage, JobPipelineStatus } from '@/shared/types/job';
 export interface ConsultantProfile {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
   phone?: string;
   photo?: string;
   role: 'RECRUITER' | 'SALES_AGENT' | 'CONSULTANT_360';
   status: string;
-  regionId?: string;
-  regionName?: string;
+  region_id?: string;
+  region_name?: string;
   address?: string;
   city?: string;
-  stateProvince?: string;
+  state_province?: string;
   country?: string;
   languages?: Array<{ language: string; proficiency: string }>;
-  industryExpertise?: string[];
-  resumeUrl?: string;
-  linkedinUrl?: string; // New field
-  paymentMethod?: Record<string, unknown>;
-  taxInformation?: Record<string, unknown>;
+  industry_expertise?: string[];
+  resume_url?: string;
+  linkedin_url?: string;
+  payment_method?: Record<string, unknown>;
+  tax_information?: Record<string, unknown>;
   availability: 'AVAILABLE' | 'AT_CAPACITY' | 'UNAVAILABLE';
-  maxEmployers: number;
-  currentEmployers: number;
-  maxJobs: number;
-  currentJobs: number;
-  commissionStructure?: string;
-  defaultCommissionRate?: number;
-  totalCommissionsPaid: number;
-  pendingCommissions: number;
-  totalPlacements: number;
-  totalRevenue: number;
-  successRate: number;
-  averageDaysToFill?: number;
-  lastLoginAt?: string;
-  createdAt: string;
-  updatedAt: string;
+  max_employers: number;
+  current_employers: number;
+  max_jobs: number;
+  current_jobs: number;
+  commission_structure?: string;
+  default_commission_rate?: number;
+  total_commissions_paid: number;
+  pending_commissions: number;
+  total_placements: number;
+  total_revenue: number;
+  success_rate: number;
+  average_days_to_fill?: number;
+  last_login_at?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 class ConsultantService {
@@ -145,6 +145,25 @@ class ConsultantService {
         pending: number;
       }>;
     }>('/api/consultant/analytics/dashboard');
+  }
+
+  // Messaging/Conversations
+  async getConversations() {
+    return apiClient.get<any>('/api/consultant/conversations');
+  }
+
+  async getMessages(conversationId: string) {
+    return apiClient.get<any>(`/api/consultant/conversations/${conversationId}/messages`);
+  }
+
+  async sendMessage(conversationId: string, content: string) {
+    return apiClient.post<any>(`/api/consultant/conversations/${conversationId}/messages`, {
+      content,
+    });
+  }
+
+  async markMessagesRead(conversationId: string) {
+    return apiClient.patch<any>(`/api/consultant/conversations/${conversationId}/read`, {});
   }
 }
 

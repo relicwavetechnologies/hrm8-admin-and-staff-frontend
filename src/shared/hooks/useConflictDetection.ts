@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { TeamMemberFeedback } from '@/shared/types/collaborativeFeedback';
 import { FeedbackConflict, ConflictDetectionResult } from '@/shared/types/feedbackConflict';
 
@@ -7,10 +7,10 @@ interface UseConflictDetectionOptions {
   currentUserId: string;
   onConflictDetected?: (conflicts: FeedbackConflict[]) => void;
 }
-
+// ...
 export const useConflictDetection = ({
   localFeedback,
-  currentUserId,
+  currentUserId: _currentUserId,
   onConflictDetected,
 }: UseConflictDetectionOptions) => {
   const [conflicts, setConflicts] = useState<FeedbackConflict[]>([]);
@@ -29,7 +29,7 @@ export const useConflictDetection = ({
 
     // Simulate random conflicts for demo
     const detectedConflicts: FeedbackConflict[] = [];
-    
+
     if (Math.random() > 0.7) {
       // Simulate conflict on overall score
       detectedConflicts.push({

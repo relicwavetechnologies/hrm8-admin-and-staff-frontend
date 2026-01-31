@@ -25,7 +25,7 @@ export function saveSalaryBand(band: Omit<SalaryBand, 'id' | 'createdAt' | 'upda
   const bands = getSalaryBands();
   const newBand: SalaryBand = {
     ...band,
-    
+    id: `band-${Date.now()}`,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -44,7 +44,7 @@ export function saveCompensationReview(review: Omit<CompensationReview, 'id' | '
   const reviews = getCompensationReviews();
   const newReview: CompensationReview = {
     ...review,
-    
+    id: `review-${Date.now()}`,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -57,7 +57,7 @@ export function updateCompensationReview(id: string, updates: Partial<Compensati
   const reviews = getCompensationReviews();
   const index = reviews.findIndex(r => r.id === id);
   if (index === -1) return null;
-  
+
   reviews[index] = {
     ...reviews[index],
     ...updates,
@@ -91,8 +91,8 @@ export function calculateCompensationStats(): CompensationStats {
 
   const avgIncrease = completedReviews > 0
     ? currentYearReviews
-        .filter(r => r.status === 'approved' || r.status === 'implemented')
-        .reduce((sum, r) => sum + r.increasePercentage, 0) / completedReviews
+      .filter(r => r.status === 'approved' || r.status === 'implemented')
+      .reduce((sum, r) => sum + r.increasePercentage, 0) / completedReviews
     : 0;
 
   return {

@@ -1,4 +1,4 @@
-import { apiClient } from '../api';
+import { apiClient } from '@/shared/lib/apiClient';
 
 export interface AdminWithdrawalRequest {
     id: string;
@@ -18,6 +18,7 @@ export interface AdminWithdrawalRequest {
     notes?: string;
     createdAt: string;
     updatedAt: string;
+    // Add missing properties found in usage if any
 }
 
 export interface ProcessPaymentData {
@@ -34,27 +35,31 @@ export const adminWithdrawalService = {
      * Get all pending withdrawal requests
      */
     getPendingWithdrawals: async () => {
-        return await apiClient.get<{ withdrawals: AdminWithdrawalRequest[] }>('/api/admin/billing/withdrawals');
+        const response = await apiClient.get<{ withdrawals: AdminWithdrawalRequest[] }>('/admin/billing/withdrawals');
+        return response.data;
     },
 
     /**
      * Approve a withdrawal request
      */
     approveWithdrawal: async (id: string) => {
-        return await apiClient.post<{ message: string }>(`/api/admin/billing/withdrawals/${id}/approve`);
+        const response = await apiClient.post<{ message: string }>(`/admin/billing/withdrawals/${id}/approve`);
+        return response.data;
     },
 
     /**
      * Process payment for an approved withdrawal
      */
     processPayment: async (id: string, data: ProcessPaymentData) => {
-        return await apiClient.post<{ message: string }>(`/api/admin/billing/withdrawals/${id}/process`, data);
+        const response = await apiClient.post<{ message: string }>(`/admin/billing/withdrawals/${id}/process`, data);
+        return response.data;
     },
 
     /**
      * Reject a withdrawal request
      */
     rejectWithdrawal: async (id: string, data: RejectWithdrawalData) => {
-        return await apiClient.post<{ message: string }>(`/api/admin/billing/withdrawals/${id}/reject`, data);
+        const response = await apiClient.post<{ message: string }>(`/admin/billing/withdrawals/${id}/reject`, data);
+        return response.data;
     },
 };

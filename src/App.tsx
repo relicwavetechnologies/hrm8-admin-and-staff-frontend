@@ -6,13 +6,40 @@ import DynamicDashboard from '@/shared/components/auth/DynamicDashboard'
 
 import Hrm8Overview from './pages/hrm8/Hrm8Overview'
 import AnalyticsDashboard from './pages/hrm8/AnalyticsDashboard'
-import { RevenueDashboardPage } from './pages/hrm8/RevenueDashboardPage'
+import RevenueDashboardPage from './pages/hrm8/RevenueDashboardPage'
 import CommissionsPage from './pages/hrm8/CommissionsPage'
 import LicenseesPage from './pages/hrm8/LicenseesPage'
-import RegionalLeadsPage from './pages/hrm8/RegionalLeadsPage'
 import ConsultantDashboard from './pages/consultant/ConsultantDashboard'
 import RegionalCompaniesPage from './pages/hrm8/RegionalCompaniesPage'
 import JobAllocationPage from './pages/hrm8/JobAllocationPage'
+import SalesDashboardPage from './pages/sales/SalesDashboardPage'
+import Consultant360Dashboard from './pages/consultant360/Consultant360Dashboard'
+import Consultant360EarningsPage from './pages/consultant360/Consultant360EarningsPage'
+import ConsultantJobsPage from './pages/consultant/ConsultantJobsPage'
+import OpportunitiesPage from './pages/sales/OpportunitiesPage'
+import SalesPipelinePage from './pages/sales/SalesPipelinePage'
+import ConsultantProfilePage from './pages/consultant/ConsultantProfilePage'
+import ConsultantJobDetailPage from './pages/consultant/ConsultantJobDetailPage'
+import ConsultantCommissionsPage from './pages/consultant/ConsultantCommissionsPage'
+import ConsultantSettingsPage from './pages/consultant360/ConsultantSettingsPage'
+import ConsultantHelpPage from './pages/consultant360/ConsultantHelpPage'
+import ConsultantMessagesPage from './pages/consultant/ConsultantMessagesPage'
+import ClientCompaniesPage from './pages/sales/ClientCompaniesPage'
+import SalesCommissionsPage from './pages/sales/CommissionsPage'
+import WithdrawalsPage from './pages/admin/WithdrawalsPage'
+import AdminEmailTemplatesPage from './pages/admin/AdminEmailTemplatesPage'
+import StaffPage from './pages/hrm8/StaffPage'
+import Hrm8ConsultantDetailPage from './pages/hrm8/Hrm8ConsultantDetailPage'
+import UnassignedJobsPage from './pages/hrm8/UnassignedJobsPage'
+import Hrm8JobBoardPage from './pages/hrm8/Hrm8JobBoardPage'
+import Hrm8CompanyJobsPage from './pages/hrm8/Hrm8CompanyJobsPage'
+import Hrm8JobDetailPage from './pages/hrm8/Hrm8JobDetailPage'
+import AuditLogsPage from './pages/hrm8/AuditLogsPage'
+import RegionsPage from './pages/hrm8/RegionsPage'
+import RegionalLeadsPage from './pages/hrm8/RegionalLeadsPage'
+import ReportsPage from './pages/hrm8/ReportsPage'
+import Hrm8SettingsPage from './pages/hrm8/Hrm8SettingsPage'
+import UtilsNotificationsPage from './pages/hrm8/NotificationsPage'
 
 function App() {
     return (
@@ -23,17 +50,59 @@ function App() {
 
                 {/* Protected Dashboard Routes */}
                 <Route element={<DynamicDashboard />}>
+                    {/* HRM8 Admin Portal */}
                     <Route path="/hrm8/dashboard" element={<Hrm8Overview />} />
                     <Route path="/hrm8/analytics" element={<AnalyticsDashboard />} />
                     <Route path="/hrm8/revenue" element={<RevenueDashboardPage />} />
                     <Route path="/hrm8/commissions" element={<CommissionsPage />} />
                     <Route path="/hrm8/licensees" element={<LicenseesPage />} />
-                    <Route path="/hrm8/staff" element={<RegionalLeadsPage />} />
-                    <Route path="/consultant/dashboard" element={<ConsultantDashboard />} />
+                    <Route path="/hrm8/staff" element={<StaffPage />} />
+                    <Route path="/hrm8/consultants/:id" element={<Hrm8ConsultantDetailPage />} />
                     <Route path="/hrm8/companies" element={<RegionalCompaniesPage />} />
                     <Route path="/hrm8/allocations" element={<JobAllocationPage />} />
-                    <Route path="/sales-agent/dashboard" element={<div>Sales Agent Dashboard</div>} />
-                    <Route path="/consultant360/dashboard" element={<div>Consultant 360 Dashboard</div>} />
+                    <Route path="/hrm8/jobs/unassigned" element={<UnassignedJobsPage />} />
+                    <Route path="/hrm8/job-board" element={<Hrm8JobBoardPage />} />
+                    <Route path="/hrm8/job-board/:companyId" element={<Hrm8CompanyJobsPage />} />
+                    <Route path="/hrm8/job-board/job/:jobId" element={<Hrm8JobDetailPage />} />
+                    <Route path="/hrm8/withdrawals" element={<WithdrawalsPage />} />
+                    <Route path="/hrm8/notifications" element={<UtilsNotificationsPage />} />
+                    <Route path="/hrm8/email-templates" element={<AdminEmailTemplatesPage />} />
+                    <Route path="/hrm8/regions" element={<RegionsPage />} />
+                    <Route path="/hrm8/audit-logs" element={<AuditLogsPage />} />
+                    <Route path="/hrm8/leads" element={<RegionalLeadsPage />} />
+                    <Route path="/hrm8/reports" element={<ReportsPage />} />
+                    <Route path="/hrm8/system-settings" element={<Hrm8SettingsPage />} />
+                    <Route path="/hrm8/sales-pipeline" element={<SalesPipelinePage />} />
+                    <Route path="/hrm8/settings" element={<Hrm8SettingsPage />} />
+
+                    {/* Consultant Portal */}
+                    <Route path="/consultant/dashboard" element={<ConsultantDashboard />} />
+                    <Route path="/consultant/jobs" element={<ConsultantJobsPage />} />
+                    <Route path="/consultant/jobs/:jobId" element={<ConsultantJobDetailPage />} />
+                    <Route path="/consultant/messages" element={<ConsultantMessagesPage />} />
+                    <Route path="/consultant/commissions" element={<ConsultantCommissionsPage />} />
+                    <Route path="/consultant/wallet" element={<Consultant360EarningsPage />} />
+                    <Route path="/consultant/profile" element={<ConsultantProfilePage />} />
+                    <Route path="/consultant/settings" element={<ConsultantSettingsPage />} />
+
+                    {/* Sales Agent Portal */}
+                    <Route path="/sales-agent/dashboard" element={<SalesDashboardPage />} />
+                    <Route path="/sales-agent/pipeline" element={<SalesPipelinePage />} />
+                    <Route path="/sales-agent/leads" element={<OpportunitiesPage />} />
+                    <Route path="/sales-agent/companies" element={<ClientCompaniesPage />} />
+                    <Route path="/sales-agent/commissions" element={<SalesCommissionsPage />} />
+                    <Route path="/sales-agent/settings" element={<ConsultantSettingsPage />} />
+
+                    {/* Consultant 360 Portal */}
+                    <Route path="/consultant360/dashboard" element={<Consultant360Dashboard />} />
+                    <Route path="/consultant360/earnings" element={<Consultant360EarningsPage />} />
+                    <Route path="/consultant360/jobs" element={<ConsultantJobsPage />} />
+                    <Route path="/consultant360/leads" element={<OpportunitiesPage />} />
+                    <Route path="/consultant360/pipeline" element={<SalesPipelinePage />} />
+                    <Route path="/consultant360/messages" element={<ConsultantMessagesPage />} />
+                    <Route path="/consultant360/profile" element={<ConsultantProfilePage />} />
+                    <Route path="/consultant360/settings" element={<ConsultantSettingsPage />} />
+                    <Route path="/consultant360/help" element={<ConsultantHelpPage />} />
                 </Route>
 
                 {/* Redirects */}

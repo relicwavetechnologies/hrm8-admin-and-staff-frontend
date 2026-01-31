@@ -56,6 +56,7 @@ export interface UpdateJobRequest extends Partial<CreateJobRequest> {
   postingDate?: string;
   expiryDate?: string;
   servicePackage?: string;
+  jobBoardDistribution?: string[];
 }
 
 export interface GetJobsFilters {

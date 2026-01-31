@@ -242,7 +242,7 @@ export function exportComparisonPDF(
     doc.text('Areas where most referees agree', margin, yPosition);
     yPosition += 12;
 
-    comparison.consensusAreas.forEach((area, index) => {
+    comparison.consensusAreas.forEach((area, _index) => {
       checkNewPage(50);
 
       // Area box

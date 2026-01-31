@@ -37,20 +37,20 @@ export function canMoveToStage(currentStage: ApplicationStage, newStage: Applica
     'Offer Extended',
     'Offer Accepted',
   ];
-  
-  const currentIndex = stageOrder.indexOf(currentStage);
+
+  // const currentIndex = stageOrder.indexOf(currentStage);
   const newIndex = stageOrder.indexOf(newStage);
-  
+
   // Can't move from terminal states
   if (currentStage === 'Rejected' || currentStage === 'Withdrawn' || currentStage === 'Offer Accepted') {
     return false;
   }
-  
+
   // Can always reject or withdraw
   if (newStage === 'Rejected' || newStage === 'Withdrawn') {
     return true;
   }
-  
+
   // Can move forward or backward (to re-interview)
   return newIndex >= 0;
 }
@@ -76,7 +76,7 @@ export function getNextStage(currentStage: ApplicationStage): ApplicationStage |
     'Rejected': null,
     'Withdrawn': null,
   };
-  
+
   return stageFlow[currentStage] || null;
 }
 
@@ -94,7 +94,7 @@ export function getStageColor(stage: ApplicationStage): string {
     'Rejected': 'bg-red-100 text-red-800',
     'Withdrawn': 'bg-gray-100 text-gray-800',
   };
-  
+
   return colorMap[stage] || 'bg-gray-100 text-gray-800';
 }
 
@@ -132,7 +132,7 @@ export interface TimelineEvent {
 
 export function getApplicationTimeline(application: Application): TimelineEvent[] {
   const events: TimelineEvent[] = [];
-  
+
   // Add application created event
   events.push({
     id: 'created',
@@ -141,7 +141,7 @@ export function getApplicationTimeline(application: Application): TimelineEvent[
     description: `Applied for ${application.jobTitle}`,
     date: application.createdAt,
   });
-  
+
   // Add all activities
   application.activities.forEach(activity => {
     events.push({
@@ -153,7 +153,7 @@ export function getApplicationTimeline(application: Application): TimelineEvent[
       user: activity.userName,
     });
   });
-  
+
   // Add interview events
   application.interviews.forEach(interview => {
     events.push({
@@ -164,7 +164,7 @@ export function getApplicationTimeline(application: Application): TimelineEvent[
       date: interview.scheduledDate,
     });
   });
-  
+
   // Sort by date descending
   return events.sort((a, b) => b.date.getTime() - a.date.getTime());
 }
@@ -182,7 +182,7 @@ export function getApplicationsByStatus(applications: Application[]): Record<App
 export function calculateAverageTimeInStage(applications: Application[], stage: ApplicationStage): number {
   const appsInStage = applications.filter(a => a.stage === stage);
   if (appsInStage.length === 0) return 0;
-  
+
   const totalDays = appsInStage.reduce((sum, app) => sum + calculateDaysInStage(app), 0);
   return Math.round(totalDays / appsInStage.length);
 }

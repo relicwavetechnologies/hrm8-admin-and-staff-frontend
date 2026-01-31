@@ -4,7 +4,7 @@
  */
 
 import { apiClient } from './api';
-import { AssessmentConfiguration } from './api/assessmentService';
+// import { AssessmentConfiguration } from './api/assessmentService';
 
 export interface AssessmentSummary {
   id: string;

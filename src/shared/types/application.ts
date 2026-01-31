@@ -1,15 +1,15 @@
 import { TeamMemberFeedback } from './collaborativeFeedback';
 
-export type ApplicationStatus = 
-  | 'applied' 
-  | 'screening' 
-  | 'interview' 
-  | 'offer' 
-  | 'hired' 
-  | 'rejected' 
+export type ApplicationStatus =
+  | 'applied'
+  | 'screening'
+  | 'interview'
+  | 'offer'
+  | 'hired'
+  | 'rejected'
   | 'withdrawn';
 
-export type ApplicationStage = 
+export type ApplicationStage =
   | 'New Application'
   | 'Resume Review'
   | 'Phone Screen'
@@ -21,6 +21,21 @@ export type ApplicationStage =
   | 'Offer Accepted'
   | 'Rejected'
   | 'Withdrawn';
+
+export interface SubmitApplicationRequest {
+  jobId: string;
+  resumeUrl?: string;
+  coverLetterUrl?: string;
+  portfolioUrl?: string;
+  linkedInUrl?: string;
+  websiteUrl?: string;
+  customAnswers?: Array<{
+    questionId: string;
+    answer: string | string[];
+  }>;
+  questionnaireData?: any;
+  tags?: string[];
+}
 
 export interface ApplicationAnswer {
   questionId: string;
@@ -150,13 +165,13 @@ export interface Application {
   jobId: string;
   jobTitle: string;
   employerName: string;
-  
+
   // Application Details
   appliedDate: Date;
   status: ApplicationStatus;
   stage: ApplicationStage;
   roundId?: string; // ID of the current assessment round
-  
+
   // Internal Candidate Fields
   isInternalCandidate?: boolean;
   currentEmployeeId?: string;
@@ -166,16 +181,16 @@ export interface Application {
   yearsAtCompany?: number;
   internalReferral?: boolean;
   referredBy?: string;
-  
+
   // Documents
   resumeUrl?: string;
   coverLetterUrl?: string;
   portfolioUrl?: string;
   linkedInUrl?: string;
-  
+
   // Parsed Resume Data
   parsedResume?: ParsedResume;
-  
+
   // Candidate Preferences (from backend)
   candidatePreferences?: {
     salaryPreference?: {
@@ -194,10 +209,10 @@ export interface Application {
 
   // Questionnaire responses
   questionnaireData?: QuestionnaireData;
-  
+
   // Custom Responses
   customAnswers: ApplicationAnswer[];
-  
+
   // Scoring & Rating
   score?: number; // 0-100 fit score
   rank?: number; // Rank within job (1, 2, 3...)
@@ -251,35 +266,35 @@ export interface Application {
   addedBy?: string;
   addedAt?: Date;
   recruiterNotes?: string;
-  
+
   // Read Status
   isRead?: boolean; // Track if application has been viewed
   isNew?: boolean; // Track if application is newly submitted
-  
+
   // Notes & Activities
   notes: ApplicationNote[];
   activities: ApplicationActivity[];
-  
+
   // Interviews
   interviews: Interview[];
-  
+
   // Scorecards
   scorecards?: Scorecard[];
-  
+
   // Team Reviews
   teamReviews?: TeamMemberFeedback[];
-  
+
   // Assignment
   assignedTo?: string; // Recruiter ID
   assignedToName?: string;
-  
+
   // Rejection
   rejectionReason?: string;
   rejectionDate?: Date;
-  
+
   // Tags
   tags?: string[];
-  
+
   // Timestamps
   createdAt: Date;
   updatedAt: Date;

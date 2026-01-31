@@ -342,7 +342,7 @@ export const mockCertifications: Certification[] = [
     issuingOrganization: 'Data Science Council',
     category: 'Data Science',
     level: 'intermediate',
-    validityPeriod: null,
+    validityPeriod: undefined,
     requirements: {
       courses: ['course-3'],
       assessments: ['data-science-exam'],

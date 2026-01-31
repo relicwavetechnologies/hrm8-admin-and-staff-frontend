@@ -127,7 +127,7 @@ export function AuditHistoryDrawer({
                     ) : (
                         <ScrollArea className="h-[calc(100vh-200px)]">
                             <div className="space-y-4 pr-4">
-                                {entries.map((entry, index) => (
+                                {entries.map((entry) => (
                                     <div
                                         key={entry.id}
                                         className="relative border-l-2 border-muted pl-4 pb-4 last:pb-0"

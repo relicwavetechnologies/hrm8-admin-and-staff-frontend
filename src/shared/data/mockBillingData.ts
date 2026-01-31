@@ -1,4 +1,4 @@
-import type { Invoice, InvoiceLineItem } from '@/shared/types/billing';
+import type { Invoice } from '@/shared/types/billing';
 
 export const mockInvoices: Invoice[] = [
   {

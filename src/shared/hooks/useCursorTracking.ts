@@ -17,7 +17,7 @@ interface UseCursorTrackingOptions {
 
 export const useCursorTracking = ({
   applicationId,
-  currentUserId,
+  currentUserId: _currentUserId,
   enabled,
 }: UseCursorTrackingOptions) => {
   const [cursors, setCursors] = useState<CursorPosition[]>([]);
@@ -37,7 +37,7 @@ export const useCursorTracking = ({
       setCursors((prev) => {
         const newCursors = mockUsers.map((user) => {
           const existing = prev.find((c) => c.userId === user.userId);
-          
+
           // Random movement or initialize
           const x = existing
             ? Math.max(0, Math.min(100, existing.x + (Math.random() - 0.5) * 10))

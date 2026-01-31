@@ -6,22 +6,25 @@ import { toast } from 'sonner';
 // Default preferences structure (used when API returns empty/null)
 const DEFAULT_PREFERENCES: NotificationPreferences = {
   eventPreferences: {
-    new_application: { enabled: true, channels: ['email', 'in-app'] },
-    application_status_change: { enabled: true, channels: ['in-app'] },
-    interview_scheduled: { enabled: true, channels: ['email', 'in-app'] },
-    job_posted: { enabled: true, channels: ['in-app'] },
-    payment_received: { enabled: true, channels: ['email', 'in-app'] },
-    payment_failed: { enabled: true, channels: ['email', 'in-app'] },
-    subscription_change: { enabled: true, channels: ['email', 'in-app'] },
-    system_announcement: { enabled: true, channels: ['email', 'in-app'] },
+    support_ticket_created: { enabled: true, channels: ['email', 'in-app'] },
+    support_ticket_urgent: { enabled: true, channels: ['email', 'in-app'] },
+    recruitment_service_pending: { enabled: true, channels: ['in-app'] },
     user_signup: { enabled: true, channels: ['in-app'] },
-    support_ticket: { enabled: true, channels: ['email', 'in-app'] },
+    payment_failed: { enabled: true, channels: ['email', 'in-app'] },
+    integration_down: { enabled: true, channels: ['email', 'in-app'] },
+    system_error: { enabled: true, channels: ['email', 'in-app'] },
+    security_alert: { enabled: true, channels: ['email', 'in-app'] },
+    trial_expiring: { enabled: true, channels: ['email', 'in-app'] },
+    subscription_cancelled: { enabled: true, channels: ['email', 'in-app'] },
+    refund_update: { enabled: true, channels: ['email', 'in-app'] },
   },
   quietHours: {
     enabled: false,
     start: '22:00',
     end: '08:00',
   },
+  userId: 'default-user',
+  updatedAt: new Date().toISOString(),
 };
 
 export function useNotificationPreferences() {
@@ -41,6 +44,8 @@ export function useNotificationPreferences() {
             ...(prefs.eventPreferences || {}),
           },
           quietHours: prefs.quietHours || DEFAULT_PREFERENCES.quietHours,
+          userId: prefs.userId || DEFAULT_PREFERENCES.userId,
+          updatedAt: prefs.updatedAt || DEFAULT_PREFERENCES.updatedAt,
         });
       } catch (error) {
         console.error('Failed to fetch notification preferences:', error);
@@ -68,6 +73,8 @@ export function useNotificationPreferences() {
           ...(updated.eventPreferences || {}),
         },
         quietHours: updated.quietHours || DEFAULT_PREFERENCES.quietHours,
+        userId: updated.userId || DEFAULT_PREFERENCES.userId,
+        updatedAt: updated.updatedAt || new Date().toISOString(),
       });
       toast.success('Preferences saved', {
         description: 'Your notification preferences have been updated',

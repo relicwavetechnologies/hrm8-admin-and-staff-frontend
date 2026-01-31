@@ -14,10 +14,10 @@ interface UseTypingIndicatorOptions {
 
 export const useTypingIndicator = ({
   candidateId,
-  currentUserId,
+  currentUserId: _currentUserId,
 }: UseTypingIndicatorOptions) => {
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Simulate other users typing
   useEffect(() => {
@@ -29,7 +29,7 @@ export const useTypingIndicator = ({
           section: (['ratings', 'comments', 'decision'] as const)[Math.floor(Math.random() * 3)],
           timestamp: new Date(),
         };
-        
+
         setTypingUsers((prev) => {
           const filtered = prev.filter(u => u.userId !== mockTypingUser.userId);
           return [...filtered, mockTypingUser];
@@ -48,7 +48,7 @@ export const useTypingIndicator = ({
   const startTyping = useCallback((section: 'ratings' | 'comments' | 'decision') => {
     // In real implementation, this would send to WebSocket
     console.log('User started typing in:', section);
-    
+
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }

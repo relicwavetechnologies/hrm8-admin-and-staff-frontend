@@ -10,25 +10,25 @@ export const getStatusBadgeVariant = (status: string): BadgeProps['variant'] => 
     'approved': 'success',
     'completed': 'success',
     'placed': 'success',
-    
+
     // Warning/Pending states (Yellow/Orange)
     'pending': 'warning',
     'draft': 'warning',
     'In Progress': 'warning',
     'review': 'warning',
-    
+
     // Negative/Inactive states (Red/Gray)
     'Inactive': 'outline',
     'Closed': 'outline',
     'unavailable': 'destructive',
     'rejected': 'destructive',
     'cancelled': 'destructive',
-    
+
     // Assigned/Busy states (Primary)
     'Assigned': 'default',
     'Busy': 'default',
   };
-  
+
   return statusMap[status] || 'outline';
 };
 
@@ -46,7 +46,7 @@ export const getIndustryBadgeVariant = (industry: string): BadgeProps['variant']
     'Consulting': 'default',
     'Legal': 'purple',
   };
-  
+
   return industryMap[industry] || 'neutral';
 };
 
@@ -59,7 +59,7 @@ export const getJobTypeBadgeVariant = (type: string): BadgeProps['variant'] => {
     'Temporary': 'teal',
     'Internship': 'coral',
   };
-  
+
   return typeMap[type] || 'neutral';
 };
 
@@ -75,14 +75,14 @@ export const getSpecializationBadgeVariant = (spec: string): BadgeProps['variant
     'Change Management': 'default',
     'Risk': 'destructive',
   };
-  
+
   return specMap[spec] || 'neutral';
 };
 
 // Skill badge variants (consistent color per skill)
 const skillColors: BadgeProps['variant'][] = ['default', 'purple', 'teal', 'coral', 'orange'];
 
-export const getSkillBadgeVariant = (skill: string, index: number): BadgeProps['variant'] => {
+export const getSkillBadgeVariant = (skill: string, _index: number): BadgeProps['variant'] => {
   // Use skill string hash for consistent color per skill
   const hash = skill.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   return skillColors[hash % skillColors.length];

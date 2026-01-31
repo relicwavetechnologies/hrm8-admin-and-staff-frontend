@@ -13,23 +13,23 @@ import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Alert, AlertDescription } from "@/shared/components/ui/alert";
 import { Checkbox } from "@/shared/components/ui/checkbox";
-import { 
-  AlertTriangle, 
-  AlertCircle, 
-  Info, 
-  Trash2, 
+import {
+  AlertTriangle,
+  AlertCircle,
+  Info,
+  Trash2,
   Archive,
   X,
   LucideIcon
 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
-export type WarningType = 
-  | 'delete' 
-  | 'archive' 
+export type WarningType =
+  | 'delete'
+  | 'archive'
   | 'unarchive'
-  | 'cancel' 
-  | 'warning' 
+  | 'cancel'
+  | 'warning'
   | 'info'
   | 'custom';
 
@@ -39,38 +39,38 @@ interface WarningConfirmationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void | Promise<void>;
-  
+
   // Content
   title: string;
   description?: string;
-  
+
   // Type and severity
   type?: WarningType;
   severity?: WarningSeverity;
-  
+
   // Custom icon (optional, will use default based on type)
   icon?: LucideIcon;
-  
+
   // Buttons
   confirmLabel?: string;
   cancelLabel?: string;
   confirmVariant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
-  
+
   // Processing state
   isProcessing?: boolean;
-  
+
   // Confirmation requirements
   requireTextConfirmation?: string; // e.g., "DELETE" - user must type this to confirm
   requireCheckboxConfirmation?: string; // Checkbox label - user must check this to confirm
   requireBothConfirmations?: boolean; // If true, both text and checkbox are required
-  
+
   // Custom content sections
   alertContent?: ReactNode; // Custom alert/content to show
   detailsContent?: ReactNode; // Additional details/content
-  
+
   // Items to list in warning (for delete operations)
   items?: Array<{ label: string; value?: string }>;
-  
+
   // Additional warning points (shown as bullet list)
   warningPoints?: string[];
 }
@@ -165,10 +165,10 @@ export function WarningConfirmationDialog({
   const Icon = CustomIcon || config.icon;
 
   // Determine if confirmation is valid
-  const hasTextConfirmation = requireTextConfirmation 
+  const hasTextConfirmation = requireTextConfirmation
     ? confirmText.toUpperCase() === requireTextConfirmation.toUpperCase()
     : true;
-  
+
   const hasCheckboxConfirmation = requireCheckboxConfirmation
     ? confirmCheckbox
     : true;
@@ -209,24 +209,21 @@ export function WarningConfirmationDialog({
     }
   };
 
-  // Get alert variant based on severity
-  const getAlertVariant = (): "default" | "destructive" => {
-    return effectiveSeverity === 'destructive' ? 'destructive' : 'default';
-  };
+
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="max-w-lg">
         <AlertDialogHeader>
           <div className="flex items-center gap-2">
-            <Icon 
+            <Icon
               className={cn(
                 "h-5 w-5",
                 effectiveSeverity === 'destructive' && "text-destructive",
                 effectiveSeverity === 'warning' && "text-yellow-600",
                 effectiveSeverity === 'info' && "text-blue-600",
                 effectiveSeverity === 'default' && "text-muted-foreground"
-              )} 
+              )}
             />
             <AlertDialogTitle>{title}</AlertDialogTitle>
           </div>
@@ -308,8 +305,8 @@ export function WarningConfirmationDialog({
                 disabled={isProcessing}
                 className="mt-1"
               />
-              <label 
-                htmlFor="confirm-checkbox" 
+              <label
+                htmlFor="confirm-checkbox"
                 className="text-sm leading-relaxed cursor-pointer"
               >
                 {requireCheckboxConfirmation}
@@ -319,7 +316,7 @@ export function WarningConfirmationDialog({
         </div>
 
         <AlertDialogFooter>
-          <AlertDialogCancel 
+          <AlertDialogCancel
             onClick={handleCancel}
             disabled={isProcessing}
           >
@@ -329,7 +326,7 @@ export function WarningConfirmationDialog({
             onClick={handleConfirm}
             disabled={isProcessing || !isConfirmValid}
             className={cn(
-              effectiveConfirmVariant === 'destructive' && 
+              effectiveConfirmVariant === 'destructive' &&
               "bg-destructive text-destructive-foreground hover:bg-destructive/90"
             )}
           >

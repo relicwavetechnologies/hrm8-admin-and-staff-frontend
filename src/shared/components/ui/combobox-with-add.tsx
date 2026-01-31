@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, ChevronsUpDown, Plus } from "lucide-react";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -69,7 +69,7 @@ export function ComboboxWithAdd({
       </PopoverTrigger>
       <PopoverContent className="w-[300px] p-0" align="start">
         <Command>
-          <CommandInput 
+          <CommandInput
             placeholder={`Search ${placeholder.toLowerCase()}...`}
             value={searchValue}
             onValueChange={setSearchValue}

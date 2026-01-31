@@ -1,5 +1,5 @@
 import { Job, JobTemplate, JobActivity } from '@/shared/types/job';
-import { inferCountryFromLocation } from '@/shared/lib/locationUtils';
+
 
 export const mockJobs: Job[] = [
   {

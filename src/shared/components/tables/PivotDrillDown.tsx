@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/components/ui/table";
 import { Badge } from "@/shared/components/ui/badge";
-// import { X } from "lucide-react";
+import { X } from "lucide-react";
 
 interface DrillDownData<T> {
   rowKey: string;

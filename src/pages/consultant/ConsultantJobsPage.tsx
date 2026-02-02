@@ -171,7 +171,7 @@ export default function ConsultantJobsPage() {
       label: 'Created',
       render: (job: any) => (
         <span className="text-sm text-muted-foreground">
-          {new Date(job.createdAt).toLocaleDateString()}
+          {job.created_at ? new Date(job.created_at).toLocaleDateString() : 'N/A'}
         </span>
       ),
     },

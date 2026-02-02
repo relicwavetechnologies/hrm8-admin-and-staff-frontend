@@ -38,10 +38,10 @@ export default function Hrm8JobBoardPage() {
         try {
             setLoading(true);
             const response = await apiClient.get<{ companies: CompanyJobStats[] }>('/api/hrm8/jobs/companies');
-            if (response.data) {
+            if (response.data && response.data.companies) {
                 setCompanies(response.data.companies);
             } else {
-                console.error('Failed to load companies');
+                console.error('Failed to load companies or invalid format');
                 setCompanies([]);
             }
         } catch (error) {
@@ -53,8 +53,8 @@ export default function Hrm8JobBoardPage() {
     };
 
     const filteredCompanies = companies.filter(company =>
-        company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        company.domain?.toLowerCase().includes(searchQuery.toLowerCase())
+        (company.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (company.domain || '').toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     const totalStats = companies.reduce(

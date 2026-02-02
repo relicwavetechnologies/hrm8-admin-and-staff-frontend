@@ -1,12 +1,12 @@
+
 import { useState, useEffect } from 'react';
-import { useHrm8Auth } from '@/contexts/Hrm8AuthContext';
-import { settlementService, Settlement, SettlementStats } from '@/shared/lib/hrm8/settlementService';
+import { useHrm8Auth } from "@/contexts/Hrm8AuthContext";
+import { settlementService, Settlement, SettlementStats } from '@/shared/services/hrm8/settlementService';
 import { DataTable, Column } from '@/shared/components/tables/DataTable';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { EnhancedStatCard } from '@/shared/components/dashboard/EnhancedStatCard';
 import { Badge } from '@/shared/components/ui/badge';
-import { toast } from 'sonner';
+import { useToast } from '@/shared/hooks/use-toast';
 import { DollarSign, CheckCircle, Clock, CreditCard } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
 import { Label } from '@/shared/components/ui/label';
@@ -14,13 +14,12 @@ import { MarkSettlementPaidDialog } from '@/shared/components/hrm8/MarkSettlemen
 import { CreateSettlementDialog } from '@/shared/components/hrm8/CreateSettlementDialog';
 import { useCurrencyFormat } from '@/shared/contexts/CurrencyFormatContext';
 import { format } from 'date-fns';
-import { TableSkeleton } from '@/shared/components/tables/TableSkeleton';
 
 export default function SettlementsPage() {
   const { hrm8User } = useHrm8Auth();
   const { formatCurrency } = useCurrencyFormat();
+  const { toast } = useToast();
   const [settlements, setSettlements] = useState<Settlement[]>([]);
-  const [stats, setStats] = useState<SettlementStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
@@ -31,7 +30,7 @@ export default function SettlementsPage() {
 
   useEffect(() => {
     loadSettlements();
-    loadStats();
+    // Stats loading skipped for now as EnhancedStatCard is not yet ported
   }, [statusFilter]);
 
   const loadSettlements = async () => {
@@ -47,20 +46,13 @@ export default function SettlementsPage() {
         setSettlements(response.data.settlements);
       }
     } catch (error) {
-      toast.error('Failed to load settlements');
+      toast({
+          title: "Error",
+          description: "Failed to load settlements",
+          variant: "destructive"
+      });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadStats = async () => {
-    try {
-      const response = await settlementService.getStats();
-      if (response.success && response.data?.stats) {
-        setStats(response.data.stats);
-      }
-    } catch (error) {
-      console.error('Failed to load settlement stats:', error);
     }
   };
 
@@ -73,21 +65,29 @@ export default function SettlementsPage() {
     setPaymentDialogOpen(false);
     setSelectedSettlement(null);
     loadSettlements();
-    loadStats();
   };
 
   const handleCreateSuccess = () => {
     setCreateDialogOpen(false);
     loadSettlements();
-    loadStats();
+  };
+
+  const getStatusBadge = (status: string) => {
+      switch(status) {
+          case 'PENDING':
+              return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pending</Badge>;
+          case 'PAID':
+              return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Paid</Badge>;
+          default:
+              return <Badge variant="outline">{status}</Badge>;
+      }
   };
 
   // Define columns
   const columns: Column<Settlement>[] = [
     {
-      key: 'licensee',
+      key: 'licenseeId', // Sorting by licenseeId as name might be nested
       label: 'Licensee',
-      sortable: true,
       render: (settlement) => (
         <span className="font-medium">
           {settlement.licensee?.name || settlement.licenseeId}
@@ -95,12 +95,12 @@ export default function SettlementsPage() {
       ),
     },
     {
-      key: 'period',
+      key: 'periodStart',
       label: 'Period',
       render: (settlement) => {
         const start = settlement.periodStart ? new Date(settlement.periodStart) : null;
         const end = settlement.periodEnd ? new Date(settlement.periodEnd) : null;
-
+        
         if (!start || isNaN(start.getTime()) || !end || isNaN(end.getTime())) {
           return <span className="text-sm text-muted-foreground">-</span>;
         }
@@ -115,7 +115,6 @@ export default function SettlementsPage() {
     {
       key: 'totalRevenue',
       label: 'Total Revenue',
-      sortable: true,
       render: (settlement) => (
         <span className="font-semibold">
           {formatCurrency(settlement.totalRevenue)}
@@ -125,7 +124,6 @@ export default function SettlementsPage() {
     {
       key: 'licenseeShare',
       label: 'Licensee Share',
-      sortable: true,
       render: (settlement) => (
         <span className="font-semibold text-primary">
           {formatCurrency(settlement.licenseeShare)}
@@ -135,7 +133,6 @@ export default function SettlementsPage() {
     {
       key: 'hrm8Share',
       label: 'HRM8 Share',
-      sortable: true,
       render: (settlement) => (
         <span className="font-semibold">
           {formatCurrency(settlement.hrm8Share)}
@@ -145,28 +142,11 @@ export default function SettlementsPage() {
     {
       key: 'status',
       label: 'Status',
-      sortable: true,
-      render: (settlement) => {
-        const status = settlement.status;
-        const statusConfig = {
-          PENDING: { icon: Clock, color: 'text-yellow-600', bg: 'bg-yellow-50' },
-          PAID: { icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50' },
-        };
-        const config = statusConfig[status] || statusConfig.PENDING;
-        const Icon = config.icon;
-
-        return (
-          <Badge className={`${config.color} ${config.bg}`}>
-            <Icon className="mr-1 h-3 w-3" />
-            {status}
-          </Badge>
-        );
-      },
+      render: (settlement) => getStatusBadge(settlement.status),
     },
     {
       key: 'paymentDate',
       label: 'Payment Date',
-      sortable: true,
       render: (settlement) => {
         const paymentDate = settlement.paymentDate ? new Date(settlement.paymentDate) : null;
         return paymentDate && !isNaN(paymentDate.getTime()) ? (
@@ -198,100 +178,62 @@ export default function SettlementsPage() {
   ];
 
   return (
+      <div className="p-6 space-y-6">
+       
+        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+            <div>
+                 <h1 className="text-2xl font-bold tracking-tight">Settlements</h1>
+                 <p className="text-muted-foreground">Track and manage regional licensee settlements</p>
+            </div>
 
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Settlements</h1>
-          <p className="text-muted-foreground">Track and manage regional licensee settlements</p>
+            <div className="flex items-center gap-2">
+                {isGlobalAdmin && (
+                    <Button onClick={() => setCreateDialogOpen(true)}>
+                    <DollarSign className="mr-2 h-4 w-4" />
+                    Generate Settlement
+                    </Button>
+                )}
+                
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-[180px]">
+                    <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="PENDING">Pending</SelectItem>
+                    <SelectItem value="PAID">Paid</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
         </div>
-        <div className="flex items-center gap-2">
-          {isGlobalAdmin && (
-            <Button onClick={() => setCreateDialogOpen(true)}>
-              <DollarSign className="mr-2 h-4 w-4" />
-              Generate Settlement
-            </Button>
-          )}
-          <Label>Filter by Status:</Label>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="PENDING">Pending</SelectItem>
-              <SelectItem value="PAID">Paid</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <EnhancedStatCard
-          title="Total Pending"
-          value=""
-          isCurrency={true}
-          rawValue={stats?.totalPending || 0}
-          icon={<Clock className="h-6 w-6" />}
-          variant="warning"
-          change={`${stats?.pendingCount || 0} settlements`}
-        />
-
-        <EnhancedStatCard
-          title="Total Paid"
-          value=""
-          isCurrency={true}
-          rawValue={stats?.totalPaid || 0}
-          icon={<CheckCircle className="h-6 w-6" />}
-          variant="success"
-          change={`${stats?.paidCount || 0} settlements`}
-        />
-
-        <EnhancedStatCard
-          title="Total Settlements"
-          value={settlements.length.toString()}
-          icon={<DollarSign className="h-6 w-6" />}
-          variant="neutral"
-          change="All time"
-        />
-      </div>
-
-      {/* Settlements Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Settlements</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <TableSkeleton columns={6} />
-          ) : (
+        {/* Settlements Table */}
+        <Card>
+          <CardContent className="p-1">
             <DataTable
               data={settlements}
               columns={columns}
               searchable
-              searchKeys={['licenseeId', 'status', 'reference']}
+              searchKeys={['licenseeId', 'status']}
               emptyMessage="No settlements found"
             />
-          )}
         </CardContent>
-      </Card>
+        </Card>
 
-      {/* Mark as Paid Dialog */}
-      <MarkSettlementPaidDialog
-        settlement={selectedSettlement}
-        open={paymentDialogOpen}
-        onOpenChange={setPaymentDialogOpen}
-        onSuccess={handlePaymentSuccess}
-      />
+        {/* Mark as Paid Dialog */}
+        <MarkSettlementPaidDialog
+          settlement={selectedSettlement}
+          open={paymentDialogOpen}
+          onOpenChange={setPaymentDialogOpen}
+          onSuccess={handlePaymentSuccess}
+        />
 
-      {/* Create Settlement Dialog */}
-      <CreateSettlementDialog
-        open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
-        onSuccess={handleCreateSuccess}
-      />
-    </div>
-
+        {/* Create Settlement Dialog */}
+        <CreateSettlementDialog
+          open={createDialogOpen}
+          onOpenChange={setCreateDialogOpen}
+          onSuccess={handleCreateSuccess}
+        />
+      </div>
   );
 }

@@ -12,8 +12,8 @@ import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
 import { useHrm8Auth } from '@/contexts/Hrm8AuthContext';
-import { staffService, StaffCreateResponse } from '@/shared/lib/hrm8/staffService';
-import { regionService } from '@/shared/lib/hrm8/regionService';
+import { staffService, StaffCreateResponse } from '@/shared/services/hrm8/staffService';
+import { regionService } from '@/shared/services/hrm8/regionService';
 import { toast } from 'sonner';
 import { Loader2, Mail } from 'lucide-react';
 

@@ -16,7 +16,9 @@ import {
     User,
     Building2,
 
-    ArrowRightLeft
+    ArrowRightLeft,
+    UserCheck,
+    BookOpen
 } from "lucide-react";
 import { SidebarConfig, MenuItem } from "../types/dashboard";
 import { UserType } from "../services/authService";
@@ -31,13 +33,21 @@ const adminMenuItems: MenuItem[] = [
     { id: "licensees", path: "/hrm8/licensees", label: "Licensees", icon: Users, adminOnly: true },
     { id: "staff", path: "/hrm8/staff", label: "Staff", icon: UserCog },
     { id: "job-allocation", path: "/hrm8/allocations", label: "Job Allocation", icon: Briefcase },
+    { id: "job-board", path: "/hrm8/job-board", label: "Jobs", icon: Briefcase, adminOnly: true },
     { id: "leads", path: "/hrm8/leads", label: "Leads", icon: Target },
     { id: "pipeline", path: "/hrm8/sales-pipeline", label: "Pipeline", icon: BarChart3 },
     { id: "commissions", path: "/hrm8/commissions", label: "Commissions", icon: DollarSign },
     { id: "withdrawals", path: "/hrm8/withdrawals", label: "Withdrawals", icon: DollarSign },
+    { id: "refund-requests", path: "/hrm8/billing/refund-requests", label: "Refund Requests", icon: DollarSign },
+    { id: "conversion-requests", path: "/hrm8/conversion-requests", label: "Conversion Requests", icon: UserCheck },
+    { id: "settlements", path: "/hrm8/settlements", label: "Settlements", icon: DollarSign },
     { id: "revenue", path: "/hrm8/revenue", label: "Revenue", icon: TrendingUp },
+    { id: "revenue-analytics", path: "/hrm8/revenue-analytics", label: "Revenue Analytics", icon: BarChart3 },
+    { id: "attribution", path: "/hrm8/attribution", label: "Attribution", icon: UserCheck, adminOnly: true },
+    { id: "pricing", path: "/hrm8/pricing", label: "Pricing", icon: BookOpen },
     { id: "reports", path: "/hrm8/reports", label: "Reports", icon: FileText },
     { id: "settings", path: "/hrm8/settings", label: "Account Settings", icon: Settings },
+    { id: "careers-requests", path: "/hrm8/careers-requests", label: "Careers Requests", icon: UserCheck, adminOnly: true },
     { id: "system", path: "/hrm8/system-settings", label: "System Settings", icon: Settings, adminOnly: true },
     { id: "email-templates", path: "/hrm8/email-templates", label: "Email Templates", icon: FileText, adminOnly: true },
     { id: "audit", path: "/hrm8/audit-logs", label: "Audit Logs", icon: ClipboardList, adminOnly: true },

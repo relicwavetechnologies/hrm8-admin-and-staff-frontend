@@ -14,7 +14,7 @@ import {
 import { Badge } from '@/shared/components/ui/badge';
 import { ScrollArea } from '@/shared/components/ui/scroll-area';
 import { Loader2, History, User, Calendar, FileText, AlertCircle } from 'lucide-react';
-import { complianceService, AuditLogEntry } from '@/shared/lib/hrm8/complianceService';
+import { complianceService, AuditLogEntry } from '@/shared/services/hrm8/complianceService';
 import { format } from 'date-fns';
 
 interface AuditHistoryDrawerProps {
@@ -127,7 +127,7 @@ export function AuditHistoryDrawer({
                     ) : (
                         <ScrollArea className="h-[calc(100vh-200px)]">
                             <div className="space-y-4 pr-4">
-                                {entries.map((entry) => (
+                                {entries.map((entry, index) => (
                                     <div
                                         key={entry.id}
                                         className="relative border-l-2 border-muted pl-4 pb-4 last:pb-0"

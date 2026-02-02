@@ -27,7 +27,7 @@ interface AutoAssignmentOverrideModalProps {
 export function AutoAssignmentOverrideModal({
   open,
   onOpenChange,
-  // jobTitle,
+  jobTitle,
   currentConsultantName,
   onConfirm,
   onCancel,

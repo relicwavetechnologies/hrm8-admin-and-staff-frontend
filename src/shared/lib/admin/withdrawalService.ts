@@ -35,7 +35,7 @@ export const adminWithdrawalService = {
      * Get all pending withdrawal requests
      */
     getPendingWithdrawals: async () => {
-        const response = await apiClient.get<{ withdrawals: AdminWithdrawalRequest[] }>('/admin/billing/withdrawals');
+        const response = await apiClient.get<{ withdrawals: AdminWithdrawalRequest[] }>('/api/hrm8/admin/billing/withdrawals');
         return response.data;
     },
 
@@ -43,7 +43,7 @@ export const adminWithdrawalService = {
      * Approve a withdrawal request
      */
     approveWithdrawal: async (id: string) => {
-        const response = await apiClient.post<{ message: string }>(`/admin/billing/withdrawals/${id}/approve`);
+        const response = await apiClient.post<{ message: string }>(`/api/hrm8/admin/billing/withdrawals/${id}/approve`);
         return response.data;
     },
 
@@ -51,7 +51,7 @@ export const adminWithdrawalService = {
      * Process payment for an approved withdrawal
      */
     processPayment: async (id: string, data: ProcessPaymentData) => {
-        const response = await apiClient.post<{ message: string }>(`/admin/billing/withdrawals/${id}/process`, data);
+        const response = await apiClient.post<{ message: string }>(`/api/hrm8/admin/billing/withdrawals/${id}/process`, data);
         return response.data;
     },
 
@@ -59,7 +59,7 @@ export const adminWithdrawalService = {
      * Reject a withdrawal request
      */
     rejectWithdrawal: async (id: string, data: RejectWithdrawalData) => {
-        const response = await apiClient.post<{ message: string }>(`/admin/billing/withdrawals/${id}/reject`, data);
+        const response = await apiClient.post<{ message: string }>(`/api/hrm8/admin/billing/withdrawals/${id}/reject`, data);
         return response.data;
     },
 };

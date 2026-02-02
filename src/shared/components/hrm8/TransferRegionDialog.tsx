@@ -9,8 +9,8 @@ import { Button } from '@/shared/components/ui/button';
 import { Label } from '@/shared/components/ui/label';
 import { Textarea } from '@/shared/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
-import { licenseeService, RegionalLicensee } from '@/shared/lib/hrm8/licenseeService';
-import { regionService, Region } from '@/shared/lib/hrm8/regionService';
+import { licenseeService, RegionalLicensee } from '@/shared/services/hrm8/licenseeService';
+import { regionService, Region } from '@/shared/services/hrm8/regionService';
 import { toast } from 'sonner';
 import { Loader2, ArrowRight, Building2, Briefcase, Users, FileText, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Badge } from '@/shared/components/ui/badge';
@@ -154,7 +154,7 @@ export function TransferRegionDialog({ open, onOpenChange, region, onSuccess }: 
   const selectedLicensee = licensees.find((l) => l.id === selectedLicenseeId);
   const currentOwner = region.ownerType === 'HRM8' ? 'HRM8 (Direct)' : region.licensee?.name || 'Unknown';
   const totalImpactItems = impact
-    ? impact.companies + impact.jobs + impact.consultants + impact.openInvoices + impact.opportunities
+    ? (impact.companies || 0) + (impact.jobs || 0) + (impact.consultants || 0) + (impact.openInvoices || 0) + (impact.opportunities || 0)
     : 0;
 
   const stepProgress = step === 'select' ? 25 : step === 'review' ? 50 : step === 'confirm' ? 75 : 100;
@@ -280,7 +280,7 @@ export function TransferRegionDialog({ open, onOpenChange, region, onSuccess }: 
                       <div className="flex items-center gap-3">
                         <FileText className="h-8 w-8 text-orange-500" />
                         <div>
-                          <div className="text-2xl font-bold">{impact.openInvoices}</div>
+                          <div className="text-2xl font-bold">{impact.openInvoices || 0}</div>
                           <div className="text-sm text-muted-foreground">Open Invoices</div>
                         </div>
                       </div>

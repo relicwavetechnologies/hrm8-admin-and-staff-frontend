@@ -6,10 +6,10 @@ import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/shared/components/ui/alert";
-import { Loader2, /* Plus, */ AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import { useToast } from "@/shared/hooks/use-toast";
-import { settlementService } from "@/shared/lib/hrm8/settlementService";
-import { licenseeService, RegionalLicensee } from "@/shared/lib/hrm8/licenseeService";
+import { settlementService } from "@/shared/services/hrm8/settlementService";
+import { licenseeService, RegionalLicensee } from "@/shared/services/hrm8/licenseeService";
 import { startOfMonth, endOfMonth, format } from "date-fns";
 
 interface CreateSettlementDialogProps {
@@ -26,7 +26,7 @@ export function CreateSettlementDialog({
   const { toast } = useToast();
   const [licensees, setLicensees] = useState<RegionalLicensee[]>([]);
   const [loadingLicensees, setLoadingLicensees] = useState(false);
-
+  
   // Form State
   const [selectedLicenseeId, setSelectedLicenseeId] = useState<string>("");
   const [periodStart, setPeriodStart] = useState<string>(
@@ -138,8 +138,8 @@ export function CreateSettlementDialog({
 
             <div className="space-y-2">
               <Label htmlFor="licensee">Regional Licensee</Label>
-              <Select
-                value={selectedLicenseeId}
+              <Select 
+                value={selectedLicenseeId} 
                 onValueChange={setSelectedLicenseeId}
                 disabled={loadingLicensees || isSubmitting}
               >
@@ -180,7 +180,7 @@ export function CreateSettlementDialog({
                 />
               </div>
             </div>
-
+            
             <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
               <p>Note: This will aggregate all <strong>Confirmed</strong> revenue for the selected period and calculate the revenue split.</p>
             </div>

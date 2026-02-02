@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
@@ -12,8 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/components/ui/dialog';
-import { toast } from 'sonner';
-import { apiClient } from '@/shared/lib/api';
+import { useToast } from '@/shared/hooks/use-toast';
 import {
   Building2,
   CheckCircle,
@@ -25,34 +25,10 @@ import {
   Image as ImageIcon,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-
-interface CareersRequest {
-  id: string;
-  companyName: string;
-  domain: string;
-  type: 'NEW_PAGE' | 'SECTION_UPDATE';
-  status: string;
-  pending: {
-    logoUrl?: string;
-    bannerUrl?: string;
-    about?: string;
-    social?: {
-      linkedin?: string;
-      twitter?: string;
-      facebook?: string;
-      instagram?: string;
-    };
-  };
-  current: {
-    logoUrl?: string;
-    bannerUrl?: string;
-    about?: string;
-    social?: any;
-  } | null;
-  submittedAt: string;
-}
+import { careersRequestService, CareersRequest } from '@/shared/services/hrm8/careersRequestService';
 
 export default function CareersRequestsPage() {
+  const { toast } = useToast();
   const [requests, setRequests] = useState<CareersRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -68,15 +44,14 @@ export default function CareersRequestsPage() {
   const loadRequests = async () => {
     setIsLoading(true);
     try {
-      const response = await apiClient.get<{ requests: CareersRequest[]; total: number }>(
-        '/api/hrm8/careers/requests'
-      );
-      if (response.success && response.data) {
-        setRequests(response.data.requests);
-      }
+      const data = await careersRequestService.getRequests();
+      setRequests(data.requests);
     } catch (error) {
-      console.error('Failed to load careers requests:', error);
-      toast.error('Failed to load careers requests');
+      toast({
+        title: 'Error',
+        description: 'Failed to load careers requests',
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -85,20 +60,21 @@ export default function CareersRequestsPage() {
   const handleApprove = async (request: CareersRequest, section?: string) => {
     setProcessingId(request.id);
     try {
-      const response = await apiClient.post(`/api/hrm8/careers/${request.id}/approve`, {
-        section,
-      });
-
-      if (response.success) {
-        toast.success(section
+      await careersRequestService.approve(request.id, section);
+      toast({
+        title: 'Approved',
+        description: section
           ? `${section.charAt(0).toUpperCase() + section.slice(1)} section approved`
-          : 'Careers page approved');
-        loadRequests();
-        setSelectedRequest(null);
-      }
+          : 'Careers page approved',
+      });
+      loadRequests();
+      setSelectedRequest(null);
     } catch (error) {
-      console.error('Failed to approve:', error);
-      toast.error('Failed to approve request');
+      toast({
+        title: 'Error',
+        description: 'Failed to approve request',
+        variant: 'destructive',
+      });
     } finally {
       setProcessingId(null);
     }
@@ -115,19 +91,20 @@ export default function CareersRequestsPage() {
 
     setProcessingId(requestToReject.id);
     try {
-      const response = await apiClient.post(`/api/hrm8/careers/${requestToReject.id}/reject`, {
-        reason: rejectReason,
+      await careersRequestService.reject(requestToReject.id, rejectReason);
+      toast({
+        title: 'Rejected',
+        description: 'Careers page rejected with feedback',
       });
-
-      if (response.success) {
-        toast.success('Careers page rejected with feedback');
-        loadRequests();
-        setRejectDialogOpen(false);
-        setSelectedRequest(null);
-      }
+      loadRequests();
+      setRejectDialogOpen(false);
+      setSelectedRequest(null);
     } catch (error) {
-      console.error('Failed to reject:', error);
-      toast.error('Failed to reject request');
+      toast({
+        title: 'Error',
+        description: 'Failed to reject request',
+        variant: 'destructive',
+      });
     } finally {
       setProcessingId(null);
       setRequestToReject(null);
@@ -144,14 +121,14 @@ export default function CareersRequestsPage() {
   };
 
   return (
-    
-      <div className="p-6">
-        <div className="flex justify-between items-center mb-6">
-          <div>
+    <div className="p-6 space-y-6">
+       <div>
             <h1 className="text-2xl font-bold tracking-tight">Careers Page Requests</h1>
             <p className="text-muted-foreground">Review and approve company careers page submissions</p>
-          </div>
-          <Badge variant="secondary" className="text-sm px-3 py-1">
+        </div>
+
+        <div className="flex items-center justify-end mb-6">
+          <Badge variant="secondary" className="text-lg px-4 py-2">
             <Clock className="h-4 w-4 mr-2" />
             {requests.length} Pending
           </Badge>
@@ -169,7 +146,7 @@ export default function CareersRequestsPage() {
             ))}
           </div>
         ) : requests.length === 0 ? (
-          <Card className="p-12 text-center">
+          <Card className="p-12 text-center flex flex-col items-center justify-center">
             <CheckCircle className="h-12 w-12 mx-auto text-green-500/50 mb-4" />
             <h3 className="text-lg font-semibold mb-2">All Caught Up!</h3>
             <p className="text-muted-foreground">No pending careers page requests to review</p>
@@ -178,13 +155,13 @@ export default function CareersRequestsPage() {
           <div className="space-y-4">
             {requests.map((request) => {
               const pendingSections = getPendingSections(request.pending);
-
+              
               return (
                 <Card key={request.id} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                       <div className="flex items-start gap-4">
-                        <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                           {request.pending.logoUrl ? (
                             <img
                               src={request.pending.logoUrl}
@@ -199,7 +176,7 @@ export default function CareersRequestsPage() {
                         <div>
                           <h3 className="font-semibold text-lg">{request.companyName}</h3>
                           <p className="text-sm text-muted-foreground">{request.domain}</p>
-                          <div className="flex items-center gap-2 mt-2">
+                          <div className="flex flex-wrap items-center gap-2 mt-2">
                             <Badge variant={request.type === 'NEW_PAGE' ? 'default' : 'secondary'}>
                               {request.type === 'NEW_PAGE' ? 'New Page' : 'Section Update'}
                             </Badge>
@@ -212,14 +189,14 @@ export default function CareersRequestsPage() {
                                 ))}
                               </div>
                             )}
-                            <span className="text-xs text-muted-foreground">
+                            <span className="text-xs text-muted-foreground whitespace-nowrap">
                               {formatDistanceToNow(new Date(request.submittedAt), { addSuffix: true })}
                             </span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 self-end md:self-center">
                         <Button
                           variant="outline"
                           size="sm"
@@ -428,7 +405,6 @@ export default function CareersRequestsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
-    
+    </div>
   );
 }

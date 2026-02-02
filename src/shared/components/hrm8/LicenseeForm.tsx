@@ -10,7 +10,7 @@ import * as z from 'zod';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
-import { licenseeService, CreateLicenseeData } from '@/shared/lib/hrm8/licenseeService';
+import { licenseeService, CreateLicenseeData } from '@/shared/services/hrm8/licenseeService';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 

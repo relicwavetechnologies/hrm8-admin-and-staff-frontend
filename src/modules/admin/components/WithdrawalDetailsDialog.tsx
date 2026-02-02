@@ -80,7 +80,7 @@ export function WithdrawalDetailsDialog({ open, onOpenChange, withdrawal }: With
                     {/* Commission Count */}
                     <div className="space-y-2">
                         <h3 className="font-semibold text-sm text-muted-foreground">Commissions Included</h3>
-                        <div>{withdrawal.commissionIds.length} commission(s)</div>
+                        <div>{withdrawal.commissionIds?.length || 0} commission(s)</div>
                     </div>
 
                     {/* Dates */}

@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Button } from "@/shared/components/ui/button";
 import { Card } from "@/shared/components/ui/card";
-import { Plus, Target, DollarSign, TrendingUp, Award, LayoutGrid, List, Download, BarChart3, Loader2, Briefcase, Users } from "lucide-react";
+import { Plus, Target, DollarSign, TrendingUp, Award, LayoutGrid, List, Download, BarChart3, Loader2, Briefcase, Users, ChevronsUpDown, Check } from "lucide-react";
 import { DataTable } from "@/shared/components/tables/DataTable";
-import { salesService, Opportunity, PipelineStats } from "@/shared/services/salesService";
+import { salesService, PipelineStats } from "@/shared/services/salesService";
+import { regionalSalesService, RegionalOpportunity } from "@/shared/lib/hrm8/regionalSalesService";
 import { consultant360Service } from "@/shared/lib/consultant360/consultant360Service";
 import type { SalesOpportunity, OpportunityStage, OpportunityType } from "@/shared/types/salesOpportunity";
 import { EnhancedStatCard } from "@/shared/components/dashboard/EnhancedStatCard";
@@ -14,7 +15,15 @@ import { OpportunityBulkActions } from "@/modules/sales/components/OpportunityBu
 import { useToast } from "@/shared/hooks/use-toast";
 import { exportOpportunities } from "@/shared/lib/salesExportService";
 import { SalesExportDialog, ExportConfig } from "@/modules/sales/components/SalesExportDialog";
-import { formatCurrency } from "@/shared/lib/utils";
+import { formatCurrency, cn } from "@/shared/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/shared/components/ui/select';
+import { regionService, Region } from '@/shared/services/hrm8/regionService';
 
 // Types for recruiting pipeline
 interface RecruitingStats {
@@ -24,15 +33,43 @@ interface RecruitingStats {
   pendingBalance: number;
 }
 
+// Unified Opportunity Type for internal state
+interface Opportunity {
+  id: string;
+  name: string;
+  stage: string;
+  amount: number;
+  estimatedValue: number;
+  probability: number;
+  expectedCloseDate?: string;
+  salesAgentId: string;
+  companyId: string;
+  createdAt?: string;
+  updatedAt?: string;
+  salesAgentName: string;
+  employerName: string;
+  company?: {
+    id: string;
+    name: string;
+    domain: string;
+  };
+}
+
 export default function SalesPipelinePage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'kanban' | 'table'>('kanban');
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [stats, setStats] = useState<PipelineStats | null>(null);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
+
+  // Admin / Regional Context
+  const isHrm8 = location.pathname.startsWith('/hrm8');
+  const [regions, setRegions] = useState<Region[]>([]);
+  const [selectedRegionId, setSelectedRegionId] = useState<string>('');
 
   // Recruiting stats for Consultant360 unified view
   const [recruitingStats, setRecruitingStats] = useState<RecruitingStats | null>(null);
@@ -48,40 +85,114 @@ export default function SalesPipelinePage() {
   const stages: OpportunityStage[] = ['prospecting', 'qualification', 'proposal', 'negotiation', 'closed-won', 'closed-lost'];
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (isHrm8) {
+      fetchRegions();
+    } else {
+      fetchData();
+    }
+  }, [isHrm8]);
+
+  // For Admin: Fetch data when region changes
+  useEffect(() => {
+    if (isHrm8 && selectedRegionId) {
+      // Update URL params
+      const params = new URLSearchParams(searchParams);
+      params.set('region', selectedRegionId);
+      setSearchParams(params, { replace: true });
+      fetchData();
+    }
+  }, [selectedRegionId, isHrm8]);
+
+  const fetchRegions = async () => {
+    try {
+      const response = await regionService.getAll();
+      const regionsList = response.data?.regions || [];
+      setRegions(regionsList);
+
+      // Restore from URL params or use first region
+      const regionFromUrl = searchParams.get('region');
+
+      if (regionFromUrl && regionsList.find(r => r.id === regionFromUrl)) {
+        setSelectedRegionId(regionFromUrl);
+      } else if (regionsList.length > 0) {
+        setSelectedRegionId(regionsList[0].id);
+      } else {
+        // No regions found, stop loading
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Failed to fetch regions:', error);
+      setLoading(false);
+      toast({
+        title: "Error",
+        description: "Failed to load regions.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const fetchData = async () => {
     try {
       console.log('[SalesPipelinePage] 🚀 Starting data fetch...');
-      console.log('[SalesPipelinePage] 📍 Is Consultant360:', isConsultant360);
+      console.log('[SalesPipelinePage] 📍 Is Consultant360:', isConsultant360, 'Is Admin:', isHrm8);
       setLoading(true);
 
-      // Always fetch sales data
-      const [oppsResponse, statsResponse] = await Promise.all([
-        salesService.getOpportunities(),
-        salesService.getPipelineStats()
-      ]);
+      let oppsData: any[] = [];
+      let statsData: PipelineStats | null = null;
 
-      console.log('[SalesPipelinePage] 📦 Raw opportunities response:', oppsResponse);
-      console.log('[SalesPipelinePage] 📊 Raw stats response:', statsResponse);
+      if (isHrm8) {
+        if (!selectedRegionId) {
+            setLoading(false);
+            return;
+        }
+        // Admin: Use regionalSalesService
+        const [oppsResponse, statsResponse] = await Promise.all([
+          regionalSalesService.getOpportunities(selectedRegionId),
+          regionalSalesService.getStats(selectedRegionId)
+        ]);
 
-      if (oppsResponse.data) {
-        console.log('[SalesPipelinePage] ✅ Setting opportunities:', {
-          count: oppsResponse.data.opportunities.length,
-          opportunities: oppsResponse.data.opportunities,
-        });
-        setOpportunities(oppsResponse.data.opportunities);
+        // Map RegionalOpportunity to internal Opportunity type
+        oppsData = oppsResponse.map((opp: RegionalOpportunity) => ({
+            id: opp.id,
+            name: opp.name,
+            stage: opp.stage,
+            amount: opp.amount || 0,
+            estimatedValue: opp.amount || 0,
+            probability: opp.probability || 0,
+            expectedCloseDate: opp.expected_close_date,
+            salesAgentId: opp.sales_agent_id,
+            companyId: opp.company.id,
+            salesAgentName: opp.sales_agent ? `${opp.sales_agent.first_name} ${opp.sales_agent.last_name}` : 'Unassigned',
+            employerName: opp.company.name,
+            company: opp.company,
+            createdAt: new Date().toISOString(), // Fallback as regional svc might not return created_at
+            updatedAt: new Date().toISOString()
+        }));
+
+        statsData = statsResponse ? {
+            totalPipelineValue: statsResponse.totalPipelineValue,
+            weightedPipelineValue: statsResponse.weightedPipelineValue,
+            dealCount: statsResponse.dealCount,
+            byStage: statsResponse.byStage
+        } : null;
+
       } else {
-        console.warn('[SalesPipelinePage] ⚠️ No opportunities data in response');
+        // Consultant/Sales Agent: Use salesService
+        const [oppsResponse, statsResponse] = await Promise.all([
+          salesService.getOpportunities(),
+          salesService.getPipelineStats()
+        ]);
+
+        if (oppsResponse.data) {
+          oppsData = oppsResponse.data.opportunities;
+        }
+        if (statsResponse.data) {
+           statsData = statsResponse.data;
+        }
       }
 
-      if (statsResponse.data) {
-        console.log('[SalesPipelinePage] ✅ Setting stats:', statsResponse.data);
-        setStats(statsResponse.data);
-      } else {
-        console.warn('[SalesPipelinePage] ⚠️ No stats data in response');
-      }
+      setOpportunities(oppsData);
+      setStats(statsData);
 
       // If Consultant360, also fetch recruiting stats
       if (isConsultant360) {
@@ -127,34 +238,25 @@ export default function SalesPipelinePage() {
       'CLOSED_LOST': 'closed-lost',
     };
     const mappedStage = stageMap[backendStage] || 'prospecting';
-    console.log(`[SalesPipelinePage] 🔄 Mapping stage: "${backendStage}" → "${mappedStage}"`);
     return mappedStage;
   };
 
-  // Transform API opportunities to match UI expected format if needed
-  // Or update UI to use new format. Let's map for now to keep UI components happy.
+  // Transform API opportunities to match UI expected format
   const mappedOpportunities: SalesOpportunity[] = opportunities.map(opp => {
-    console.log('[SalesPipelinePage] 🔄 Transforming opportunity:', {
-      id: opp.id,
-      name: opp.name,
-      backendStage: opp.stage,
-      company: opp.company,
-    });
-
     return {
       id: opp.id,
       employerId: opp.companyId, // Map companyId to employerId
-      employerName: opp.company?.name || 'Unknown Company',
+      employerName: opp.employerName || 'Unknown Company',
       salesAgentId: opp.salesAgentId,
-      salesAgentName: 'Me', // Since this is my pipeline
+      salesAgentName: opp.salesAgentName || 'Me',
 
       // Opportunity Details
       name: opp.name,
-      type: 'new-business', // Default or map from backend if available
+      type: 'new-business', // Default
       productType: 'ats-subscription', // Default
 
       // Financial
-      estimatedValue: opp.amount || 0,
+      estimatedValue: opp.estimatedValue || opp.amount || 0,
       probability: opp.probability || 0,
       expectedCloseDate: opp.expectedCloseDate ? new Date(opp.expectedCloseDate).toISOString() : new Date().toISOString(),
 
@@ -165,32 +267,15 @@ export default function SalesPipelinePage() {
       // Tracking
       leadSource: 'outbound', // Default
 
-      createdAt: new Date(opp.createdAt).toISOString(),
-      updatedAt: new Date(opp.updatedAt).toISOString(),
+      createdAt: opp.createdAt ? new Date(opp.createdAt).toISOString() : new Date().toISOString(),
+      updatedAt: opp.updatedAt ? new Date(opp.updatedAt).toISOString() : new Date().toISOString(),
     };
-  });
-
-  console.log('[SalesPipelinePage] 🎯 Mapped opportunities:', {
-    count: mappedOpportunities.length,
-    opportunities: mappedOpportunities,
   });
 
   const opportunitiesByStage = stages.reduce((acc, stage) => {
     acc[stage] = mappedOpportunities.filter(opp => opp.stage === stage);
-    console.log(`[SalesPipelinePage] 📊 Stage "${stage}":`, {
-      count: acc[stage].length,
-      opportunities: acc[stage].map(o => ({ id: o.id, name: o.name })),
-    });
     return acc;
   }, {} as Record<OpportunityStage, SalesOpportunity[]>);
-
-  console.log('[SalesPipelinePage] 🎯 Final opportunities by stage:', {
-    stages: Object.keys(opportunitiesByStage),
-    counts: Object.entries(opportunitiesByStage).map(([stage, opps]) => ({
-      stage,
-      count: opps.length,
-    })),
-  });
 
   // Filter opportunities for table view
   const filteredOpportunities = mappedOpportunities.filter((opp) => {
@@ -250,7 +335,7 @@ export default function SalesPipelinePage() {
     });
   };
 
-  if (loading) {
+  if (loading && !opportunities.length && (!isHrm8 || (isHrm8 && !regions.length))) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -265,48 +350,65 @@ export default function SalesPipelinePage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {isConsultant360 ? "Unified Pipeline" : "Sales Pipeline"}
-          </h1>
-          <p className="text-muted-foreground">
-            {isConsultant360 ? "Combined view of your recruiting and sales pipeline" : "Visualize and manage your sales opportunities"}
-          </p>
-        </div>
-        <div className="text-base font-semibold flex items-center gap-2">
-          <div className="flex items-center border rounded-lg p-1 gap-1">
-            <Button
-              variant={viewMode === 'kanban' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('kanban')}
-            >
-              <LayoutGrid className="h-4 w-4 mr-2" />
-              Kanban
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">
+              {isConsultant360 ? "Unified Pipeline" : isHrm8 ? "Regional Sales Pipeline" : "Sales Pipeline"}
+            </h1>
+            <p className="text-muted-foreground">
+              {isConsultant360 ? "Combined view of your recruiting and sales pipeline" : isHrm8 ? "Manage opportunities across your region" : "Visualize and manage your sales opportunities"}
+            </p>
+          </div>
+          <div className="text-base font-semibold flex items-center gap-2 flex-wrap">
+              {isHrm8 && (
+                 <Select value={selectedRegionId} onValueChange={setSelectedRegionId} disabled={regions.length === 0 || loading}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Select Region" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {regions.map((r) => (
+                      <SelectItem key={r.id} value={r.id}>
+                        {r.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+
+            <div className="flex items-center border rounded-lg p-1 gap-1">
+              <Button
+                variant={viewMode === 'kanban' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('kanban')}
+              >
+                <LayoutGrid className="h-4 w-4 mr-2" />
+                Kanban
+              </Button>
+              <Button
+                variant={viewMode === 'table' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('table')}
+              >
+                <List className="h-4 w-4 mr-2" />
+                Table
+              </Button>
+            </div>
+            <Button variant="outline" onClick={() => setExportDialogOpen(true)}>
+              <Download className="h-4 w-4 mr-2" />
+              Export
             </Button>
-            <Button
-              variant={viewMode === 'table' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('table')}
-            >
-              <List className="h-4 w-4 mr-2" />
-              Table
+            <Button onClick={() => navigate(isConsultant360 ? "/consultant360/leads" : isHrm8 ? "/hrm8/leads" : "/sales/opportunities/new")}>
+              <Plus className="h-4 w-4 mr-2" />
+              {isHrm8 ? "View Leads" : "New Opportunity"}
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to={isConsultant360 ? "/consultant360/dashboard" : isHrm8 ? "/hrm8/regional-sales" : "/sales-agent/dashboard"}>
+                <BarChart3 className="mr-2 h-4 w-4" />
+                View Dashboard
+              </Link>
             </Button>
           </div>
-          <Button variant="outline" onClick={() => setExportDialogOpen(true)}>
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-          <Button onClick={() => navigate(isConsultant360 ? "/consultant360/leads" : "/sales/opportunities/new")}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Opportunity
-          </Button>
-          <Button variant="outline" asChild>
-            <Link to={isConsultant360 ? "/consultant360/dashboard" : "/sales-agent/dashboard"}>
-              <BarChart3 className="mr-2 h-4 w-4" />
-              View Dashboard
-            </Link>
-          </Button>
         </div>
       </div>
 

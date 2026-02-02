@@ -15,9 +15,7 @@ interface ActiveJobsWidgetProps {
     jobs: ActiveJob[];
 }
 
-export function ActiveJobsWidget({ jobs = [] }: ActiveJobsWidgetProps) {
-    const jobsList = Array.isArray(jobs) ? jobs : [];
-
+export function ActiveJobsWidget({ jobs }: ActiveJobsWidgetProps) {
     return (
         <Card className="col-span-2">
             <CardHeader>
@@ -28,10 +26,10 @@ export function ActiveJobsWidget({ jobs = [] }: ActiveJobsWidgetProps) {
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
-                    {jobsList.length === 0 ? (
+                    {jobs.length === 0 ? (
                         <p className="text-sm text-muted-foreground">No active jobs found.</p>
                     ) : (
-                        jobsList.map((job) => (
+                        jobs.map((job) => (
                             <div key={job.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
                                 <div className="space-y-1">
                                     <p className="font-medium text-sm">{job.title}</p>

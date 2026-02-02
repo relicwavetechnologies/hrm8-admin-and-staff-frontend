@@ -1,4 +1,5 @@
 import { Card } from "@/shared/components/ui/card";
+import { Badge } from "@/shared/components/ui/badge";
 import { TrendingUp, TrendingDown, MoreVertical } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/components/ui/button";
@@ -8,8 +9,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
-import { useCurrencyFormat } from "@/shared/contexts/CurrencyFormatContext";
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from "recharts";
+import { useCurrencyFormat } from "@/contexts/CurrencyFormatContext";
+import { ResponsiveContainer, AreaChart, Area, LineChart, Line, XAxis, YAxis, Tooltip } from "recharts";
 import { useMemo } from "react";
 import { generateRealisticTrend, generatePercentageTrend } from "@/shared/lib/generators/realisticTrendData";
 
@@ -56,11 +57,11 @@ export function EnhancedStatCard({
   isCurrency = false,
   rawValue,
   size = "default",
-  // layout = "vertical",
+  layout = "vertical",
   elevation = "none",
-  // showGradient = false, // Future implementation
+  showGradient = false,
   showBorder = false,
-  // iconPosition = "left",
+  iconPosition = "left",
   chartData,
   onClick,
   loading = false,
@@ -143,11 +144,7 @@ export function EnhancedStatCard({
         "relative h-full flex flex-col overflow-hidden",
         "group",
         onClick ? "cursor-pointer hover:border-primary/50 transition-colors" : "cursor-default",
-        showBorder ? "border border-border/60" : "border-0 shadow-none",
-        elevation === "sm" && "shadow-sm",
-        elevation === "md" && "shadow-md",
-        elevation === "lg" && "shadow-lg",
-        "bg-card"
+        "border border-border/60 bg-card"
       )}
       onClick={onClick}
     >
@@ -242,7 +239,7 @@ export function EnhancedStatCard({
         </div>
 
         {/* Mini Chart Section */}
-        <div className="mt-auto -mx-3 sm:-mx-4 md:-mx-5 -mb-3 sm:-mb-4 md:-mb-5 h-[60px] sm:h-[75px] md:h-[90px] pointer-events-none">
+        <div className="mt-auto -mx-3 sm:-mx-4 md:-mx-5 -mb-3 sm:-mb-4 md:-mb-5 h-[60px] sm:h-[75px] md:h-[90px]">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={defaultChartData} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
               <defs>

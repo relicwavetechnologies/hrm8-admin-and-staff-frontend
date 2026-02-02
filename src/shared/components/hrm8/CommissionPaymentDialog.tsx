@@ -6,7 +6,7 @@ import { Label } from "@/shared/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/shared/components/ui/alert";
 import { Loader2, CheckCircle2, XCircle, AlertCircle, Circle } from "lucide-react";
 import { useToast } from "@/shared/hooks/use-toast";
-import { commissionService, Commission } from "@/shared/lib/hrm8/commissionService";
+import { commissionService, Commission } from "@/shared/services/hrm8/commissionService";
 import { cn } from "@/shared/lib/utils";
 import { format, parseISO, isValid } from "date-fns";
 

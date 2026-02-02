@@ -3,7 +3,7 @@ import { Input } from "@/shared/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
 import { Button } from "@/shared/components/ui/button";
 import { Check, X, Pencil } from "lucide-react";
-// import { cn } from "@/shared/lib/utils";
+import { cn } from "@/shared/lib/utils";
 
 export type EditableFieldType = "text" | "select" | "number" | "date";
 

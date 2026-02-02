@@ -4,7 +4,7 @@
  */
 
 import { useState } from 'react';
-import { StaffMember } from '@/shared/lib/hrm8/staffService';
+import { StaffMember } from '@/shared/services/hrm8/staffService';
 import { Button } from '@/shared/components/ui/button';
 import {
     DropdownMenu,
@@ -13,7 +13,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu';
-import { MoreVertical, Edit, /* RefreshCw, */ Pause, Play, Trash2, UserCog, Eye } from 'lucide-react';
+import { MoreVertical, Edit, RefreshCw, Pause, Play, Trash2, UserCog, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface StaffActionsMenuProps {
@@ -48,7 +48,7 @@ export function StaffActionsMenu({
 
     const navigate = useNavigate();
     const isSuspended = staff.status === 'SUSPENDED';
-    // const isActive = staff.status === 'ACTIVE';
+    const isActive = staff.status === 'ACTIVE';
 
     return (
         <DropdownMenu open={open} onOpenChange={setOpen}>

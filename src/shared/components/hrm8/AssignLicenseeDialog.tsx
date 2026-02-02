@@ -8,8 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from '@/shared/components/ui/button';
 import { Label } from '@/shared/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
-import { licenseeService, RegionalLicensee } from '@/shared/lib/hrm8/licenseeService';
-import { regionService, Region } from '@/shared/lib/hrm8/regionService';
+import { licenseeService, RegionalLicensee } from '@/shared/services/hrm8/licenseeService';
+import { regionService, Region } from '@/shared/services/hrm8/regionService';
 import { toast } from 'sonner';
 import { Loader2, Building2, X } from 'lucide-react';
 import { Badge } from '@/shared/components/ui/badge';
@@ -94,7 +94,7 @@ export function AssignLicenseeDialog({ open, onOpenChange, region, onSuccess }: 
 
   if (!region) return null;
 
-  // const currentLicensee = licensees.find(l => l.id === region.licenseeId);
+  const currentLicensee = licensees.find(l => l.id === region.licenseeId);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

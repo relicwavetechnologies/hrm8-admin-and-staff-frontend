@@ -3,7 +3,7 @@
  * Drawer component for assigning a consultant to a job
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useDebounce } from '@/shared/hooks/use-debounce';
 import {
   Sheet,
@@ -19,8 +19,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/shared/components/ui/badge';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { Separator } from '@/shared/components/ui/separator';
-import { Loader2, Search, Users, CheckCircle, Briefcase } from 'lucide-react';
-import { jobAllocationService, ConsultantForAssignment, JobAssignmentInfo } from '@/shared/lib/hrm8/jobAllocationService';
+import { Loader2, Search, Users, CheckCircle, XCircle, Briefcase } from 'lucide-react';
+import { jobAllocationService, ConsultantForAssignment, JobAssignmentInfo } from '@/shared/services/hrm8/jobAllocationService';
 import { toast } from 'sonner';
 import { AutoAssignmentOverrideModal } from './AutoAssignmentOverrideModal';
 
@@ -189,7 +189,7 @@ export function AssignConsultantDrawer({
   // Client-side filtering removed as backend handles it
   const filteredConsultants = consultants;
 
-  // const selectedConsultant = consultants.find(c => c.id === selectedConsultantId);
+  const selectedConsultant = consultants.find(c => c.id === selectedConsultantId);
 
   return (
     <>

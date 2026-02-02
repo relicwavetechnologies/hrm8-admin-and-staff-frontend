@@ -77,8 +77,10 @@ export default function AnalyticsDashboard() {
       if (trendsRes.success && trendsRes.data?.trends) {
         setTrends(trendsRes.data.trends);
       }
-      if (companiesRes.success && companiesRes.data) {
+      if (companiesRes.success && Array.isArray(companiesRes.data)) {
         setTopCompanies(companiesRes.data);
+      } else {
+        setTopCompanies([]);
       }
     } catch (error) {
       console.error('Failed to load analytics:', error);

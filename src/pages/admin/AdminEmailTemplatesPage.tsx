@@ -97,33 +97,33 @@ const EMAIL_TEMPLATE_TYPES: { value: string; label: string }[] = [
 ];
 
 async function fetchTemplates(): Promise<EmailTemplate[]> {
-    const res = await apiClient.get<EmailTemplate[]>("/email-templates");
+    const res = await apiClient.get<EmailTemplate[]>("/api/email-templates");
     return res.data || [];
 }
 
 async function fetchVariables(): Promise<TemplateVariable[]> {
-    const res = await apiClient.get<TemplateVariable[]>("/email-templates/variables");
+    const res = await apiClient.get<TemplateVariable[]>("/api/email-templates/variables");
     return res.data || [];
 }
 
 async function createTemplate(template: Partial<EmailTemplate>): Promise<EmailTemplate> {
-    const res = await apiClient.post<EmailTemplate>("/email-templates", template);
+    const res = await apiClient.post<EmailTemplate>("/api/email-templates", template);
     if (!res.data) throw new Error("Failed to create template");
     return res.data;
 }
 
 async function updateTemplate(id: string, updates: Partial<EmailTemplate>): Promise<EmailTemplate> {
-    const res = await apiClient.put<EmailTemplate>(`/email-templates/${id}`, updates);
+    const res = await apiClient.put<EmailTemplate>(`/api/email-templates/${id}`, updates);
     if (!res.data) throw new Error("Failed to update template");
     return res.data;
 }
 
 async function deleteTemplateApi(id: string): Promise<void> {
-    await apiClient.delete(`/email-templates/${id}`);
+    await apiClient.delete(`/api/email-templates/${id}`);
 }
 
 async function previewTemplate(id: string): Promise<{ subject: string; body: string }> {
-    const res = await apiClient.post<{ subject: string; body: string }>(`/email-templates/${id}/preview`, {});
+    const res = await apiClient.post<{ subject: string; body: string }>(`/api/email-templates/${id}/preview`, {});
     if (!res.data) throw new Error("Failed to preview template");
     return res.data;
 }

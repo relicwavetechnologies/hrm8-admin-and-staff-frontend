@@ -4,7 +4,7 @@
  */
 
 import { useState } from 'react';
-import { StaffMember, staffService } from '@/shared/lib/hrm8/staffService';
+import { StaffMember, staffService } from '@/shared/services/hrm8/staffService';
 import {
     AlertDialog,
     AlertDialogAction,

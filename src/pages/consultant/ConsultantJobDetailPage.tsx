@@ -24,11 +24,12 @@ import { toast } from 'sonner';
 import { ApplicationPipeline } from '@/shared/components/applications/ApplicationPipeline';
 
 export default function ConsultantJobDetailPage() {
-    const { id } = useParams<{ id: string }>();
+    const { jobId } = useParams<{ jobId: string }>();
+    const id = jobId; // Alias to keep existing code working
     const navigate = useNavigate();
     const { consultant } = useConsultantAuth();
     void consultant;
-
+    
     const [loading, setLoading] = useState(true);
     const [jobData, setJobData] = useState<any>(null);
     const [candidates, setCandidates] = useState<CandidatePipelineItem[]>([]);
@@ -39,10 +40,16 @@ export default function ConsultantJobDetailPage() {
     const [logType, setLogType] = useState('');
     const [logNotes, setLogNotes] = useState('');
 
+    console.log('[JobDetail] Component rendered. ID param:', id);
+
     useEffect(() => {
         if (id) {
+            console.log('[JobDetail] ID exists, loading data...');
             loadJobDetails();
             loadCandidates();
+        } else {
+            console.warn('[JobDetail] No ID found in params');
+            setLoading(false);
         }
     }, [id]);
 
@@ -51,7 +58,15 @@ export default function ConsultantJobDetailPage() {
             setLoading(true);
             if (!id) return;
 
-            const response = await consultantService.getJobDetails(id);
+            // Sanitize ID: The URL might contain spaces instead of hyphens due to some data issue
+            // We manually fix it here to ensure the backend receives a valid UUID
+            let cleanId = id;
+            if (id.includes(' ') && !id.includes('-')) {
+                cleanId = id.replace(/\s/g, '-');
+                console.log(`[JobDetail] Sanitized ID in frontend: ${cleanId}`);
+            }
+
+            const response = await consultantService.getJobDetails(cleanId);
             console.log('[JobDetail] Response:', response);
 
             // Handle both response formats - backend returns job details directly in data
@@ -76,7 +91,11 @@ export default function ConsultantJobDetailPage() {
         if (!id) return;
         setLoadingCandidates(true);
         try {
-            const data = await ConsultantCandidateService.getPipeline(id);
+            let cleanId = id;
+            if (id.includes(' ') && !id.includes('-')) {
+                cleanId = id.replace(/\s/g, '-');
+            }
+            const data = await ConsultantCandidateService.getPipeline(cleanId);
             setCandidates(data);
         } catch (error) {
             console.error('Failed to load candidates:', error);
@@ -144,7 +163,15 @@ export default function ConsultantJobDetailPage() {
         );
     }
 
-    if (!jobData) return null;
+    if (!jobData) {
+        return (
+            <div className="p-6 text-center">
+                <h2 className="text-xl font-semibold">Job not found</h2>
+                <p className="text-muted-foreground">Unable to load job details for ID: {id}</p>
+                <Button variant="outline" className="mt-4" onClick={() => navigate('..', { relative: 'path' })}>Back to Jobs</Button>
+            </div>
+        );
+    }
 
     const { job, employer } = jobData;
 
@@ -228,12 +255,12 @@ export default function ConsultantJobDetailPage() {
                                         <div>
                                             <h4 className="text-sm font-medium text-muted-foreground">Salary Range</h4>
                                             <p className="text-sm font-medium">
-                                                {job.salaryMin ? `${job.salaryCurrency} ${job.salaryMin.toLocaleString()} - ${job.salaryMax.toLocaleString()}` : 'Not specificed'}
+                                                {job.salary_min ? `${job.salary_currency || 'USD'} ${job.salary_min.toLocaleString()} - ${job.salary_max?.toLocaleString()}` : 'Not specified'}
                                             </p>
                                         </div>
                                         <div>
                                             <h4 className="text-sm font-medium text-muted-foreground">Work Arrangement</h4>
-                                            <p className="text-sm font-medium capitalize">{job.workArrangement?.toLowerCase().replace('_', ' ')}</p>
+                                            <p className="text-sm font-medium capitalize">{job.work_arrangement?.toLowerCase().replace('_', ' ') || 'Not specified'}</p>
                                         </div>
                                     </div>
                                     <Separator />

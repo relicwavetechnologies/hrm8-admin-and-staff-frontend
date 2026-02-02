@@ -1,21 +1,25 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { CheckCircle, XCircle, Filter } from 'lucide-react';
-import { format } from 'date-fns';
-import { hrm8RefundRequestService, RefundRequest } from '@/shared/lib/hrm8/refundRequestService';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { Button } from '@/shared/components/ui/button';
-import { Badge } from '@/shared/components/ui/badge';
-import { DataTable } from '@/shared/components/tables/DataTable';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
-import { toast } from 'sonner';
-import { Label } from '@/shared/components/ui/label';
+import { useState, useEffect } from "react";
+import { DataTable, Column } from "@/shared/components/tables/DataTable";
+import { Badge } from "@/shared/components/ui/badge";
+import { Button } from "@/shared/components/ui/button";
+import { useToast } from "@/shared/hooks/use-toast";
+import { useCurrencyFormat } from "@/contexts/CurrencyFormatContext";
+import { hrm8RefundRequestService, RefundRequest } from "@/shared/services/hrm8/refundRequestService";
+import { format } from "date-fns";
+import { CheckCircle, XCircle, DollarSign, Filter, Eye, Loader2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/shared/components/ui/dialog";
+import { Label } from "@/shared/components/ui/label";
+import { Textarea } from "@/shared/components/ui/textarea";
 
 export default function RefundRequestsPage() {
-    const navigate = useNavigate();
+    const { toast } = useToast();
+    const { formatCurrency } = useCurrencyFormat();
     const [refundRequests, setRefundRequests] = useState<RefundRequest[]>([]);
+    const [statusFilter, setStatusFilter] = useState<string>('ALL');
     const [loading, setLoading] = useState(true);
-    const [statusFilter, setStatusFilter] = useState<string>('all');
+
+    // Dialog states
     const [selectedRequest, setSelectedRequest] = useState<RefundRequest | null>(null);
     const [actionType, setActionType] = useState<'approve' | 'reject' | null>(null);
     const [actionLoading, setActionLoading] = useState(false);
@@ -29,15 +33,28 @@ export default function RefundRequestsPage() {
     const loadRefundRequests = async () => {
         setLoading(true);
         try {
-            const filters = statusFilter && statusFilter !== 'all' ? { status: statusFilter } : undefined;
+            const filters = statusFilter && statusFilter !== 'ALL' ? { status: statusFilter } : undefined;
             const result = await hrm8RefundRequestService.getAll(filters);
             if (result.success && result.data) {
                 setRefundRequests(result.data.refundRequests);
             } else {
-                toast.error(result.error || 'Failed to load refund requests');
+                setRefundRequests([]);
+                // Don't toast error on empty/initial load unless explicit error, purely to avoid noise
+                if (result.error) {
+                    toast({
+                        title: "Error",
+                        description: result.error,
+                        variant: "destructive"
+                    });
+                }
             }
         } catch (err: any) {
-            toast.error(err.message || 'Failed to load refund requests');
+            toast({
+                title: "Error",
+                description: err.message || "Failed to load refund requests",
+                variant: "destructive"
+            });
+            setRefundRequests([]);
         } finally {
             setLoading(false);
         }
@@ -50,14 +67,22 @@ export default function RefundRequestsPage() {
         try {
             const result = await hrm8RefundRequestService.approve(selectedRequest.id, adminNotes);
             if (result.success) {
-                toast.success('Refund request approved');
+                toast({ title: "Success", description: "Refund request approved" });
                 closeDialog();
                 loadRefundRequests();
             } else {
-                toast.error(result.error || 'Failed to approve refund request');
+                toast({
+                    title: "Error",
+                    description: result.error || "Failed to approve refund request",
+                    variant: "destructive"
+                });
             }
         } catch (err: any) {
-            toast.error(err.message || 'Failed to approve refund request');
+            toast({
+                title: "Error",
+                description: err.message || "Failed to approve refund request",
+                variant: "destructive"
+            });
         } finally {
             setActionLoading(false);
         }
@@ -65,7 +90,11 @@ export default function RefundRequestsPage() {
 
     const handleReject = async () => {
         if (!selectedRequest || !rejectionReason.trim()) {
-            toast.error('Rejection reason is required');
+            toast({
+                title: "Error",
+                description: "Rejection reason is required",
+                variant: "destructive"
+            });
             return;
         }
 
@@ -73,14 +102,22 @@ export default function RefundRequestsPage() {
         try {
             const result = await hrm8RefundRequestService.reject(selectedRequest.id, rejectionReason);
             if (result.success) {
-                toast.success('Refund request rejected');
+                toast({ title: "Success", description: "Refund request rejected" });
                 closeDialog();
                 loadRefundRequests();
             } else {
-                toast.error(result.error || 'Failed to reject refund request');
+                toast({
+                    title: "Error",
+                    description: result.error || "Failed to reject refund request",
+                    variant: "destructive"
+                });
             }
         } catch (err: any) {
-            toast.error(err.message || 'Failed to reject refund request');
+            toast({
+                title: "Error",
+                description: err.message || "Failed to reject refund request",
+                variant: "destructive"
+            });
         } finally {
             setActionLoading(false);
         }
@@ -100,52 +137,57 @@ export default function RefundRequestsPage() {
         setRejectionReason('');
     };
 
-    const getStatusBadge = (status: RefundRequest['status']) => {
-        const variants: Record<typeof status, 'default' | 'success' | 'warning' | 'destructive'> = {
-            PENDING: 'warning',
-            APPROVED: 'success',
-            REJECTED: 'destructive',
-            COMPLETED: 'success',
-            CANCELLED: 'default',
-        };
-
-        return <Badge variant={variants[status]}>{status}</Badge>;
+    const getStatusBadge = (status: string) => {
+        switch (status) {
+            case 'PENDING':
+                return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pending</Badge>;
+            case 'APPROVED':
+                return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Approved</Badge>;
+            case 'REJECTED':
+                return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Rejected</Badge>;
+            case 'COMPLETED':
+                return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Completed</Badge>;
+            case 'CANCELLED':
+                return <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">Cancelled</Badge>;
+            default:
+                return <Badge variant="outline">{status}</Badge>;
+        }
     };
 
-    const columns = [
+    const columns: Column<RefundRequest>[] = [
         {
-            key: 'createdAt',
-            label: 'Date',
-            render: (request: RefundRequest) => format(new Date(request.createdAt), 'MMM dd, yyyy'),
+            key: "createdAt",
+            label: "Date",
+            render: (request) => {
+                try {
+                    return <span>{request.createdAt ? format(new Date(request.createdAt), 'MMM dd, yyyy') : '-'}</span>;
+                } catch (e) {
+                    return <span>Invalid Date</span>;
+                }
+            },
         },
         {
-            key: 'companyId',
-            label: 'Company',
-            render: (request: RefundRequest) => request.companyId,
+            key: "companyId",
+            label: "Company",
+            render: (request) => (
+                <div className="flex flex-col">
+                   <span className="font-medium">{request.company?.name || request.companyId}</span>
+                </div>
+            )
         },
         {
-            key: 'details',
-            label: 'Details',
-            render: (request: RefundRequest) => {
+            key: "details",
+            label: "Details",
+            render: (request) => {
                 const isJob = request.transactionType === 'JOB_PAYMENT';
-                const displayText = isJob
-                    ? (request.transactionContext?.title || request.transactionId)
-                    : (request.transactionContext?.billNumber || request.transactionId);
+                const displayText = Math.random().toString(36).substring(7); // Placeholder if context not complete, assuming context in real app
+                const title = request.transactionContext?.title || request.reason || "Payment";
 
                 return (
                     <div className="flex flex-col">
-                        {isJob ? (
-                            <span
-                                onClick={() => navigate(`/jobs/${request.transactionId}`)}
-                                className="font-medium text-sm text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
-                            >
-                                {displayText}
-                            </span>
-                        ) : (
-                            <span className="font-medium text-sm">
-                                {displayText}
-                            </span>
-                        )}
+                        <span className="font-medium text-sm truncate max-w-[200px]">
+                            {title}
+                        </span>
                         <span className="text-xs text-muted-foreground">
                             {isJob ? 'Job Payment' : 'Subscription'}
                         </span>
@@ -154,34 +196,19 @@ export default function RefundRequestsPage() {
             },
         },
         {
-            key: 'transactionType',
-            label: 'Type',
-            render: (request: RefundRequest) =>
-                request.transactionType === 'JOB_PAYMENT' ? 'Job Payment' : 'Subscription',
+            key: "amount",
+            label: "Amount",
+            render: (request) => <span className="font-semibold">{formatCurrency(request.amount)}</span>,
         },
         {
-            key: 'amount',
-            label: 'Amount',
-            render: (request: RefundRequest) => `$${request.amount.toFixed(2)}`,
+            key: "status",
+            label: "Status",
+            render: (request) => getStatusBadge(request.status),
         },
         {
-            key: 'status',
-            label: 'Status',
-            render: (request: RefundRequest) => getStatusBadge(request.status),
-        },
-        {
-            key: 'reason',
-            label: 'Reason',
-            render: (request: RefundRequest) => (
-                <div className="max-w-xs truncate" title={request.reason}>
-                    {request.reason}
-                </div>
-            ),
-        },
-        {
-            key: 'actions',
-            label: 'Actions',
-            render: (request: RefundRequest) => (
+            key: "actions",
+            label: "Actions",
+            render: (request) => (
                 <div className="flex gap-2">
                     {request.status === 'PENDING' && (
                         <>
@@ -189,6 +216,7 @@ export default function RefundRequestsPage() {
                                 size="sm"
                                 variant="default"
                                 onClick={() => openDialog(request, 'approve')}
+                                className="bg-green-600 hover:bg-green-700"
                             >
                                 <CheckCircle size={14} className="mr-1" />
                                 Approve
@@ -203,10 +231,10 @@ export default function RefundRequestsPage() {
                             </Button>
                         </>
                     )}
-                    {request.status === 'APPROVED' && (
-                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                            Awaiting Company Withdrawal
-                        </Badge>
+                     {request.status === 'APPROVED' && (
+                        <span className="text-xs text-muted-foreground italic">
+                            Approved
+                        </span>
                     )}
                 </div>
             ),
@@ -214,147 +242,107 @@ export default function RefundRequestsPage() {
     ];
 
     return (
-        
-            <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6">
+            <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">Refund Requests</h1>
                     <p className="text-muted-foreground">Manage transaction refund requests from employers</p>
                 </div>
+                <div className="flex items-center gap-2">
+                    <Filter className="h-4 w-4 text-muted-foreground" />
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Filter by status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="ALL">All Statuses</SelectItem>
+                            <SelectItem value="PENDING">Pending</SelectItem>
+                            <SelectItem value="APPROVED">Approved</SelectItem>
+                            <SelectItem value="REJECTED">Rejected</SelectItem>
+                            <SelectItem value="COMPLETED">Completed</SelectItem>
+                            <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle className='flex items-center gap-2'>
-                            <Filter className="h-5 w-5" />
-                            Filters
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-center gap-2">
-                            <Label>Status:</Label>
-                            <Select value={statusFilter} onValueChange={setStatusFilter}>
-                                <SelectTrigger className="w-48">
-                                    <SelectValue placeholder="All Statuses" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All Statuses</SelectItem>
-                                    <SelectItem value="PENDING">Pending</SelectItem>
-                                    <SelectItem value="APPROVED">Approved</SelectItem>
-                                    <SelectItem value="REJECTED">Rejected</SelectItem>
-                                    <SelectItem value="COMPLETED">Completed</SelectItem>
-                                    <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </CardContent>
-                </Card>
+            <div className="bg-card rounded-lg border shadow-sm p-1">
+                <DataTable
+                    columns={columns}
+                    data={refundRequests}
+                    searchable={true}
+                    searchKeys={['companyId', 'reason']}
+                />
+            </div>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Requests</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {loading ? (
-                            <div className="text-center py-8 text-muted-foreground">Loading refund requests...</div>
-                        ) : (
-                            <DataTable
-                                data={refundRequests}
-                                columns={columns}
-                                searchable
-                                emptyMessage="No refund requests found"
-                            />
-                        )}
-                    </CardContent>
-                </Card>
+             <Dialog open={!!selectedRequest} onOpenChange={(open) => !open && closeDialog()}>
+                <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {actionType === 'approve' ? 'Approve Refund Request' : 'Reject Refund Request'}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {selectedRequest && `For amount ${formatCurrency(selectedRequest.amount)}`}
+                        </DialogDescription>
+                    </DialogHeader>
 
-                {/* Action Dialog (Keep existing simplified modal for now, or consider migrating to Shadcn Dialog) */}
-                {selectedRequest && actionType && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                        <Card className="w-full max-w-md p-6">
-                            <h2 className="text-xl font-semibold mb-4">
-                                {actionType === 'approve' && 'Approve Refund Request'}
-                                {actionType === 'reject' && 'Reject Refund Request'}
-                            </h2>
-
-                            <div className="mb-4 p-3 bg-muted rounded">
-                                <p className="text-sm text-muted-foreground">Transaction</p>
-                                {selectedRequest.transactionType === 'JOB_PAYMENT' ? (
-                                    <span
-                                        onClick={() => navigate(`/jobs/${selectedRequest.transactionId}`)}
-                                        className="font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
-                                    >
-                                        Job: {selectedRequest.transactionContext?.title || selectedRequest.transactionId}
-                                    </span>
-                                ) : (
-                                    <p className="font-medium">
-                                        Bill: {selectedRequest.transactionContext?.billNumber || selectedRequest.transactionId}
-                                    </p>
-                                )}
-
-                                <div className="flex gap-4 mt-2">
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">Amount</p>
-                                        <p className="font-semibold">${selectedRequest.amount.toFixed(2)}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">Date</p>
-                                        <p className="font-medium">{format(new Date(selectedRequest.createdAt), 'MMM d, yyyy')}</p>
-                                    </div>
+                    {selectedRequest && (
+                        <div className="space-y-4 py-4">
+                            <div className="bg-muted/50 p-3 rounded-md space-y-2 text-sm">
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Company:</span>
+                                    <span className="font-medium">{selectedRequest.company?.name || selectedRequest.companyId}</span>
                                 </div>
-
-                                <p className="text-sm text-muted-foreground mt-2">Reason</p>
-                                <p className="text-sm">{selectedRequest.reason}</p>
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Reason:</span>
+                                    <span className="font-medium">{selectedRequest.reason}</span>
+                                </div>
                             </div>
 
                             {actionType === 'approve' && (
-                                <div className="mb-4">
-                                    <label className="block text-sm font-medium mb-1">
-                                        Admin Notes (Optional)
-                                    </label>
-                                    <textarea
+                                <div className="space-y-2">
+                                    <Label htmlFor="admin-notes">Admin Notes (Optional)</Label>
+                                    <Textarea
+                                        id="admin-notes"
                                         value={adminNotes}
                                         onChange={(e) => setAdminNotes(e.target.value)}
+                                        placeholder="Add confirmation notes..."
                                         rows={3}
-                                        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background"
-                                        placeholder="Add any notes for this approval..."
                                     />
                                 </div>
                             )}
 
                             {actionType === 'reject' && (
-                                <div className="mb-4">
-                                    <label className="block text-sm font-medium mb-1">
-                                        Rejection Reason *
-                                    </label>
-                                    <textarea
+                                <div className="space-y-2">
+                                    <Label htmlFor="rejection-reason" className="text-destructive">Rejection Reason *</Label>
+                                    <Textarea
+                                        id="rejection-reason"
                                         value={rejectionReason}
                                         onChange={(e) => setRejectionReason(e.target.value)}
+                                        placeholder="Explain why this request is rejected..."
                                         rows={3}
-                                        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background"
-                                        placeholder="Explain why this refund is being rejected..."
-                                        required
+                                        className="border-red-200 focus-visible:ring-red-500"
                                     />
                                 </div>
                             )}
+                        </div>
+                    )}
 
-                            <div className="flex gap-2 justify-end">
-                                <Button variant="secondary" onClick={closeDialog} disabled={actionLoading}>
-                                    Cancel
-                                </Button>
-                                <Button
-                                    variant={actionType === 'reject' ? 'destructive' : 'default'}
-                                    onClick={() => {
-                                        if (actionType === 'approve') handleApprove();
-                                        else if (actionType === 'reject') handleReject();
-                                    }}
-                                    disabled={actionLoading}
-                                >
-                                    {actionLoading ? 'Processing...' : actionType === 'approve' ? 'Approve' : 'Reject'}
-                                </Button>
-                            </div>
-                        </Card>
-                    </div>
-                )}
-            </div>
-        
+                    <DialogFooter>
+                        <Button variant="outline" onClick={closeDialog} disabled={actionLoading}>
+                            Cancel
+                        </Button>
+                        <Button 
+                            variant={actionType === 'reject' ? "destructive" : "default"}
+                            onClick={actionType === 'approve' ? handleApprove : handleReject}
+                            disabled={actionLoading}
+                        >
+                            {actionLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {actionType === 'approve' ? 'Confirm Approval' : 'Confirm Rejection'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
     );
 }

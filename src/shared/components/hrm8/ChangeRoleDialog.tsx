@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { StaffMember, staffService } from '@/shared/lib/hrm8/staffService';
+import { StaffMember, staffService } from '@/shared/services/hrm8/staffService';
 import {
     Dialog,
     DialogContent,
@@ -19,8 +19,8 @@ import { Label } from '@/shared/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/shared/components/ui/radio-group';
 import { toast } from 'sonner';
-import { Loader2, AlertTriangle, Briefcase, Users, FileText, /* DollarSign, */ ArrowRight, XCircle, CheckCircle2 } from 'lucide-react';
-// import { Alert /*, AlertDescription, AlertTitle */ } from '@/shared/components/ui/alert';
+import { Loader2, AlertTriangle, Briefcase, Users, FileText, DollarSign, ArrowRight, XCircle, CheckCircle2 } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/shared/components/ui/alert';
 import { Separator } from '@/shared/components/ui/separator';
 
 interface PendingTasks {
@@ -201,28 +201,28 @@ export function ChangeRoleDialog({
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-2 text-sm">
-                                    {pendingTasks.jobs.length > 0 && (
+                                    {(pendingTasks.jobs?.length || 0) > 0 && (
                                         <div className="flex items-center gap-2 text-muted-foreground">
                                             <Briefcase className="h-3.5 w-3.5" />
-                                            <span>{pendingTasks.jobs.length} Job(s)</span>
+                                            <span>{pendingTasks.jobs?.length || 0} Job(s)</span>
                                         </div>
                                     )}
-                                    {pendingTasks.leads.length > 0 && (
+                                    {(pendingTasks.leads?.length || 0) > 0 && (
                                         <div className="flex items-center gap-2 text-muted-foreground">
                                             <Users className="h-3.5 w-3.5" />
-                                            <span>{pendingTasks.leads.length} Lead(s)</span>
+                                            <span>{pendingTasks.leads?.length || 0} Lead(s)</span>
                                         </div>
                                     )}
-                                    {pendingTasks.conversionRequests.length > 0 && (
+                                    {(pendingTasks.conversionRequests?.length || 0) > 0 && (
                                         <div className="flex items-center gap-2 text-muted-foreground">
                                             <FileText className="h-3.5 w-3.5" />
-                                            <span>{pendingTasks.conversionRequests.length} Conversion(s)</span>
+                                            <span>{pendingTasks.conversionRequests?.length || 0} Conversion(s)</span>
                                         </div>
                                     )}
-                                    {pendingTasks.pendingCommissions.length > 0 && (
+                                    {(pendingTasks.pendingCommissions?.length || 0) > 0 && (
                                         <div className="flex items-center gap-2 text-muted-foreground">
-                                            {/* <DollarSign className="h-3.5 w-3.5" /> */}
-                                            <span>{pendingTasks.pendingCommissions.length} Commission(s)</span>
+                                            <DollarSign className="h-3.5 w-3.5" />
+                                            <span>{pendingTasks.pendingCommissions?.length || 0} Commission(s)</span>
                                         </div>
                                     )}
                                 </div>

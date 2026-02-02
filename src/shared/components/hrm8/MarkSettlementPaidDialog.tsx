@@ -3,11 +3,11 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import { Alert, AlertDescription, AlertTitle } from "@/shared/components/ui/alert";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { useToast } from "@/shared/hooks/use-toast";
-import { settlementService, Settlement } from "@/shared/lib/hrm8/settlementService";
-import { useCurrencyFormat } from "@/shared/contexts/CurrencyFormatContext";
+import { settlementService, Settlement } from "@/shared/services/hrm8/settlementService";
+import { useCurrencyFormat } from "@/contexts/CurrencyFormatContext";
+import { Alert, AlertDescription, AlertTitle } from "@/shared/components/ui/alert";
 
 interface MarkSettlementPaidDialogProps {
   settlement: Settlement | null;
@@ -158,28 +158,30 @@ export function MarkSettlementPaidDialog({
             <div className="space-y-4">
               <h4 className="font-semibold">Payment Details</h4>
 
-              <div className="space-y-2">
-                <Label htmlFor="payment-date">Payment Date *</Label>
-                <Input
-                  id="payment-date"
-                  type="date"
-                  value={paymentDate}
-                  onChange={(e) => setPaymentDate(e.target.value)}
-                  required
-                  disabled={isSubmitting || success}
-                />
-              </div>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                    <Label htmlFor="payment-date">Payment Date *</Label>
+                    <Input
+                    id="payment-date"
+                    type="date"
+                    value={paymentDate}
+                    onChange={(e) => setPaymentDate(e.target.value)}
+                    required
+                    disabled={isSubmitting || success}
+                    />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="payment-reference">Payment Reference *</Label>
-                <Input
-                  id="payment-reference"
-                  placeholder="e.g., TXN-2025-001, Wire-12345"
-                  value={reference}
-                  onChange={(e) => setReference(e.target.value)}
-                  required
-                  disabled={isSubmitting || success}
-                />
+                <div className="space-y-2">
+                    <Label htmlFor="payment-reference">Payment Reference *</Label>
+                    <Input
+                    id="payment-reference"
+                    placeholder="e.g., TXN-2025-001, Wire-12345"
+                    value={reference}
+                    onChange={(e) => setReference(e.target.value)}
+                    required
+                    disabled={isSubmitting || success}
+                    />
+                </div>
               </div>
             </div>
           </div>

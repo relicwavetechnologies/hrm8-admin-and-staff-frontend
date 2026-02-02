@@ -332,7 +332,7 @@ export const hrm8DashboardConfig: DashboardConfig = {
       },
       {
         id: "job-allocation",
-        path: "/hrm8/jobs",
+        path: "/hrm8/allocations",
         label: "Job Allocation",
         icon: Briefcase,
       },

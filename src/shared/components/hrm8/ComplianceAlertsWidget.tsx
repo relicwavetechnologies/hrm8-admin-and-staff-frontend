@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/sha
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { AlertTriangle, AlertCircle, Clock, DollarSign, TrendingDown, FileWarning, RefreshCw } from 'lucide-react';
-import { complianceService, ComplianceAlert, AlertSummary } from '@/shared/lib/hrm8/complianceService';
+import { complianceService, ComplianceAlert, AlertSummary } from '@/shared/services/hrm8/complianceService';
 import { Skeleton } from '@/shared/components/ui/skeleton';
 
 const severityColors = {

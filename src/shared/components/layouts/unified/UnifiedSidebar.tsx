@@ -26,6 +26,7 @@ import {
 } from "@/shared/components/ui/sidebar";
 import { cn } from "@/shared/lib/utils";
 import { UnifiedSidebarFooter } from "./UnifiedSidebarFooter";
+import { RegionToggler } from "@/shared/components/hrm8/RegionToggler";
 import type { SidebarConfig, AuthAdapter, MenuItem } from "@/shared/types/dashboard";
 
 interface UnifiedSidebarProps {
@@ -60,35 +61,31 @@ export function UnifiedSidebar({ config, auth }: UnifiedSidebarProps) {
   return (
     <Sidebar
       collapsible="icon"
+      className="bg-sidebar"
       data-hover-expand={!open && isHovering}
       onMouseEnter={() => !open && setIsHovering(true)}
       onMouseLeave={() => !open && setIsHovering(false)}
     >
       {/* Header with Logo */}
-      <SidebarHeader className="border-b border-sidebar-border p-4 bg-gradient-to-b from-sidebar-accent/30 to-transparent">
+      <SidebarHeader className="border-b border-sidebar-border p-0 bg-gradient-to-b from-sidebar-accent to-sidebar">
         <NavLink
           to={config.homePath}
           className={cn(
-            "flex items-center transition-all duration-200 hover:opacity-80",
-            isExpanded ? "justify-start px-2" : "justify-center"
+            "flex items-center transition-all duration-200 hover:opacity-80 p-4 pb-2",
+            isExpanded ? "justify-start px-6" : "justify-center"
           )}
         >
           {isExpanded ? (
             <>
               <img
-                src={logoLight}
-                alt="HRM8"
-                className="h-8 block dark:hidden"
-                style={{
-                  filter:
-                    "brightness(0) saturate(100%) invert(27%) sepia(95%) saturate(2878%) hue-rotate(224deg) brightness(96%) contrast(95%)",
-                }}
-              />
-              <img
                 src={logoDark}
                 alt="HRM8"
+                className="h-8 block dark:hidden"
+              />
+              <img
+                src={logoLight}
+                alt="HRM8"
                 className="h-8 hidden dark:block opacity-100"
-                style={{ filter: "brightness(0) saturate(100%) invert(1)" }}
               />
             </>
           ) : (
@@ -96,10 +93,13 @@ export function UnifiedSidebar({ config, auth }: UnifiedSidebarProps) {
           )}
         </NavLink>
         {isExpanded && !!auth.user && (
-          <p className="text-xs text-muted-foreground mt-2 px-2">
+          <p className="text-xs text-muted-foreground mt-0 px-6 pb-4">
             {userSubtitle || userName}
           </p>
         )}
+        <div className="px-2">
+          <RegionToggler isExpanded={isExpanded} />
+        </div>
       </SidebarHeader>
 
       {/* Content - Simple Menu Items */}

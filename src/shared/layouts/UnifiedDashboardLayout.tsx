@@ -3,14 +3,14 @@ import { SidebarProvider, SidebarInset } from "@/shared/components/ui/sidebar";
 import { UnifiedSidebar } from "../components/layouts/unified/UnifiedSidebar";
 import { UnifiedHeader } from "../components/layouts/unified/UnifiedHeader";
 import { getSidebarConfig } from "../config/navigation";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuthStore } from "../stores/authStore";
 
 interface UnifiedDashboardLayoutProps {
     children: ReactNode;
 }
 
 export function UnifiedDashboardLayout({ children }: UnifiedDashboardLayoutProps) {
-    const { user, userType, logout } = useAuth();
+    const { user, userType, logout } = useAuthStore();
 
     if (!user || !userType) return null;
 

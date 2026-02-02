@@ -6,8 +6,8 @@ import { DataTable, Column } from '@/shared/components/tables/DataTable';
 import { Badge } from '@/shared/components/ui/badge';
 import { toast } from 'sonner';
 import { regionalSalesService, RegionalLead } from '@/shared/lib/hrm8/regionalSalesService';
-import { regionService, Region } from '@/shared/lib/hrm8/regionService';
 import { useHrm8Auth } from '@/contexts/Hrm8AuthContext';
+import { useRegionStore } from '@/shared/stores/useRegionStore';
 import {
   Mail,
   Phone,
@@ -31,7 +31,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/components/ui/dialog';
-import { apiClient } from '@/shared/lib/api';
+import { apiClient } from '@/shared/lib/apiClient';
 import { TableSkeleton } from '@/shared/components/tables/TableSkeleton';
 
 interface Consultant {
@@ -44,11 +44,11 @@ interface Consultant {
 export default function RegionalLeadsPage() {
   const { } = useHrm8Auth();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { selectedRegionId, regions } = useRegionStore();
+
   const [loading, setLoading] = useState(true);
   const [leads, setLeads] = useState<RegionalLead[]>([]);
-  const [regions, setRegions] = useState<Region[]>([]);
   const [consultants, setConsultants] = useState<Consultant[]>([]);
-  const [selectedRegionId, setSelectedRegionId] = useState<string>('');
 
   // Reassign Dialog State
   const [reassignDialogOpen, setReassignDialogOpen] = useState(false);
@@ -56,39 +56,17 @@ export default function RegionalLeadsPage() {
   const [targetConsultantId, setTargetConsultantId] = useState<string>('');
   const [reassigning, setReassigning] = useState(false);
 
-  useEffect(() => {
-    fetchRegions();
-  }, []);
-
+  // Watch for region changes from sidebar
   useEffect(() => {
     if (selectedRegionId) {
       fetchLeads(selectedRegionId);
       fetchConsultants(selectedRegionId);
+      // Update URL params
+      const params = new URLSearchParams(searchParams);
+      params.set('region', selectedRegionId);
+      setSearchParams(params);
     }
   }, [selectedRegionId]);
-
-  const fetchRegions = async () => {
-    try {
-      const response = await regionService.getAll();
-      if (response && response.data?.regions && response.data.regions.length > 0) {
-        setRegions(response.data.regions);
-        // Default to first region or from URL
-        const urlRegionId = searchParams.get('region');
-
-        let defaultRegionId = urlRegionId;
-
-        if (!defaultRegionId) {
-          defaultRegionId = response.data.regions[0].id;
-        }
-
-        if (defaultRegionId) {
-          setSelectedRegionId(defaultRegionId);
-        }
-      }
-    } catch (error) {
-      toast.error('Failed to fetch regions');
-    }
-  };
 
   const fetchLeads = async (regionId: string) => {
     setLoading(true);
@@ -248,8 +226,10 @@ export default function RegionalLeadsPage() {
     },
   ];
 
+  const selectedRegion = regions.find(r => r.id === selectedRegionId);
+
   return (
-    
+
       <div className="p-6 space-y-6">
         <div className="flex justify-between items-center">
           <div>
@@ -257,31 +237,12 @@ export default function RegionalLeadsPage() {
             <p className="text-muted-foreground">Manage and reassign sales leads across your region.</p>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <Select
-                value={selectedRegionId}
-                onValueChange={(val) => {
-                  setSelectedRegionId(val);
-                  const params = new URLSearchParams(searchParams);
-                  params.set('region', val);
-                  setSearchParams(params);
-                }}
-              >
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Select Region" />
-                </SelectTrigger>
-                <SelectContent>
-                  {regions.map((region) => (
-                    <SelectItem key={region.id} value={region.id}>
-                      {region.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {selectedRegion && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <Filter className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <span className="text-sm font-medium text-blue-900 dark:text-blue-100">{selectedRegion.name}</span>
             </div>
-          </div>
+          )}
         </div>
 
         <Card>

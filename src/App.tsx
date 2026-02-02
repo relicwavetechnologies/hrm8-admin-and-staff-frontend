@@ -3,7 +3,22 @@ import { Toaster } from '@/shared/components/ui/toaster'
 import { Toaster as Sonner } from '@/shared/components/ui/sonner'
 import { CurrencyFormatProvider } from '@/contexts/CurrencyFormatContext'
 import LoginPage from './pages/auth/LoginPage'
-import DynamicDashboard from '@/shared/components/auth/DynamicDashboard'
+import { RoleGuard } from '@/shared/components/auth/RoleGuard'
+import { Outlet } from 'react-router-dom'
+import { UnifiedDashboardLayout } from '@/shared/layouts/UnifiedDashboardLayout'
+import { useAuthStore } from '@/shared/stores/authStore'
+import { useEffect } from 'react'
+
+/**
+ * Dashboard Wrapper to provide the unified layout to role-protected routes
+ */
+function DashboardWrapper() {
+    return (
+        <UnifiedDashboardLayout>
+            <Outlet />
+        </UnifiedDashboardLayout>
+    );
+}
 
 import Hrm8Overview from './pages/hrm8/Hrm8Overview'
 import AnalyticsDashboard from './pages/hrm8/AnalyticsDashboard'
@@ -45,6 +60,7 @@ import RegionalLeadsPage from './pages/hrm8/RegionalLeadsPage'
 import ReportsPage from './pages/hrm8/ReportsPage'
 import Hrm8SettingsPage from './pages/hrm8/Hrm8SettingsPage'
 import UtilsNotificationsPage from './pages/hrm8/NotificationsPage'
+import StaffProfilePage from './pages/hrm8/StaffProfilePage'
 import AttributionPage from './pages/hrm8/AttributionPage'
 import PricingPage from './pages/hrm8/PricingPage'
 import RegionalSalesDashboard from './pages/hrm8/RegionalSalesDashboard'
@@ -55,6 +71,12 @@ import SalesOpportunityDetailPage from './pages/sales/SalesOpportunityDetailPage
 import SalesOpportunityNewPage from './pages/sales/SalesOpportunityNewPage'
 
 function App() {
+    const { checkAuth } = useAuthStore();
+
+    useEffect(() => {
+        checkAuth();
+    }, [checkAuth]);
+
     return (
         <CurrencyFormatProvider>
             <Routes>
@@ -62,7 +84,7 @@ function App() {
                 <Route path="/login" element={<LoginPage />} />
 
                 {/* Protected Dashboard Routes */}
-                <Route element={<DynamicDashboard />}>
+                <Route element={<RoleGuard allowedTypes={['ADMIN']}><DashboardWrapper /></RoleGuard>}>
                     {/* HRM8 Admin Portal */}
                     <Route path="/hrm8/dashboard" element={<Hrm8Overview />} />
                     <Route path="/hrm8/analytics" element={<AnalyticsDashboard />} />
@@ -70,6 +92,7 @@ function App() {
                     <Route path="/hrm8/commissions" element={<CommissionsPage />} />
                     <Route path="/hrm8/licensees" element={<LicenseesPage />} />
                     <Route path="/hrm8/staff" element={<StaffPage />} />
+                    <Route path="/hrm8/staff/:id" element={<StaffProfilePage />} />
                     <Route path="/hrm8/consultants/:id" element={<Hrm8ConsultantDetailPage />} />
                     <Route path="/hrm8/companies" element={<RegionalCompaniesPage />} />
                     <Route path="/hrm8/allocations" element={<JobAllocationPage />} />
@@ -93,7 +116,9 @@ function App() {
                     <Route path="/hrm8/regional-sales" element={<RegionalSalesDashboard />} />
                     <Route path="/hrm8/revenue" element={<RevenuePage />} />
                     <Route path="/hrm8/revenue-analytics" element={<RevenueDashboardPage />} />
+                </Route>
 
+                <Route element={<RoleGuard allowedTypes={['CONSULTANT']}><DashboardWrapper /></RoleGuard>}>
                     {/* Consultant Portal */}
                     <Route path="/consultant/dashboard" element={<ConsultantDashboard />} />
                     <Route path="/consultant/jobs" element={<ConsultantJobsPage />} />
@@ -105,20 +130,24 @@ function App() {
                     <Route path="/consultant/overview" element={<ConsultantOverview />} />
                     <Route path="/consultant/wallet-details" element={<ConsultantWalletPage />} />
                     <Route path="/consultant/settings" element={<ConsultantSettingsPage />} />
+                </Route>
 
+                <Route element={<RoleGuard allowedTypes={['SALES_AGENT']}><DashboardWrapper /></RoleGuard>}>
                     {/* Sales Agent Portal */}
                     <Route path="/sales-agent/dashboard" element={<SalesDashboardPage />} />
                     <Route path="/sales-agent/pipeline" element={<SalesPipelinePage />} />
                     <Route path="/sales-agent/leads" element={<OpportunitiesPage />} />
-                    
+
                     {/* Opportunities Routes - Order matters! */}
                     <Route path="/sales/opportunities/new" element={<SalesOpportunityNewPage />} />
                     <Route path="/sales/opportunities/:id" element={<SalesOpportunityDetailPage />} />
-                    
+
                     <Route path="/sales-agent/companies" element={<ClientCompaniesPage />} />
                     <Route path="/sales-agent/commissions" element={<SalesCommissionsPage />} />
                     <Route path="/sales-agent/settings" element={<ConsultantSettingsPage />} />
+                </Route>
 
+                <Route element={<RoleGuard allowedTypes={['CONSULTANT360']}><DashboardWrapper /></RoleGuard>}>
                     {/* Consultant 360 Portal */}
                     <Route path="/consultant360/dashboard" element={<Consultant360Dashboard />} />
                     <Route path="/consultant360/earnings" element={<Consultant360EarningsPage />} />

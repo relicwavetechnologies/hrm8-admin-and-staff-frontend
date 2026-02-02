@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useHrm8Auth } from '@/contexts/Hrm8AuthContext';
 import { staffService, StaffMember } from '@/shared/lib/hrm8/staffService';
 import { DataTable, Column } from '@/shared/components/tables/DataTable';
@@ -15,10 +16,13 @@ import { SuspendStaffDialog } from '@/shared/components/hrm8/SuspendStaffDialog'
 import { ReactivateStaffDialog } from '@/shared/components/hrm8/ReactivateStaffDialog';
 import { ChangeRoleDialog } from '@/shared/components/hrm8/ChangeRoleDialog';
 import { DeleteStaffDialog } from '@/shared/components/hrm8/DeleteStaffDialog';
+import { useRegionStore } from '@/shared/stores/useRegionStore';
 
 
 export default function StaffPage() {
+  const navigate = useNavigate();
   const { hrm8User } = useHrm8Auth();
+  const { selectedRegionId } = useRegionStore();
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -39,12 +43,15 @@ export default function StaffPage() {
 
   useEffect(() => {
     loadStaff();
-  }, []);
+  }, [selectedRegionId]);
 
   const loadStaff = async () => {
     try {
       setLoading(true);
-      const response = await staffService.getAll();
+      const filters = selectedRegionId && selectedRegionId !== 'all'
+        ? { regionId: selectedRegionId }
+        : undefined;
+      const response = await staffService.getAll(filters);
       if (response.success && response.data?.consultants) {
         setStaffList(response.data.consultants);
       }
@@ -95,6 +102,10 @@ export default function StaffPage() {
   const handleDialogSuccess = async () => {
     await loadStaff();
     setSelectedStaff(null);
+  };
+
+  const handleRowClick = (staff: StaffMember) => {
+    navigate(`/hrm8/staff/${staff.id}`);
   };
 
   const columns: Column<StaffMember>[] = [
@@ -159,17 +170,20 @@ export default function StaffPage() {
           <CardHeader>
             <CardTitle>Staff Members</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="overflow-visible">
             {loading ? (
               <TableSkeleton columns={5} />
             ) : (
-              <DataTable
-                data={staffList}
-                columns={columns}
-                searchable
-                searchKeys={['firstName', 'lastName', 'email']}
-                emptyMessage="No staff members found"
-              />
+              <div className="overflow-visible">
+                <DataTable
+                  data={staffList}
+                  columns={columns}
+                  searchable
+                  searchKeys={['firstName', 'lastName', 'email']}
+                  emptyMessage="No staff members found"
+                  onRowClick={handleRowClick}
+                />
+              </div>
             )}
           </CardContent>
         </Card>

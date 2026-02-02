@@ -90,27 +90,29 @@ export function NotificationDropdown({
             onMarkAsRead(notification.id);
         }
 
-        // Navigate to expanded view page
-        onClose();
-        navigate(`/hrm8/notif/${notification.id}`);
+        // Navigate to notifications page
+        navigate('/hrm8/notifications');
+        // Close after navigation is triggered
+        setTimeout(() => onClose(), 0);
     };
 
     const handleViewAll = () => {
-        onClose();
         navigate('/hrm8/notifications');
+        // Close after navigation is triggered
+        setTimeout(() => onClose(), 0);
     };
 
     const unreadCount = notifications.filter(n => !n.read).length;
 
     return (
-        <div className="absolute right-0 top-full mt-2 w-80 md:w-[450px] z-50 rounded-xl border border-slate-800 bg-[#0B0F17] text-white shadow-2xl overflow-hidden">
+        <div className="absolute right-0 top-full mt-2 w-80 md:w-[450px] z-50 rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-[#0B0F17] text-gray-900 dark:text-white shadow-2xl overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-slate-800 px-6 py-5">
+            <div className="flex items-center justify-between border-b border-gray-200 dark:border-slate-800 px-6 py-5">
                 <h3 className="text-2xl font-bold tracking-tight">Notifications</h3>
                 {unreadCount > 0 && (
                     <button
                         onClick={onMarkAllAsRead}
-                        className="flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-white transition-colors"
+                        className="flex items-center gap-1.5 text-xs font-medium text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                     >
                         <CheckCheck className="h-4 w-4" />
                         Mark all as read
@@ -122,22 +124,22 @@ export function NotificationDropdown({
             <div className="max-h-[500px] overflow-y-auto custom-scrollbar">
                 {isLoading && notifications.length === 0 ? (
                     <div className="flex items-center justify-center py-12">
-                        <Loader2 className="h-8 w-8 animate-spin text-slate-500" />
+                        <Loader2 className="h-8 w-8 animate-spin text-gray-400 dark:text-slate-500" />
                     </div>
                 ) : notifications.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-12 text-slate-500">
+                    <div className="flex flex-col items-center justify-center py-12 text-gray-400 dark:text-slate-500">
                         <Bell className="h-12 w-12 mb-3 opacity-20" />
                         <p className="text-sm font-medium">No notifications yet</p>
                     </div>
                 ) : (
-                    <div className="divide-y divide-slate-800/50">
+                    <div className="divide-y divide-gray-200 dark:divide-slate-800/50">
                         {notifications.map((notification) => (
                             <button
                                 key={notification.id}
                                 onClick={() => handleNotificationClick(notification)}
                                 className={cn(
-                                    'w-full text-left px-6 py-4 hover:bg-slate-900/50 transition-colors group relative',
-                                    !notification.read && 'bg-slate-900/20'
+                                    'w-full text-left px-6 py-4 hover:bg-gray-50 dark:hover:bg-slate-900/50 transition-colors group relative',
+                                    !notification.read && 'bg-blue-50 dark:bg-slate-900/20'
                                 )}
                             >
                                 {!notification.read && (
@@ -145,7 +147,7 @@ export function NotificationDropdown({
                                 )}
                                 <div className="flex gap-4">
                                     <div className="flex-shrink-0 mt-1">
-                                        <div className="p-2 rounded-full bg-slate-900 border border-slate-800 group-hover:bg-slate-800 transition-colors">
+                                        <div className="p-2 rounded-full bg-gray-100 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 group-hover:bg-gray-200 dark:group-hover:bg-slate-800 transition-colors">
                                             {getNotificationIcon(notification.type)}
                                         </div>
                                     </div>
@@ -153,18 +155,18 @@ export function NotificationDropdown({
                                         <div className="flex items-center justify-between gap-2">
                                             <p className={cn(
                                                 'text-sm transition-colors',
-                                                !notification.read ? 'font-semibold text-slate-100' : 'text-slate-400'
+                                                !notification.read ? 'font-semibold text-gray-900 dark:text-slate-100' : 'text-gray-600 dark:text-slate-400'
                                             )}>
                                                 {notification.title}
                                             </p>
                                             {notification.actionUrl && (
-                                                <ExternalLink className="h-3 w-3 flex-shrink-0 text-slate-600 group-hover:text-slate-400" />
+                                                <ExternalLink className="h-3 w-3 flex-shrink-0 text-gray-400 dark:text-slate-600 group-hover:text-gray-600 dark:group-hover:text-slate-400" />
                                             )}
                                         </div>
-                                        <p className="text-xs text-slate-500 line-clamp-2 mt-1 leading-relaxed">
+                                        <p className="text-xs text-gray-600 dark:text-slate-500 line-clamp-2 mt-1 leading-relaxed">
                                             {notification.message}
                                         </p>
-                                        <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-600 mt-2">
+                                        <p className="text-[10px] uppercase tracking-wider font-semibold text-gray-500 dark:text-slate-600 mt-2">
                                             {(() => {
                                                 try {
                                                     const date = new Date(notification.createdAt);
@@ -184,12 +186,12 @@ export function NotificationDropdown({
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 bg-slate-900/30 border-t border-slate-800">
+            <div className="px-6 py-4 bg-gray-50 dark:bg-slate-900/30 border-t border-gray-200 dark:border-slate-800">
                 <Button
                     variant="ghost"
                     size="sm"
                     onClick={handleViewAll}
-                    className="w-full text-slate-400 hover:text-white hover:bg-slate-800 h-10 font-medium"
+                    className="w-full text-gray-700 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 h-10 font-medium"
                 >
                     View all notifications
                 </Button>

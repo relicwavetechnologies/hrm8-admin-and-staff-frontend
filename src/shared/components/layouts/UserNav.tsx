@@ -10,10 +10,10 @@ import {
 import { Button } from "@/shared/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar";
 import { User, Settings, LogOut } from "lucide-react";
-import { useAuth } from "@/shared/contexts/AuthContext";
+import { useAuthStore } from "@/shared/stores/authStore";
 
 export function UserNav() {
-  const { user, logout } = useAuth();
+  const { user, logout } = useAuthStore();
 
   const getInitials = (firstName?: string, lastName?: string) => {
     const f = firstName?.trim()?.[0] || '';

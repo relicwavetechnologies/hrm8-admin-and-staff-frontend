@@ -46,19 +46,25 @@ export function StaffActionsMenu({
         action();
     };
 
+    const handleMenuClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
     const navigate = useNavigate();
     const isSuspended = staff.status === 'SUSPENDED';
     const isActive = staff.status === 'ACTIVE';
 
     return (
-        <DropdownMenu open={open} onOpenChange={setOpen}>
-            <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreVertical className="h-4 w-4" />
-                    <span className="sr-only">Open menu</span>
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+        <div onClick={handleMenuClick} onKeyDown={handleMenuClick} className="relative z-50">
+            <DropdownMenu open={open} onOpenChange={setOpen}>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreVertical className="h-4 w-4" />
+                        <span className="sr-only">Open menu</span>
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48 z-[100]">
                 <DropdownMenuItem onClick={() => navigate(`/hrm8/consultants/${staff.id}`)}>
                     <Eye className="mr-2 h-4 w-4" />
                     View Details
@@ -107,7 +113,8 @@ export function StaffActionsMenu({
                         </DropdownMenuItem>
                     </>
                 )}
-            </DropdownMenuContent>
-        </DropdownMenu>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
     );
 }

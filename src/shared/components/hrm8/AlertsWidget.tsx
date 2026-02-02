@@ -4,8 +4,10 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
 import { AlertTriangle, AlertCircle, Info, Bell } from 'lucide-react';
 import { apiClient } from '@/shared/lib/api';
 
@@ -51,6 +53,7 @@ const SEVERITY_CONFIG = {
 };
 
 export function AlertsWidget() {
+  const navigate = useNavigate();
   const [data, setData] = useState<AlertsData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -150,9 +153,14 @@ export function AlertsWidget() {
             );
           })}
           {totalAlerts > 5 && (
-            <p className="text-sm text-muted-foreground text-center pt-2">
-              +{totalAlerts - 5} more alerts
-            </p>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full"
+              onClick={() => navigate('/hrm8/notifications')}
+            >
+              View all {totalAlerts} alerts
+            </Button>
           )}
         </div>
       </CardContent>

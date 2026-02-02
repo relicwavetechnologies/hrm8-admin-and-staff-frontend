@@ -10,7 +10,8 @@ import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
 import { Input } from '@/shared/components/ui/input';
 import { DataTable } from '@/shared/components/tables/DataTable';
-import { ArrowLeft, Briefcase, Search, MapPin, Calendar, Building2 } from 'lucide-react';
+import { TablePagination } from '@/shared/components/tables/TablePagination';
+import { ArrowLeft, Briefcase, Search, MapPin, Calendar, Building2, Loader2 } from 'lucide-react';
 import { apiClient } from '@/shared/lib/apiClient';
 
 interface CompanyJob {
@@ -33,6 +34,13 @@ interface CompanyDetails {
   industry?: string;
 }
 
+interface PaginatedJobsResponse {
+  jobs: CompanyJob[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 export default function Hrm8CompanyJobsPage() {
   const { companyId } = useParams<{ companyId: string }>();
   const navigate = useNavigate();
@@ -40,6 +48,9 @@ export default function Hrm8CompanyJobsPage() {
   const [jobs, setJobs] = useState<CompanyJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalJobs, setTotalJobs] = useState(0);
 
   useEffect(() => {
     if (companyId) {
@@ -47,22 +58,58 @@ export default function Hrm8CompanyJobsPage() {
     }
   }, [companyId]);
 
+  useEffect(() => {
+    if (companyId) {
+      loadJobs(currentPage);
+    }
+  }, [currentPage, companyId]);
+
   const loadCompanyData = async () => {
     try {
       setLoading(true);
-      const [companyRes, jobsRes] = await Promise.all([
-        apiClient.get<{ company: CompanyDetails }>(`/api/hrm8/companies/${companyId}`),
-        apiClient.get<{ jobs: CompanyJob[] }>(`/api/hrm8/companies/${companyId}/jobs`)
-      ]);
+      const companyRes = await apiClient.get<{ company: CompanyDetails }>(`/api/hrm8/companies/${companyId}`);
 
       if (companyRes.data) {
         setCompany(companyRes.data.company);
       }
-      if (jobsRes.data) {
-        setJobs(jobsRes.data.jobs);
-      }
+
+      // Load first page of jobs
+      loadJobs(1);
     } catch (error) {
       console.error('Failed to load company data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadJobs = async (page: number = 1, size: number = pageSize) => {
+    if (!companyId) return;
+
+    try {
+      setLoading(true);
+      const params = new URLSearchParams();
+      params.append('page', page.toString());
+      params.append('limit', size.toString());
+
+      const endpoint = `/api/hrm8/companies/${companyId}/jobs?${params.toString()}`;
+      const jobsRes = await apiClient.get<PaginatedJobsResponse>(endpoint);
+
+      if (jobsRes.data) {
+        setJobs(jobsRes.data.jobs);
+        setTotalJobs(jobsRes.data.total);
+        setCurrentPage(jobsRes.data.page);
+      } else {
+        // Fallback for non-paginated endpoints
+        const legacyRes = await apiClient.get<{ jobs: CompanyJob[] }>(`/api/hrm8/companies/${companyId}/jobs`);
+        if (legacyRes.data) {
+          setJobs(legacyRes.data.jobs);
+          setTotalJobs(legacyRes.data.jobs.length);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load jobs:', error);
+      setJobs([]);
+      setTotalJobs(0);
     } finally {
       setLoading(false);
     }
@@ -196,10 +243,16 @@ export default function Hrm8CompanyJobsPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Briefcase className="h-5 w-5" />
-                Jobs ({jobs.length})
-              </CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2">
+                  <Briefcase className="h-5 w-5" />
+                  Jobs
+                </CardTitle>
+                <span className="text-sm text-muted-foreground">({totalJobs} total)</span>
+                {loading && currentPage > 1 && (
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                )}
+              </div>
               <div className="relative w-64">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -211,12 +264,30 @@ export default function Hrm8CompanyJobsPage() {
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <DataTable
               data={filteredJobs}
               columns={columns}
               emptyMessage="No jobs found for this company"
             />
+
+            {/* Pagination */}
+            {totalJobs > pageSize && (
+              <div className="border-t pt-4">
+                <TablePagination
+                  currentPage={currentPage}
+                  totalPages={Math.ceil(totalJobs / pageSize)}
+                  pageSize={pageSize}
+                  totalItems={totalJobs}
+                  onPageChange={(page) => setCurrentPage(page)}
+                  onPageSizeChange={(size) => {
+                    setPageSize(size);
+                    setCurrentPage(1);
+                    loadJobs(1, size);
+                  }}
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

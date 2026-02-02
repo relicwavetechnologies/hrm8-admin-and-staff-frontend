@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
@@ -26,6 +27,7 @@ const typeIcons = {
 };
 
 export function ComplianceAlertsWidget() {
+    const navigate = useNavigate();
     const [alerts, setAlerts] = useState<ComplianceAlert[]>([]);
     const [summary, setSummary] = useState<AlertSummary | null>(null);
     const [loading, setLoading] = useState(true);
@@ -157,7 +159,12 @@ export function ComplianceAlertsWidget() {
                             );
                         })}
                         {summary && summary.total > 5 && (
-                            <Button variant="ghost" size="sm" className="w-full">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="w-full"
+                                onClick={() => navigate('/hrm8/notifications?tab=alerts')}
+                            >
                                 View all {summary.total} alerts
                             </Button>
                         )}

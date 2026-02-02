@@ -138,16 +138,16 @@ const Sidebar = React.forwardRef<
     onMouseEnter?: () => void;
     onMouseLeave?: () => void;
   }
->(({ 
-  side = "left", 
-  variant = "sidebar", 
-  collapsible = "offcanvas", 
-  className, 
+>(({
+  side = "left",
+  variant = "sidebar",
+  collapsible = "offcanvas",
+  className,
   children,
   "data-hover-expand": dataHoverExpand,
   onMouseEnter,
   onMouseLeave,
-  ...props 
+  ...props
 }, ref) => {
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
 
@@ -217,11 +217,11 @@ const Sidebar = React.forwardRef<
             ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]"
             : "group-data-[collapsible=icon]:w-[--sidebar-width-icon] group-data-[side=left]:border-r group-data-[side=right]:border-l",
           // Apply hover expansion with shadow and increased z-index
-          dataHoverExpand && "!w-[--sidebar-width] shadow-xl",
+          dataHoverExpand && "!w-[--sidebar-width] shadow-2xl !bg-sidebar",
           className,
         )}
         style={{
-          zIndex: dataHoverExpand ? 60 : 10,
+          zIndex: dataHoverExpand ? 100 : 10,
         }}
         {...props}
       >
@@ -520,7 +520,7 @@ const SidebarMenuAction = React.forwardRef<
         "peer-data-[size=lg]/menu-button:top-2.5",
         "group-data-[collapsible=icon]:hidden",
         showOnHover &&
-          "group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 data-[state=open]:opacity-100 peer-data-[active=true]/menu-button:text-sidebar-accent-foreground md:opacity-0",
+        "group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 data-[state=open]:opacity-100 peer-data-[active=true]/menu-button:text-sidebar-accent-foreground md:opacity-0",
         className,
       )}
       {...props}

@@ -9,8 +9,10 @@ import { Card, CardContent } from '@/shared/components/ui/card';
 import { Input } from '@/shared/components/ui/input';
 import { Badge } from '@/shared/components/ui/badge';
 import { Skeleton } from '@/shared/components/ui/skeleton';
-import { Building2, Briefcase, Eye, MousePointerClick, Search, ArrowRight } from 'lucide-react';
+import { Building2, Briefcase, Eye, MousePointerClick, Search, ArrowRight, Filter } from 'lucide-react';
 import { apiClient } from '@/shared/lib/apiClient';
+import { useRegionStore } from '@/shared/stores/useRegionStore';
+import { TablePagination } from '@/shared/components/tables/TablePagination';
 
 interface CompanyJobStats {
     id: string;
@@ -24,40 +26,70 @@ interface CompanyJobStats {
     totalClicks: number;
 }
 
+interface PaginatedCompaniesResponse {
+    companies: CompanyJobStats[];
+    total: number;
+    page: number;
+    pageSize: number;
+}
+
 export default function Hrm8JobBoardPage() {
     const navigate = useNavigate();
+    const { selectedRegionId } = useRegionStore();
+
     const [companies, setCompanies] = useState<CompanyJobStats[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalCompanies, setTotalCompanies] = useState(0);
 
     useEffect(() => {
-        loadCompanies();
-    }, []);
+        setCurrentPage(1); // Reset to first page when region changes
+        loadCompanies(1);
+    }, [selectedRegionId]);
 
-    const loadCompanies = async () => {
+    const loadCompanies = async (page: number = currentPage, size: number = pageSize) => {
         try {
             setLoading(true);
-            const response = await apiClient.get<{ companies: CompanyJobStats[] }>('/api/hrm8/jobs/companies');
-            if (response.data && response.data.companies) {
+            const params = new URLSearchParams();
+            params.append('page', page.toString());
+            params.append('limit', size.toString());
+
+            // Add region filter if selected
+            if (selectedRegionId) {
+                params.append('region', selectedRegionId);
+            }
+
+            const endpoint = `/api/hrm8/jobs/companies?${params.toString()}`;
+            const response = await apiClient.get<PaginatedCompaniesResponse>(endpoint);
+
+            if (response.data) {
                 setCompanies(response.data.companies);
+                setTotalCompanies(response.data.total);
+                setCurrentPage(response.data.page);
             } else {
                 console.error('Failed to load companies or invalid format');
                 setCompanies([]);
+                setTotalCompanies(0);
             }
         } catch (error) {
             console.error('Failed to load companies:', error);
             setCompanies([]);
+            setTotalCompanies(0);
         } finally {
             setLoading(false);
         }
     };
 
+    // Client-side filtering for search
     const filteredCompanies = companies.filter(company =>
         (company.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         (company.domain || '').toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const totalStats = companies.reduce(
+    // Calculate stats only from current page companies
+    const totalStats = filteredCompanies.reduce(
         (acc, company) => ({
             totalJobs: acc.totalJobs + company.totalJobs,
             activeJobs: acc.activeJobs + company.activeJobs,
@@ -67,12 +99,25 @@ export default function Hrm8JobBoardPage() {
         { totalJobs: 0, activeJobs: 0, totalViews: 0, totalClicks: 0 }
     );
 
+    const totalPages = Math.ceil(totalCompanies / pageSize);
+    const selectedRegion = useRegionStore().regions.find(r => r.id === selectedRegionId);
+
     return (
-        
+
             <div className="p-6 space-y-6">
                 <div className="flex flex-col gap-2">
-                    <h1 className="text-3xl font-bold tracking-tight">Job Board Management</h1>
-                    <p className="text-muted-foreground">Manage jobs across all companies with visibility controls and analytics</p>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-3xl font-bold tracking-tight">Job Board Management</h1>
+                            <p className="text-muted-foreground">Manage jobs across all companies with visibility controls and analytics</p>
+                        </div>
+                        {selectedRegion && (
+                            <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                                <Filter className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                <span className="text-sm font-medium text-blue-900 dark:text-blue-100">{selectedRegion.name}</span>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Summary Stats */}
@@ -85,7 +130,10 @@ export default function Hrm8JobBoardPage() {
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground">Companies</p>
-                                    <p className="text-2xl font-bold">{companies.length}</p>
+                                    <p className="text-2xl font-bold">{totalCompanies}</p>
+                                    {totalCompanies > pageSize && (
+                                        <p className="text-xs text-muted-foreground mt-1">Page: {currentPage}/{totalPages}</p>
+                                    )}
                                 </div>
                             </div>
                         </CardContent>
@@ -135,11 +183,12 @@ export default function Hrm8JobBoardPage() {
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search companies..."
+                        placeholder="Search companies by name or domain..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="pl-10 max-w-sm"
                     />
+                    <p className="text-xs text-muted-foreground mt-2">Showing {filteredCompanies.length} of {companies.length} companies on this page</p>
                 </div>
 
                 {/* Companies Grid */}
@@ -228,7 +277,25 @@ export default function Hrm8JobBoardPage() {
                         </CardContent>
                     </Card>
                 )}
+
+                {/* Pagination */}
+                {!loading && companies.length > 0 && totalPages > 1 && (
+                    <div className="border-t pt-6">
+                        <TablePagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            pageSize={pageSize}
+                            totalItems={totalCompanies}
+                            onPageChange={(page) => loadCompanies(page, pageSize)}
+                            onPageSizeChange={(size) => {
+                                setPageSize(size);
+                                setCurrentPage(1);
+                                loadCompanies(1, size);
+                            }}
+                        />
+                    </div>
+                )}
             </div>
-        
+
     );
 }

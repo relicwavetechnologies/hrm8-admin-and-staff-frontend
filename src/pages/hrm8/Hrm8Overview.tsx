@@ -4,19 +4,20 @@ import { Card, CardHeader, CardTitle, CardDescription } from '@/shared/component
 import { EnhancedStatCard } from '@/shared/components/dashboard/EnhancedStatCard';
 import { Users, Briefcase, DollarSign, Activity, AlertCircle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
-import { regionService, Region } from '@/shared/lib/hrm8/regionService';
+import { regionService } from '@/shared/lib/hrm8/regionService';
 import { RegionalAnalyticsService, RegionalOperationalStats } from '@/shared/lib/hrm8/regionalAnalyticsService';
 import { useNavigate } from 'react-router-dom';
 import { Alert, AlertDescription, AlertTitle } from "@/shared/components/ui/alert";
 import { ComplianceAlertsWidget } from '@/shared/components/hrm8/ComplianceAlertsWidget';
+import { useRegionStore } from '@/shared/stores/useRegionStore';
+import { RegionConfig } from '@/shared/types/systemSettings';
 
 export default function Hrm8Overview() {
   const { hrm8User } = useHrm8Auth();
   const navigate = useNavigate();
+  const { selectedRegionId, regions, setSelectedRegion, setRegions } = useRegionStore();
   const isGlobalAdmin = hrm8User?.role === 'GLOBAL_ADMIN';
 
-  const [regions, setRegions] = useState<Region[]>([]);
-  const [selectedRegionId, setSelectedRegionId] = useState<string>('');
   const [stats, setStats] = useState<RegionalOperationalStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,13 +36,23 @@ export default function Hrm8Overview() {
     try {
       const response = await regionService.getAll();
       if (response.success && response.data?.regions) {
-        setRegions(response.data.regions);
+        // Convert to RegionConfig format if needed
+        const regionConfigs: RegionConfig[] = (response.data.regions as any[]).map((region: any) => ({
+          id: region.id,
+          name: region.name,
+          code: region.code || '',
+          countries: region.countries || [],
+          timezone: region.timezone || 'UTC',
+          isActive: region.isActive ?? true,
+          sortOrder: region.sortOrder || 0,
+        }));
+        setRegions(regionConfigs);
 
         // Default to 'all' for Global Admin, else first region
         if (isGlobalAdmin) {
-          setSelectedRegionId('all');
-        } else if (response.data.regions.length > 0) {
-          setSelectedRegionId(response.data.regions[0].id);
+          setSelectedRegion('all');
+        } else if (regionConfigs.length > 0) {
+          setSelectedRegion(regionConfigs[0].id);
         }
       }
     } catch (err) {
@@ -75,7 +86,7 @@ export default function Hrm8Overview() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Select value={selectedRegionId} onValueChange={setSelectedRegionId}>
+          <Select value={selectedRegionId || ''} onValueChange={setSelectedRegion}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Select Region" />
             </SelectTrigger>

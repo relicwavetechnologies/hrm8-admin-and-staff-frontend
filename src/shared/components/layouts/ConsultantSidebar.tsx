@@ -55,11 +55,12 @@ export function ConsultantSidebar() {
   return (
     <Sidebar
       collapsible="icon"
+      className="bg-sidebar"
       data-hover-expand={!open && isHovering}
       onMouseEnter={() => !open && setIsHovering(true)}
       onMouseLeave={() => !open && setIsHovering(false)}
     >
-      <SidebarHeader className="border-b border-sidebar-border p-4 bg-gradient-to-b from-sidebar-accent/30 to-transparent">
+      <SidebarHeader className="border-b border-sidebar-border p-4 bg-gradient-to-b from-sidebar-accent to-sidebar">
         <NavLink
           to="/consultant/dashboard"
           className={cn(
@@ -70,19 +71,14 @@ export function ConsultantSidebar() {
           {isExpanded ? (
             <>
               <img
-                src={logoLight}
-                alt="HRM8"
-                className="h-8 block dark:hidden"
-                style={{
-                  filter:
-                    "brightness(0) saturate(100%) invert(27%) sepia(95%) saturate(2878%) hue-rotate(224deg) brightness(96%) contrast(95%)",
-                }}
-              />
-              <img
                 src={logoDark}
                 alt="HRM8"
+                className="h-8 block dark:hidden"
+              />
+              <img
+                src={logoLight}
+                alt="HRM8"
                 className="h-8 hidden dark:block opacity-100"
-                style={{ filter: "brightness(0) saturate(100%) invert(1)" }}
               />
             </>
           ) : (

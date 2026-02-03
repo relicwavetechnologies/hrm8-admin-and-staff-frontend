@@ -53,6 +53,7 @@ import ConsultantOverview from './pages/consultant/ConsultantOverview'
 import ConsultantWalletPage from './pages/consultant/ConsultantWalletPage'
 import SalesOpportunityDetailPage from './pages/sales/SalesOpportunityDetailPage'
 import SalesOpportunityNewPage from './pages/sales/SalesOpportunityNewPage'
+import StripeMockOnboarding from './pages/dev/StripeMockOnboarding'
 
 function App() {
     return (
@@ -134,6 +135,9 @@ function App() {
                     <Route path="/consultant360/settings" element={<ConsultantSettingsPage />} />
                     <Route path="/consultant360/help" element={<ConsultantHelpPage />} />
                 </Route>
+
+                {/* Dev Routes */}
+                <Route path="/dev/stripe-mock-onboarding" element={<StripeMockOnboarding />} />
 
                 {/* Redirects */}
                 <Route path="/" element={<Navigate to="/login" replace />} />

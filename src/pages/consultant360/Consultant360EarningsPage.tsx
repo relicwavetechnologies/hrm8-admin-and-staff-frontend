@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
@@ -59,9 +60,22 @@ export default function Consultant360EarningsPage() {
     const [withdrawalNotes, setWithdrawalNotes] = useState("");
     const [submitting, setSubmitting] = useState(false);
 
+    const [searchParams] = useSearchParams();
+
     useEffect(() => {
-        loadData();
-    }, []);
+        if (searchParams.get("stripe_success") === "true") {
+            toast.success("Stripe account connected successfully!");
+            // Remove the query param to prevent double toasts on reload
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, "", newUrl);
+            loadData();
+        } else if (searchParams.get("stripe_refresh") === "true") {
+             // Just reload if they refreshed the onboarding form
+             loadData();
+        } else {
+             loadData();
+        }
+    }, [searchParams]);
 
     async function loadData() {
         setLoading(true);

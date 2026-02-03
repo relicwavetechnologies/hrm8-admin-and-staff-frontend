@@ -27,14 +27,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
               <img
                 src={logoLight}
                 alt="HRM8"
-                className="h-10 dark:hidden"
-                style={{ filter: 'brightness(0) invert(1)' }}
-              />
-              <img
-                src={logoDark}
-                alt="HRM8"
-                className="h-10 hidden dark:block"
-                style={{ filter: 'brightness(0) invert(1)' }}
+                className="h-10"
               />
             </Link>
             <div className="space-y-6 max-w-md">
@@ -71,12 +64,17 @@ export function AuthLayout({ children }: AuthLayoutProps) {
       </div>
 
       <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4 lg:p-8">
-        <div className="w-full max-w-md">{children}</div>
+        <div className="w-full max-w-md">
+          <div className="flex justify-center lg:hidden mb-8">
+            <img src={logoDark} alt="HRM8" className="h-9 dark:hidden" />
+            <img src={logoLight} alt="HRM8" className="h-9 hidden dark:block" />
+          </div>
+          {children}
+        </div>
       </div>
     </div>
   );
 }
-
 
 
 

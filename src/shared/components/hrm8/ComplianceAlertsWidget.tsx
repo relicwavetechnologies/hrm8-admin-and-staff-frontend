@@ -152,7 +152,7 @@ export function ComplianceAlertsWidget() {
                                         </div>
                                         <p className="text-xs text-muted-foreground truncate">{alert.description}</p>
                                         <p className="text-xs text-muted-foreground mt-1">
-                                            {alert.entityType}: {alert.entityName}
+                                            {alert.entity_type}: {alert.entity_name}
                                         </p>
                                     </div>
                                 </div>

@@ -76,6 +76,21 @@ class StaffService {
     return apiClient.get<{ consultant: StaffMember }>(`/api/hrm8/consultants/${id}`);
   }
 
+  async getStats(id: string) {
+    return apiClient.get<{
+      stats: {
+        jobsCount?: number;
+        hireSuccessRate?: number;
+        leadsCount?: number;
+        conversionRate?: number;
+        totalPlacements?: number;
+        revenue?: number;
+        activeAssignments?: number;
+        lastActivityDate?: string;
+      }
+    }>(`/api/hrm8/consultants/${id}/stats`);
+  }
+
   async create(data: {
     email: string;
     password: string;

@@ -101,7 +101,9 @@ export default function RegionalLeadsPage() {
       if (response.success) {
         toast.success('Lead reassigned successfully');
         setReassignDialogOpen(false);
-        fetchLeads(selectedRegionId);
+        if (selectedRegionId) {
+          fetchLeads(selectedRegionId);
+        }
       } else {
         toast.error(response.error || 'Failed to reassign lead');
       }

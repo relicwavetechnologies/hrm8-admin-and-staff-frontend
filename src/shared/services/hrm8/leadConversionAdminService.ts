@@ -4,7 +4,7 @@
  */
 
 import { apiClient } from '@/shared/lib/apiClient';
-import { ConversionRequest } from '../sales/leadConversionService';
+import { ConversionRequest } from '../leadConversionService';
 
 export const leadConversionAdminService = {
     /**

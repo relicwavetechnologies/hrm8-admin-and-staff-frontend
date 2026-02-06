@@ -3,13 +3,13 @@ import { apiClient } from '@/shared/lib/apiClient';
 
 export interface CareersRequest {
     id: string;
-    companyName: string;
+    company_name: string;
     domain: string;
     type: 'NEW_PAGE' | 'SECTION_UPDATE';
     status: string;
     pending: {
-        logoUrl?: string;
-        bannerUrl?: string;
+        logo_url?: string;
+        banner_url?: string;
         about?: string;
         social?: {
             linkedin?: string;
@@ -19,12 +19,12 @@ export interface CareersRequest {
         };
     };
     current: {
-        logoUrl?: string;
-        bannerUrl?: string;
+        logo_url?: string;
+        banner_url?: string;
         about?: string;
         social?: any;
     } | null;
-    submittedAt: string;
+    submitted_at: string;
 }
 
 export const careersRequestService = {

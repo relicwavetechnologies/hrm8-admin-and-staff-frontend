@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Card } from '@/shared/components/ui/card';
 import { Label } from '@/shared/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/shared/components/ui/radio-group';
@@ -6,10 +5,10 @@ import { Textarea } from '@/shared/components/ui/textarea';
 import { Badge } from '@/shared/components/ui/badge';
 import { Switch } from '@/shared/components/ui/switch';
 import { Slider } from '@/shared/components/ui/slider';
-import { 
-  FileText, 
-  Sparkles, 
-  Layers, 
+import {
+  FileText,
+  Sparkles,
+  Layers,
   MessageSquare,
   Clock,
   Target
@@ -118,11 +117,10 @@ export function ConfigureAIQuestionsStep({
               return (
                 <Card
                   key={source.value}
-                  className={`p-4 cursor-pointer transition-all duration-200 ${
-                    isSelected
+                  className={`p-4 cursor-pointer transition-all duration-200 ${isSelected
                       ? 'border-primary border-2 bg-primary/5'
                       : 'border-border hover:border-primary/50'
-                  }`}
+                    }`}
                   onClick={() => onQuestionSourceChange(source.value)}
                 >
                   <div className="flex items-start gap-3">
@@ -176,19 +174,17 @@ export function ConfigureAIQuestionsStep({
           {FOCUS_AREAS.map((area) => (
             <Card
               key={area}
-              className={`p-3 cursor-pointer transition-all duration-200 ${
-                focusAreas.includes(area)
+              className={`p-3 cursor-pointer transition-all duration-200 ${focusAreas.includes(area)
                   ? 'border-primary bg-primary/10'
                   : 'border-border hover:border-primary/50'
-              }`}
+                }`}
               onClick={() => toggleFocusArea(area)}
             >
               <div className="flex items-center gap-2">
-                <div className={`h-4 w-4 rounded border-2 flex items-center justify-center ${
-                  focusAreas.includes(area)
+                <div className={`h-4 w-4 rounded border-2 flex items-center justify-center ${focusAreas.includes(area)
                     ? 'border-primary bg-primary'
                     : 'border-muted-foreground'
-                }`}>
+                  }`}>
                   {focusAreas.includes(area) && (
                     <svg className="h-3 w-3 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />

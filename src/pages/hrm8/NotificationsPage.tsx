@@ -1,247 +1,98 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import { Card } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
-import { Check, AlertTriangle, AlertCircle, Info, Bell, X, Clock } from 'lucide-react';
+import { Check, AlertTriangle, Info, Bell, X, Clock } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { Skeleton } from '@/shared/components/ui/skeleton';
 import { cn } from '@/shared/lib/utils';
-
-interface Notification {
-  id: string | number;
-  title: string;
-  message: string;
-  read: boolean;
-  category?: string;
-  priority?: 'low' | 'medium' | 'high' | 'critical';
-  createdAt: string;
-}
-
-interface Alert {
-  id: string | number;
-  title: string;
-  message: string;
-  severity: 'critical' | 'high' | 'medium' | 'low' | 'info';
-  category?: string;
-  read: boolean;
-  createdAt: string;
-}
+import { useUniversalNotifications } from '@/shared/hooks/useUniversalNotifications';
+import { formatDistanceToNow } from 'date-fns';
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [loadingNotifications, setLoadingNotifications] = useState(true);
-  const [loadingAlerts, setLoadingAlerts] = useState(true);
+  const {
+    notifications,
+    unreadCount,
+    isLoading,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+    hasMore,
+    loadMore,
+  } = useUniversalNotifications({
+    autoFetch: true,
+    limit: 20,
+    showToasts: false,
+  });
 
-  useEffect(() => {
-    loadNotifications();
-    loadAlerts();
-  }, []);
+  // Separate notifications into alerts (high priority/warnings) and regular notifications
+  const alerts = notifications.filter(
+    (n) =>
+      n.type?.includes('WITHDRAWAL_REJECTED') ||
+      n.type?.includes('REFUND') ||
+      n.type?.includes('LOW_BALANCE') ||
+      n.type?.includes('SUBSCRIPTION_RENEWAL_FAILED')
+  );
 
-  const loadNotifications = async () => {
-    try {
-      setLoadingNotifications(true);
-      // Mock notifications for now - replace with API call
-      await new Promise(resolve => setTimeout(resolve, 600)); // Simulate loading
-      setNotifications([
-        {
-          id: 1,
-          title: 'New Commission',
-          message: 'You have a new commission pending approval.',
-          read: false,
-          category: 'approval',
-          priority: 'high',
-          createdAt: new Date().toISOString(),
-        },
-        {
-          id: 2,
-          title: 'System Update',
-          message: 'HRM8 was updated successfully with new features.',
-          read: true,
-          category: 'system',
-          priority: 'medium',
-          createdAt: new Date(Date.now() - 86400000).toISOString(),
-        },
-        {
-          id: 3,
-          title: 'Document Expiry',
-          message: 'A staff member\'s license is expiring in 30 days.',
-          read: false,
-          category: 'expiry',
-          priority: 'high',
-          createdAt: new Date(Date.now() - 3600000).toISOString(),
-        },
-        {
-          id: 4,
-          title: 'Team Assignment',
-          message: 'You have been assigned to a new project team.',
-          read: true,
-          category: 'assignment',
-          priority: 'medium',
-          createdAt: new Date(Date.now() - 7200000).toISOString(),
-        },
-      ]);
-    } catch (error) {
-      console.error('Failed to load notifications:', error);
-    } finally {
-      setLoadingNotifications(false);
+  const regularNotifications = notifications.filter(
+    (n) => !alerts.find((a) => a.id === n.id)
+  );
+
+  const getNotificationIcon = (type: string) => {
+    if (
+      type?.includes('WITHDRAWAL') ||
+      type?.includes('REFUND') ||
+      type?.includes('LOW_BALANCE')
+    ) {
+      return <AlertTriangle className="h-5 w-5" />;
     }
+    if (type?.includes('SUBSCRIPTION')) {
+      return <Info className="h-5 w-5" />;
+    }
+    return <Bell className="h-5 w-5" />;
   };
 
-  const loadAlerts = async () => {
-    try {
-      setLoadingAlerts(true);
-      // Mock alerts for now - replace with API call
-      await new Promise(resolve => setTimeout(resolve, 600)); // Simulate loading
-      setAlerts([
-        {
-          id: 'alert-1',
-          title: 'Compliance Issue',
-          message: 'A staff member\'s background check is overdue. Immediate action required.',
-          severity: 'critical',
-          category: 'compliance',
-          read: false,
-          createdAt: new Date().toISOString(),
-        },
-        {
-          id: 'alert-2',
-          title: 'Operational Warning',
-          message: 'Multiple job allocations are pending review (5 items).',
-          severity: 'high',
-          category: 'operational',
-          read: false,
-          createdAt: new Date(Date.now() - 3600000).toISOString(),
-        },
-        {
-          id: 'alert-3',
-          title: 'System Health',
-          message: 'API response times are higher than normal. Monitoring ongoing.',
-          severity: 'medium',
-          category: 'system',
-          read: true,
-          createdAt: new Date(Date.now() - 86400000).toISOString(),
-        },
-        {
-          id: 'alert-4',
-          title: 'Revenue Alert',
-          message: 'Revenue goal tracking indicates 15% below target this month.',
-          severity: 'high',
-          category: 'revenue',
-          read: false,
-          createdAt: new Date(Date.now() - 172800000).toISOString(),
-        },
-      ]);
-    } catch (error) {
-      console.error('Failed to load alerts:', error);
-    } finally {
-      setLoadingAlerts(false);
+  const getNotificationColor = (type: string, read: boolean) => {
+    if (read) {
+      return 'border-l-gray-300 bg-gray-50 dark:border-l-gray-700 dark:bg-gray-900/50';
     }
+    if (
+      type?.includes('WITHDRAWAL_REJECTED') ||
+      type?.includes('LOW_BALANCE') ||
+      type?.includes('SUBSCRIPTION_RENEWAL_FAILED')
+    ) {
+      return 'border-l-red-500 bg-red-50 dark:border-l-red-600 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30';
+    }
+    if (type?.includes('REFUND') || type?.includes('WITHDRAWAL_APPROVED')) {
+      return 'border-l-orange-500 bg-orange-50 dark:border-l-orange-600 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30';
+    }
+    return 'border-l-blue-500 bg-blue-50 dark:border-l-blue-600 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30';
   };
 
-  const getSeverityIcon = (severity: string) => {
-    switch (severity) {
-      case 'critical':
-      case 'high':
-        return <AlertTriangle className="h-5 w-5" />;
-      case 'medium':
-        return <AlertCircle className="h-5 w-5" />;
-      default:
-        return <Info className="h-5 w-5" />;
-    }
+  const handleMarkAsRead = async (id: string) => {
+    await markAsRead(id);
   };
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'critical':
-        return 'bg-red-500/10 border-red-500/30 dark:bg-red-900/20 dark:border-red-700/50 text-red-600 dark:text-red-400';
-      case 'high':
-        return 'bg-orange-500/10 border-orange-500/30 dark:bg-orange-900/20 dark:border-orange-700/50 text-orange-600 dark:text-orange-400';
-      case 'medium':
-        return 'bg-yellow-500/10 border-yellow-500/30 dark:bg-yellow-900/20 dark:border-yellow-700/50 text-yellow-600 dark:text-yellow-400';
-      default:
-        return 'bg-blue-500/10 border-blue-500/30 dark:bg-blue-900/20 dark:border-blue-700/50 text-blue-600 dark:text-blue-400';
-    }
+  const handleMarkAllAsRead = async () => {
+    await markAllAsRead();
   };
 
-  const getTimeAgo = (date: string) => {
-    const now = new Date();
-    const then = new Date(date);
-    const seconds = Math.floor((now.getTime() - then.getTime()) / 1000);
-
-    if (seconds < 60) return 'Just now';
-    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-    if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
-    return then.toLocaleDateString();
-  };
-
-  const handleMarkAsRead = (type: 'notification' | 'alert', id: string | number) => {
-    if (type === 'notification') {
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-      );
-    } else {
-      setAlerts((prev) =>
-        prev.map((a) => (a.id === id ? { ...a, read: true } : a))
-      );
-    }
-  };
-
-  const handleMarkAllAsRead = (type: 'notification' | 'alert') => {
-    if (type === 'notification') {
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    } else {
-      setAlerts((prev) => prev.map((a) => ({ ...a, read: true })));
-    }
-  };
-
-  const handleDismiss = (type: 'notification' | 'alert', id: string | number) => {
-    if (type === 'notification') {
-      setNotifications((prev) => prev.filter((n) => n.id !== id));
-    } else {
-      setAlerts((prev) => prev.filter((a) => a.id !== id));
-    }
+  const handleDismiss = async (id: string) => {
+    await deleteNotification(id);
   };
 
   const NotificationItem = ({
     item,
-    type,
     onMarkAsRead,
     onDismiss,
   }: {
-    item: Notification | Alert;
-    type: 'notification' | 'alert';
+    item: typeof notifications[0];
     onMarkAsRead: () => void;
     onDismiss: () => void;
   }) => {
-    const isSeverity = 'severity' in item;
-    const severity = isSeverity ? (item as Alert).severity : undefined;
-    const priority = !isSeverity ? (item as Notification).priority : undefined;
-
     return (
       <div
         className={cn(
           'group relative rounded-lg border-l-4 transition-all duration-200',
-          item.read
-            ? 'border-l-gray-300 bg-gray-50 dark:border-l-gray-700 dark:bg-gray-900/50'
-            : severity
-            ? {
-                'border-l-red-500 bg-red-50 dark:border-l-red-600 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30':
-                  severity === 'critical',
-                'border-l-orange-500 bg-orange-50 dark:border-l-orange-600 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30':
-                  severity === 'high',
-                'border-l-yellow-500 bg-yellow-50 dark:border-l-yellow-600 dark:bg-yellow-900/20 hover:bg-yellow-100 dark:hover:bg-yellow-900/30':
-                  severity === 'medium',
-                'border-l-blue-500 bg-blue-50 dark:border-l-blue-600 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30':
-                  severity === 'info' || severity === 'low',
-              }
-            : priority
-            ? {
-                'border-l-red-500 bg-red-50 dark:border-l-red-600 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30':
-                  priority === 'critical' || priority === 'high',
-                'border-l-blue-500 bg-blue-50 dark:border-l-blue-600 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30':
-                  priority === 'medium' || priority === 'low',
-              }
-            : 'border-l-gray-300 dark:border-l-gray-700',
+          getNotificationColor(item.type, item.read),
           'p-4'
         )}
       >
@@ -251,28 +102,15 @@ export default function NotificationsPage() {
               'mt-1 rounded-full p-2.5 flex-shrink-0',
               item.read
                 ? 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
-                : severity
-                ? {
-                    'bg-red-500/20 text-red-600 dark:text-red-400':
-                      severity === 'critical',
-                    'bg-orange-500/20 text-orange-600 dark:text-orange-400':
-                      severity === 'high',
-                    'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400':
-                      severity === 'medium',
-                    'bg-blue-500/20 text-blue-600 dark:text-blue-400':
-                      severity === 'info' || severity === 'low',
-                  }
-                : priority
-                ? {
-                    'bg-red-500/20 text-red-600 dark:text-red-400':
-                      priority === 'critical' || priority === 'high',
-                    'bg-blue-500/20 text-blue-600 dark:text-blue-400':
-                      priority === 'medium' || priority === 'low',
-                  }
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                : item.type?.includes('WITHDRAWAL_REJECTED') ||
+                  item.type?.includes('LOW_BALANCE')
+                ? 'bg-red-500/20 text-red-600 dark:text-red-400'
+                : item.type?.includes('REFUND') || item.type?.includes('WITHDRAWAL_APPROVED')
+                ? 'bg-orange-500/20 text-orange-600 dark:text-orange-400'
+                : 'bg-blue-500/20 text-blue-600 dark:text-blue-400'
             )}
           >
-            {isSeverity ? getSeverityIcon(severity!) : <Bell className="h-4 w-4" />}
+            {getNotificationIcon(item.type)}
           </div>
 
           <div className="flex-1 min-w-0">
@@ -296,7 +134,16 @@ export default function NotificationsPage() {
                       : 'text-gray-600 dark:text-gray-300'
                   )}
                 >
-                  {getTimeAgo(item.createdAt)}
+                  {(() => {
+                    try {
+                      if (!item.createdAt) return 'Just now';
+                      const date = new Date(item.createdAt);
+                      if (isNaN(date.getTime())) return 'Just now';
+                      return formatDistanceToNow(date, { addSuffix: true });
+                    } catch (e) {
+                      return 'Just now';
+                    }
+                  })()}
                 </p>
               </div>
               {!item.read && (
@@ -315,7 +162,7 @@ export default function NotificationsPage() {
               {item.message}
             </p>
 
-            {item.category && (
+            {item.type && (
               <div className="mt-3 flex items-center gap-2">
                 <span
                   className={cn(
@@ -323,18 +170,8 @@ export default function NotificationsPage() {
                     'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200'
                   )}
                 >
-                  {item.category}
+                  {item.type.replace(/_/g, ' ').toLowerCase()}
                 </span>
-                {isSeverity && severity && (
-                  <span
-                    className={cn(
-                      'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium capitalize',
-                      getSeverityColor(severity)
-                    )}
-                  >
-                    {severity}
-                  </span>
-                )}
               </div>
             )}
           </div>
@@ -410,9 +247,9 @@ export default function NotificationsPage() {
                   <div className="flex items-center gap-2">
                     <Bell className="h-4 w-4" />
                     <span>Notifications</span>
-                    {notifications.filter((n) => !n.read).length > 0 && (
+                    {regularNotifications.filter((n) => !n.read).length > 0 && (
                       <span className="ml-2 inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-500/20 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300">
-                        {notifications.filter((n) => !n.read).length}
+                        {regularNotifications.filter((n) => !n.read).length}
                       </span>
                     )}
                   </div>
@@ -438,12 +275,12 @@ export default function NotificationsPage() {
             <TabsContent value="notifications" className="p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-600 dark:text-gray-400">
-                  {notifications.filter((n) => !n.read).length} unread
-                  {notifications.filter((n) => !n.read).length > 0 && (
+                  {unreadCount} unread
+                  {unreadCount > 0 && (
                     <Button
                       variant="link"
                       size="sm"
-                      onClick={() => handleMarkAllAsRead('notification')}
+                      onClick={handleMarkAllAsRead}
                       className="ml-3 h-auto p-0 text-blue-600 dark:text-blue-400"
                     >
                       Mark all as read
@@ -452,9 +289,9 @@ export default function NotificationsPage() {
                 </div>
               </div>
 
-              {loadingNotifications ? (
+              {isLoading ? (
                 <LoadingSkeleton />
-              ) : notifications.length === 0 ? (
+              ) : regularNotifications.length === 0 ? (
                 <div className="text-center py-12">
                   <Bell className="h-12 w-12 text-gray-300 dark:text-gray-700 mx-auto mb-3" />
                   <p className="text-gray-600 dark:text-gray-400">
@@ -465,21 +302,29 @@ export default function NotificationsPage() {
                   </p>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {notifications.map((notification) => (
-                    <NotificationItem
-                      key={notification.id}
-                      item={notification}
-                      type="notification"
-                      onMarkAsRead={() =>
-                        handleMarkAsRead('notification', notification.id)
-                      }
-                      onDismiss={() =>
-                        handleDismiss('notification', notification.id)
-                      }
-                    />
-                  ))}
-                </div>
+                <>
+                  <div className="space-y-3">
+                    {regularNotifications.map((notification) => (
+                      <NotificationItem
+                        key={notification.id}
+                        item={notification}
+                        onMarkAsRead={() => handleMarkAsRead(notification.id)}
+                        onDismiss={() => handleDismiss(notification.id)}
+                      />
+                    ))}
+                  </div>
+                  {hasMore && (
+                    <div className="flex justify-center pt-4">
+                      <Button
+                        variant="outline"
+                        onClick={loadMore}
+                        disabled={isLoading}
+                      >
+                        {isLoading ? 'Loading...' : 'Load more'}
+                      </Button>
+                    </div>
+                  )}
+                </>
               )}
             </TabsContent>
 
@@ -492,7 +337,7 @@ export default function NotificationsPage() {
                     <Button
                       variant="link"
                       size="sm"
-                      onClick={() => handleMarkAllAsRead('alert')}
+                      onClick={handleMarkAllAsRead}
                       className="ml-3 h-auto p-0 text-blue-600 dark:text-blue-400"
                     >
                       Mark all as read
@@ -501,7 +346,7 @@ export default function NotificationsPage() {
                 </div>
               </div>
 
-              {loadingAlerts ? (
+              {isLoading ? (
                 <LoadingSkeleton />
               ) : alerts.length === 0 ? (
                 <div className="text-center py-12">
@@ -514,17 +359,29 @@ export default function NotificationsPage() {
                   </p>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {alerts.map((alert) => (
-                    <NotificationItem
-                      key={alert.id}
-                      item={alert}
-                      type="alert"
-                      onMarkAsRead={() => handleMarkAsRead('alert', alert.id)}
-                      onDismiss={() => handleDismiss('alert', alert.id)}
-                    />
-                  ))}
-                </div>
+                <>
+                  <div className="space-y-3">
+                    {alerts.map((alert) => (
+                      <NotificationItem
+                        key={alert.id}
+                        item={alert}
+                        onMarkAsRead={() => handleMarkAsRead(alert.id)}
+                        onDismiss={() => handleDismiss(alert.id)}
+                      />
+                    ))}
+                  </div>
+                  {hasMore && (
+                    <div className="flex justify-center pt-4">
+                      <Button
+                        variant="outline"
+                        onClick={loadMore}
+                        disabled={isLoading}
+                      >
+                        {isLoading ? 'Loading...' : 'Load more'}
+                      </Button>
+                    </div>
+                  )}
+                </>
               )}
             </TabsContent>
           </Tabs>

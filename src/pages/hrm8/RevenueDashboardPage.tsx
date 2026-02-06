@@ -44,8 +44,8 @@ export default function RevenueDashboardPage() {
             else setLoading(true);
 
             const filters = {
-                startDate: dateRange.start.toISOString(),
-                endDate: dateRange.end.toISOString(),
+                start_date: dateRange.start.toISOString(),
+                end_date: dateRange.end.toISOString(),
             };
 
             const dashboardData = await revenueAnalyticsService.getDashboard(filters);
@@ -97,7 +97,7 @@ export default function RevenueDashboardPage() {
         );
     }
 
-    const { summary, byRegion, byCommissionType, topConsultants, timeline } = data;
+    const { summary, by_region, by_commission_type, top_consultants, timeline } = data;
 
     return (
 
@@ -161,9 +161,9 @@ export default function RevenueDashboardPage() {
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{formatCurrency(summary.totalRevenue)}</div>
+                        <div className="text-2xl font-bold">{formatCurrency(summary.total_revenue)}</div>
                         <p className="text-xs text-muted-foreground">
-                            {summary.billCount} paid bills
+                            {summary.bill_count} paid bills
                         </p>
                     </CardContent>
                 </Card>
@@ -174,9 +174,9 @@ export default function RevenueDashboardPage() {
                         <TrendingDown className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{formatCurrency(summary.totalCommissions)}</div>
+                        <div className="text-2xl font-bold">{formatCurrency(summary.total_commissions)}</div>
                         <p className="text-xs text-muted-foreground">
-                            {formatPercentage(summary.commissionRate)} of revenue
+                            {formatPercentage(summary.commission_rate)} of revenue
                         </p>
                     </CardContent>
                 </Card>
@@ -187,7 +187,7 @@ export default function RevenueDashboardPage() {
                         <TrendingUp className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{formatCurrency(summary.netRevenue)}</div>
+                        <div className="text-2xl font-bold">{formatCurrency(summary.net_revenue)}</div>
                         <p className="text-xs text-muted-foreground">
                             After commissions
                         </p>
@@ -200,7 +200,7 @@ export default function RevenueDashboardPage() {
                         <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{summary.paidCommissionCount}</div>
+                        <div className="text-2xl font-bold">{summary.paid_commission_count}</div>
                         <p className="text-xs text-muted-foreground">
                             Commission payments
                         </p>
@@ -218,15 +218,15 @@ export default function RevenueDashboardPage() {
                     </CardHeader>
                     <CardContent>
                         <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={byRegion}>
+                            <BarChart data={by_region}>
                                 <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="regionName" />
+                                <XAxis dataKey="region_name" />
                                 <YAxis />
                                 <Tooltip formatter={(value) => formatCurrency(value as number)} />
                                 <Legend />
                                 <Bar dataKey="revenue" fill="#0088FE" name="Revenue" />
                                 <Bar dataKey="commissions" fill="#FF8042" name="Commissions" />
-                                <Bar dataKey="netRevenue" fill="#00C49F" name="Net Revenue" />
+                                <Bar dataKey="net_revenue" fill="#00C49F" name="Net Revenue" />
                             </BarChart>
                         </ResponsiveContainer>
                     </CardContent>
@@ -239,11 +239,11 @@ export default function RevenueDashboardPage() {
                         <CardDescription>Breakdown by commission type</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        {byCommissionType.length > 0 ? (
+                        {by_commission_type.length > 0 ? (
                             <ResponsiveContainer width="100%" height={300}>
                                 <PieChart>
                                     <Pie
-                                        data={byCommissionType}
+                                        data={by_commission_type}
                                         dataKey="amount"
                                         nameKey="type"
                                         cx="50%"
@@ -251,7 +251,7 @@ export default function RevenueDashboardPage() {
                                         outerRadius={80}
                                         label={(entry) => `${entry.type}: ${formatPercentage(entry.percentage)}`}
                                     >
-                                        {byCommissionType.map((_entry, index) => (
+                                        {by_commission_type.map((_entry, index) => (
                                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                         ))}
                                     </Pie>
@@ -283,7 +283,7 @@ export default function RevenueDashboardPage() {
                             <Legend />
                             <Line type="monotone" dataKey="revenue" stroke="#0088FE" name="Revenue" strokeWidth={2} />
                             <Line type="monotone" dataKey="commissions" stroke="#FF8042" name="Commissions" strokeWidth={2} />
-                            <Line type="monotone" dataKey="netRevenue" stroke="#00C49F" name="Net Revenue" strokeWidth={2} />
+                            <Line type="monotone" dataKey="net_revenue" stroke="#00C49F" name="Net Revenue" strokeWidth={2} />
                         </LineChart>
                     </ResponsiveContainer>
                 </CardContent>
@@ -296,10 +296,10 @@ export default function RevenueDashboardPage() {
                     <CardDescription>Highest commission earners</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {topConsultants.length > 0 ? (
+                    {top_consultants.length > 0 ? (
                         <div className="space-y-4">
-                            {topConsultants.map((consultant, index) => (
-                                <div key={consultant.consultantId} className="flex items-center justify-between">
+                            {top_consultants.map((consultant, index) => (
+                                <div key={consultant.consultant_id} className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold">
                                             {index + 1}
@@ -307,11 +307,11 @@ export default function RevenueDashboardPage() {
                                         <div>
                                             <div className="font-medium">{consultant.name}</div>
                                             <div className="text-sm text-muted-foreground">
-                                                {consultant.regionName} • {consultant.commissionCount} commissions
+                                                {consultant.region_name} • {consultant.commission_count} commissions
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="font-semibold">{formatCurrency(consultant.totalCommissions)}</div>
+                                    <div className="font-semibold">{formatCurrency(consultant.total_commissions)}</div>
                                 </div>
                             ))}
                         </div>

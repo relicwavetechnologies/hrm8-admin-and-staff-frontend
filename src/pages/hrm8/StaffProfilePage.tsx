@@ -57,13 +57,21 @@ export default function StaffProfilePage() {
     try {
       setLoading(true);
       setError(null);
-      const response = await staffService.getById(id);
-      if (response.success && response.data?.consultant) {
-        setStaff(response.data.consultant);
-        // Generate mock stats based on role
-        generateStats(response.data.consultant);
+      const [staffResponse, statsResponse] = await Promise.all([
+        staffService.getById(id),
+        staffService.getStats(id)
+      ]);
+
+      if (staffResponse.success && staffResponse.data?.consultant) {
+        setStaff(staffResponse.data.consultant);
       } else {
         setError('Staff member not found');
+      }
+
+      if (statsResponse.success && statsResponse.data?.stats) {
+        setStats(statsResponse.data.stats);
+      } else {
+        setStats(null);
       }
     } catch (err: any) {
       setError(err.message || 'Failed to load staff profile');
@@ -86,12 +94,13 @@ export default function StaffProfilePage() {
       }
 
       const oldRate = staff.defaultCommissionRate || 10;
+      const response = await staffService.update(id, { defaultCommissionRate: commissionRate });
+      if (!response.success) {
+        toast.error(response.error || 'Failed to update commission rate');
+        return;
+      }
 
-      // Simulate API call - replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 800));
-
-      // Update local state
-      setStaff(prev => prev ? { ...prev, defaultCommissionRate: commissionRate } : null);
+      setStaff(response.data?.consultant || staff);
 
       toast.success(
         `Commission rate updated: ${oldRate}% → ${commissionRate}%`,
@@ -108,33 +117,6 @@ export default function StaffProfilePage() {
     } finally {
       setIsUpdatingCommission(false);
     }
-  };
-
-  const generateStats = (staffMember: StaffMember) => {
-    // Generate mock stats - in a real scenario, these would come from the API
-    const mockStats: StaffStats = {
-      activeAssignments: Math.floor(Math.random() * 10) + 1,
-      lastActivityDate: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-    };
-
-    if (staffMember.role === 'RECRUITER') {
-      mockStats.jobsCount = Math.floor(Math.random() * 50) + 5;
-      mockStats.hireSuccessRate = Math.floor(Math.random() * 40) + 60; // 60-100%
-      mockStats.totalPlacements = Math.floor(Math.random() * 100) + 10;
-    } else if (staffMember.role === 'SALES_AGENT') {
-      mockStats.leadsCount = Math.floor(Math.random() * 200) + 50;
-      mockStats.conversionRate = Math.floor(Math.random() * 30) + 10; // 10-40%
-      mockStats.revenue = Math.floor(Math.random() * 500000) + 100000;
-    } else if (staffMember.role === 'CONSULTANT_360') {
-      mockStats.jobsCount = Math.floor(Math.random() * 50) + 5;
-      mockStats.hireSuccessRate = Math.floor(Math.random() * 40) + 60;
-      mockStats.leadsCount = Math.floor(Math.random() * 200) + 50;
-      mockStats.conversionRate = Math.floor(Math.random() * 30) + 10;
-      mockStats.totalPlacements = Math.floor(Math.random() * 100) + 10;
-      mockStats.revenue = Math.floor(Math.random() * 500000) + 100000;
-    }
-
-    setStats(mockStats);
   };
 
   if (loading) {

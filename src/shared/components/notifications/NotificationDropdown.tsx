@@ -24,6 +24,7 @@ import {
 import { Button } from '@/shared/components/ui/button';
 import { Notification } from '@/shared/lib/notificationService';
 import { cn } from '@/shared/lib/utils';
+import { useAuthStore } from '@/shared/stores/authStore';
 
 interface NotificationDropdownProps {
     notifications: Notification[];
@@ -75,6 +76,22 @@ const getNotificationIcon = (type: string) => {
     }
 };
 
+// Helper function to get notification route based on user type
+const getNotificationRoute = (userType: string | null): string => {
+    switch (userType) {
+        case 'ADMIN':
+            return '/hrm8/notifications';
+        case 'CONSULTANT':
+            return '/consultant/notifications';
+        case 'SALES_AGENT':
+            return '/sales-agent/notifications';
+        case 'CONSULTANT360':
+            return '/consultant360/notifications';
+        default:
+            return '/hrm8/notifications';
+    }
+};
+
 export function NotificationDropdown({
     notifications,
     isLoading,
@@ -83,6 +100,8 @@ export function NotificationDropdown({
     onClose,
 }: NotificationDropdownProps) {
     const navigate = useNavigate();
+    const { userType } = useAuthStore();
+    const notificationsRoute = getNotificationRoute(userType);
 
     const handleNotificationClick = (notification: Notification) => {
         // Mark as read
@@ -90,14 +109,14 @@ export function NotificationDropdown({
             onMarkAsRead(notification.id);
         }
 
-        // Navigate to notifications page
-        navigate('/hrm8/notifications');
+        // Navigate to role-specific notifications page
+        navigate(notificationsRoute);
         // Close after navigation is triggered
         setTimeout(() => onClose(), 0);
     };
 
     const handleViewAll = () => {
-        navigate('/hrm8/notifications');
+        navigate(notificationsRoute);
         // Close after navigation is triggered
         setTimeout(() => onClose(), 0);
     };

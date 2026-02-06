@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { jobAllocationService, JobForAllocation } from '@/shared/lib/hrm8/jobAllocationService';
-import { regionService } from '@/shared/lib/hrm8/regionService';
 import { DataTable } from '@/shared/components/tables/DataTable';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
@@ -13,16 +12,18 @@ import { TableSkeleton } from '@/shared/components/tables/TableSkeleton';
 import { toast } from 'sonner';
 import { Briefcase, Users, Filter, X } from 'lucide-react';
 import { useDebounce } from '@/shared/hooks/use-debounce';
+import { useRegionStore } from '@/shared/stores/useRegionStore';
 
 export default function JobAllocationPage() {
   const [jobs, setJobs] = useState<JobForAllocation[]>([]);
-  const [regions, setRegions] = useState<Array<{ id: string; name: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalJobs, setTotalJobs] = useState(0);
 
   // Filters
-  const [regionFilter, setRegionFilter] = useState<string>('all');
   const [companyFilter, setCompanyFilter] = useState<string>('');
   const [industryFilter, setIndustryFilter] = useState<string>('');
   const [assignmentStatusFilter, setAssignmentStatusFilter] = useState<'UNASSIGNED' | 'ASSIGNED' | 'ALL'>('ALL');
@@ -30,54 +31,46 @@ export default function JobAllocationPage() {
 
   const debouncedSearch = useDebounce(searchTerm, 500);
   const debouncedCompany = useDebounce(companyFilter, 500);
+  const debouncedIndustry = useDebounce(industryFilter, 500);
+  const { selectedRegionId, regions } = useRegionStore();
 
   useEffect(() => {
-    loadRegions();
-  }, []);
+    setCurrentPage(1);
+  }, [selectedRegionId, debouncedCompany, debouncedIndustry, assignmentStatusFilter, debouncedSearch]);
 
   useEffect(() => {
     loadJobs();
-  }, [regionFilter, debouncedCompany, industryFilter, assignmentStatusFilter, debouncedSearch]);
-
-  const loadRegions = async () => {
-    try {
-      const response = await regionService.getAll({ isActive: true });
-      if (response.success && response.data?.regions) {
-        setRegions(response.data.regions.map((r) => ({ id: r.id, name: r.name })));
-      }
-    } catch (error) {
-      console.error('Failed to load regions:', error);
-    }
-  };
+  }, [selectedRegionId, debouncedCompany, debouncedIndustry, assignmentStatusFilter, debouncedSearch, currentPage, pageSize]);
 
   const loadJobs = async () => {
     try {
       setLoading(true);
       const filters: {
         regionId?: string;
-        companyId?: string;
+        companySearch?: string;
+        industry?: string;
         assignmentStatus?: 'UNASSIGNED' | 'ASSIGNED' | 'ALL';
         search?: string;
+        limit?: number;
+        offset?: number;
       } = {};
 
-      if (regionFilter && regionFilter !== 'all') filters.regionId = regionFilter;
+      if (selectedRegionId && selectedRegionId !== 'all') filters.regionId = selectedRegionId;
       if (debouncedCompany) {
-        filters.companyId = debouncedCompany;
+        filters.companySearch = debouncedCompany;
+      }
+      if (debouncedIndustry) {
+        filters.industry = debouncedIndustry;
       }
       filters.assignmentStatus = assignmentStatusFilter;
       if (debouncedSearch) filters.search = debouncedSearch;
+      filters.limit = pageSize;
+      filters.offset = (currentPage - 1) * pageSize;
 
       const response = await jobAllocationService.getJobsForAllocation(filters);
       if (response.success && response.data?.jobs) {
-        let filteredJobs = response.data.jobs;
-
-        if (industryFilter) {
-          filteredJobs = filteredJobs.filter((job) =>
-            job.category?.toLowerCase().includes(industryFilter.toLowerCase())
-          );
-        }
-
-        setJobs(filteredJobs);
+        setJobs(response.data.jobs);
+        setTotalJobs(response.data.total ?? response.data.jobs.length);
       }
     } catch (error) {
       toast.error('Failed to load jobs');
@@ -87,7 +80,6 @@ export default function JobAllocationPage() {
   };
 
   const clearFilters = () => {
-    setRegionFilter('all');
     setCompanyFilter('');
     setIndustryFilter('');
     setAssignmentStatusFilter('ALL');
@@ -105,7 +97,7 @@ export default function JobAllocationPage() {
     loadJobs();
   };
 
-  const hasActiveFilters = (regionFilter && regionFilter !== 'all') || companyFilter || industryFilter || searchTerm;
+  const hasActiveFilters = companyFilter || industryFilter || searchTerm;
 
   const columns = [
     {
@@ -202,23 +194,6 @@ export default function JobAllocationPage() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               <div className="space-y-2">
-                <Label>Region</Label>
-                <Select value={regionFilter} onValueChange={setRegionFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All regions" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All regions</SelectItem>
-                    {regions.map((region) => (
-                      <SelectItem key={region.id} value={region.id}>
-                        {region.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
                 <Label>Assignment Status</Label>
                 <Select value={assignmentStatusFilter} onValueChange={(val: any) => setAssignmentStatusFilter(val)}>
                   <SelectTrigger>
@@ -287,6 +262,15 @@ export default function JobAllocationPage() {
                 data={jobs}
                 columns={columns}
                 searchable={false}
+                serverPagination
+                currentPage={currentPage}
+                pageSize={pageSize}
+                totalItems={totalJobs}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={(size) => {
+                  setPageSize(size);
+                  setCurrentPage(1);
+                }}
                 emptyMessage="No unassigned jobs found"
               />
             )}

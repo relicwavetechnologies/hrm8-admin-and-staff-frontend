@@ -6,13 +6,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useConsultantAuth } from '@/contexts/ConsultantAuthContext';
 import { consultantService } from '@/shared/lib/consultant/consultantService';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { EnhancedStatCard } from '@/shared/components/dashboard/EnhancedStatCard';
 import { ConsultantPageLayout } from '@/shared/components/layouts/ConsultantPageLayout';
 import { AtsPageHeader } from '@/shared/components/layouts/AtsPageHeader';
 import { ConsultantDashboardSkeleton } from '@/shared/components/skeletons/ConsultantDashboardSkeleton';
 import { StandardChartCard } from '@/shared/components/dashboard/charts/StandardChartCard';
-import { Briefcase, Users, DollarSign, TrendingUp, BarChart3, Download, Eye, Target } from 'lucide-react';
+import { Briefcase, Users, DollarSign, TrendingUp, BarChart3 } from 'lucide-react';
 import { ResponsiveContainer, LineChart, BarChart, XAxis, YAxis, Tooltip, Legend, Line, Bar } from 'recharts';
 import { useToast } from '@/shared/hooks/use-toast';
 import { ActiveJobsWidget } from '@/shared/components/dashboard/consultant/ActiveJobsWidget';
@@ -56,14 +55,6 @@ export default function ConsultantOverview() {
     }));
   }, [data]);
 
-  const placementsTrendData = useMemo(() => {
-    if (!data?.trends) return [];
-    return data.trends.map((t: any) => ({
-      name: t.name,
-      value: t.placements || 0
-    }));
-  }, [data]);
-
   const commissionsTrendData = useMemo(() => {
     if (!data?.trends) return [];
     return data.trends.map((t: any) => ({
@@ -82,7 +73,6 @@ export default function ConsultantOverview() {
   }
 
   // Calculate totals for stats
-  const totalRevenue = data?.trends?.reduce((acc: number, curr: any) => acc + (curr.revenue || 0), 0) || 0;
   const totalPlacements = data?.trends?.reduce((acc: number, curr: any) => acc + (curr.placements || 0), 0) || 0;
   const activeJobsCount = data?.activeJobs?.length || 0;
 
@@ -106,7 +96,7 @@ export default function ConsultantOverview() {
             value={activeJobsCount.toString()}
             icon={<Briefcase className="h-5 w-5" />}
             variant="neutral"
-            trend={{ value: 0, label: "current open roles", trend: "neutral" }}
+            change="0%"
           />
 
           <EnhancedStatCard
@@ -114,6 +104,7 @@ export default function ConsultantOverview() {
             value={totalPlacements.toString()}
             icon={<Users className="h-5 w-5" />}
             variant="neutral"
+            change="0%"
           />
 
           <EnhancedStatCard
@@ -121,14 +112,7 @@ export default function ConsultantOverview() {
             value={`$${currentMonthRevenue.toLocaleString()}`}
             icon={<DollarSign className="h-5 w-5" />}
             variant={revenueProgress >= 100 ? "success" : "neutral"}
-            footer={
-              monthlyRevenueTarget > 0 && (
-                <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                  <Target className="h-3 w-3" />
-                  Target: ${monthlyRevenueTarget.toLocaleString()} ({revenueProgress.toFixed(0)}%)
-                </div>
-              )
-            }
+            change={`${revenueProgress.toFixed(0)}%`}
           />
 
           <EnhancedStatCard
@@ -136,7 +120,7 @@ export default function ConsultantOverview() {
             value="--" // Calculation required based on applications vs hires
             icon={<TrendingUp className="h-5 w-5" />}
             variant="neutral"
-            description="Pending implementation"
+            change="0%"
           />
         </div>
 

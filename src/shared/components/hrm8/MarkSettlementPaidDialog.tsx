@@ -55,8 +55,8 @@ export function MarkSettlementPaidDialog({
 
     try {
       const response = await settlementService.markAsPaid(settlement.id, {
-        paymentDate,
-        reference,
+        payment_date: paymentDate,
+        payment_reference: reference,
       });
 
       if (!response.success) {
@@ -134,22 +134,22 @@ export function MarkSettlementPaidDialog({
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Licensee:</span>
-                  <span className="font-medium">{settlement.licensee?.name || settlement.licenseeId}</span>
+                  <span className="font-medium">{settlement.licensee?.name || settlement.licensee_id}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Period:</span>
                   <span className="font-medium">
-                    {new Date(settlement.periodStart).toLocaleDateString()} -{' '}
-                    {new Date(settlement.periodEnd).toLocaleDateString()}
+                    {new Date(settlement.period_start).toLocaleDateString()} -{' '}
+                    {new Date(settlement.period_end).toLocaleDateString()}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Total Revenue:</span>
-                  <span className="font-medium">{formatCurrency(settlement.totalRevenue)}</span>
+                  <span className="font-medium">{formatCurrency(settlement.total_revenue)}</span>
                 </div>
                 <div className="flex justify-between border-t pt-2">
                   <span className="text-muted-foreground font-semibold">Licensee Share:</span>
-                  <span className="font-bold text-primary">{formatCurrency(settlement.licenseeShare)}</span>
+                  <span className="font-bold text-primary">{formatCurrency(settlement.licensee_share)}</span>
                 </div>
               </div>
             </div>

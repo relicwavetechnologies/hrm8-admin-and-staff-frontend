@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Button } from "@/shared/components/ui/button";
 import { Card } from "@/shared/components/ui/card";
-import { Plus, Target, DollarSign, TrendingUp, Award, LayoutGrid, List, Download, BarChart3, Loader2, Briefcase, Users, ChevronsUpDown, Check } from "lucide-react";
+import { Plus, Target, DollarSign, TrendingUp, Award, LayoutGrid, List, Download, BarChart3, Loader2, Briefcase, Users } from "lucide-react";
 import { DataTable } from "@/shared/components/tables/DataTable";
 import { salesService, PipelineStats } from "@/shared/services/salesService";
 import { regionalSalesService, RegionalOpportunity } from "@/shared/lib/hrm8/regionalSalesService";
@@ -15,7 +15,7 @@ import { OpportunityBulkActions } from "@/modules/sales/components/OpportunityBu
 import { useToast } from "@/shared/hooks/use-toast";
 import { exportOpportunities } from "@/shared/lib/salesExportService";
 import { SalesExportDialog, ExportConfig } from "@/modules/sales/components/SalesExportDialog";
-import { formatCurrency, cn } from "@/shared/lib/utils";
+import { formatCurrency } from "@/shared/lib/utils";
 import {
   Select,
   SelectContent,

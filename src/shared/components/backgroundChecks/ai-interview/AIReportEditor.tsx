@@ -5,7 +5,6 @@ import Link from '@tiptap/extension-link';
 import Underline from '@tiptap/extension-underline';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/shared/components/ui/dialog';
 import { Button } from '@/shared/components/ui/button';
-import { Badge } from '@/shared/components/ui/badge';
 import { Separator } from '@/shared/components/ui/separator';
 import { useToast } from '@/shared/hooks/use-toast';
 import type { AIReferenceCheckSession } from '@/types/aiReferenceCheck';
@@ -75,17 +74,6 @@ export function AIReportEditor({
     if (!editor) return;
 
     setIsSaving(true);
-
-    const report: EditableReport = {
-      id: existingReport?.id || `report_${Date.now()}`,
-      sessionId: session.id,
-      summary,
-      editableContent: editor.getHTML(),
-      version: (existingReport?.version || 0) + 1,
-      status,
-      createdAt: existingReport?.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
 
     // Simulate save delay
     setTimeout(() => {

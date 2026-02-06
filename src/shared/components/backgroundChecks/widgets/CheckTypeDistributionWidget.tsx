@@ -14,7 +14,7 @@ const COLORS = [
 
 export function CheckTypeDistributionWidget() {
   const data = getCheckTypeDistribution();
-  
+
   return (
     <Card className="col-span-2">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -33,7 +33,7 @@ export function CheckTypeDistributionWidget() {
               outerRadius={60}
               label={(entry) => `${entry.percentage}%`}
             >
-              {data.map((entry, index) => (
+              {data.map((_entry, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>

@@ -1,5 +1,4 @@
 import { Card } from "@/shared/components/ui/card";
-import { Badge } from "@/shared/components/ui/badge";
 import { TrendingUp, TrendingDown, MoreVertical } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/components/ui/button";
@@ -10,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
 import { useCurrencyFormat } from "@/contexts/CurrencyFormatContext";
-import { ResponsiveContainer, AreaChart, Area, LineChart, Line, XAxis, YAxis, Tooltip } from "recharts";
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from "recharts";
 import { useMemo } from "react";
 import { generateRealisticTrend, generatePercentageTrend } from "@/shared/lib/generators/realisticTrendData";
 
@@ -33,11 +32,6 @@ interface EnhancedStatCardProps {
   isCurrency?: boolean;
   rawValue?: number;
   size?: "default" | "compact" | "large";
-  layout?: "vertical" | "horizontal";
-  elevation?: "none" | "sm" | "md" | "lg";
-  showGradient?: boolean;
-  showBorder?: boolean;
-  iconPosition?: "left" | "right" | "top";
   chartData?: Array<{ name: string; value: number; secondary?: number }>;
   onClick?: () => void;
   loading?: boolean;
@@ -57,11 +51,6 @@ export function EnhancedStatCard({
   isCurrency = false,
   rawValue,
   size = "default",
-  layout = "vertical",
-  elevation = "none",
-  showGradient = false,
-  showBorder = false,
-  iconPosition = "left",
   chartData,
   onClick,
   loading = false,

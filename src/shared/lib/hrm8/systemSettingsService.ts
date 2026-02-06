@@ -19,7 +19,7 @@ export const SystemSettingsService = {
      * Get all system settings (Admin only)
      */
     getAllSettings: async (): Promise<Record<string, any>> => {
-        const response = await api.get<Record<string, any>>('/hrm8/system-settings');
+        const response = await api.get<Record<string, any>>('/api/hrm8/system-settings');
         return response.data || {};
     },
 
@@ -27,7 +27,7 @@ export const SystemSettingsService = {
      * Update a single setting
      */
     updateSetting: async (key: string, value: any, isPublic?: boolean): Promise<SystemSetting> => {
-        const response = await api.post<SystemSetting>('/hrm8/system-settings', {
+        const response = await api.post<SystemSetting>('/api/hrm8/system-settings', {
             key,
             value,
             isPublic
@@ -40,7 +40,7 @@ export const SystemSettingsService = {
      * Bulk update settings
      */
     bulkUpdateSettings: async (settings: BulkUpdateSettingItem[]): Promise<SystemSetting[]> => {
-        const response = await api.post<SystemSetting[]>('/hrm8/system-settings/bulk', {
+        const response = await api.post<SystemSetting[]>('/api/hrm8/system-settings/bulk', {
             settings
         });
         return response.data || [];
@@ -50,7 +50,7 @@ export const SystemSettingsService = {
      * Get public settings (Branding etc)
      */
     getPublicSettings: async (): Promise<Record<string, any>> => {
-        const response = await api.get<Record<string, any>>('/hrm8/system-settings/public');
+        const response = await api.get<Record<string, any>>('/api/hrm8/system-settings/public');
         return response.data || {};
     }
 };

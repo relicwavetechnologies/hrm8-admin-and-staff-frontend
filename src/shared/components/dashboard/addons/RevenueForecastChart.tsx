@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { ResponsiveContainer, LineChart, Line, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { ResponsiveContainer, LineChart, Line, Area, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import { getRevenueForecast } from '@/shared/lib/addons/revenueAnalytics';
 import { useCurrencyFormat } from '@/contexts/CurrencyFormatContext';
 import { Badge } from "@/shared/components/ui/badge";
@@ -12,8 +12,9 @@ export function RevenueForecastChart() {
   // Calculate projected growth
   const lastActual = data.find(d => d.actual !== undefined);
   const lastForecast = data[data.length - 1];
-  const projectedGrowth = lastActual && lastForecast
-    ? ((lastForecast.forecast - lastActual.actual) / lastActual.actual) * 100
+  const lastActualValue = (lastActual as any)?.actual as number | undefined;
+  const projectedGrowth = lastActualValue && lastForecast?.forecast
+    ? ((lastForecast.forecast - lastActualValue) / lastActualValue) * 100
     : 0;
 
   return (

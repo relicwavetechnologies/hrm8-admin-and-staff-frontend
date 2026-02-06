@@ -73,41 +73,29 @@ export function TransferRegionDialog({ open, onOpenChange, region, onSuccess }: 
     }
   };
 
-  const loadImpact = async () => {
-    if (!region) return;
+  const loadImpact = async (): Promise<boolean> => {
+    if (!region) return false;
     try {
       setLoadingImpact(true);
       const response = await regionService.getTransferImpact(region.id);
       if (response.success && response.data) {
         setImpact(response.data);
+        return true;
       } else {
-        // Fallback to mock data if API not ready
-        setImpact({
-          companies: 0,
-          jobs: 0,
-          consultants: 0,
-          openInvoices: 0,
-          opportunities: 0,
-        });
+        toast.error(response.error || 'Failed to load transfer impact');
       }
     } catch (error) {
-      // Fallback for dev
-      setImpact({
-        companies: 0,
-        jobs: 0,
-        consultants: 0,
-        openInvoices: 0,
-        opportunities: 0,
-      });
+      toast.error('Failed to load transfer impact');
     } finally {
       setLoadingImpact(false);
     }
+    return false;
   };
 
   const handleNext = async () => {
     if (step === 'select') {
-      await loadImpact();
-      setStep('review');
+      const ok = await loadImpact();
+      if (ok) setStep('review');
     } else if (step === 'review') {
       setStep('confirm');
     }

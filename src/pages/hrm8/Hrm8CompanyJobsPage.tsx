@@ -19,7 +19,7 @@ interface CompanyJob {
   title: string;
   location: string;
   status: string;
-  postedAt: string;
+  posted_at: string;
   applicants: number;
   views: number;
   clicks: number;
@@ -38,7 +38,7 @@ interface PaginatedJobsResponse {
   jobs: CompanyJob[];
   total: number;
   page: number;
-  pageSize: number;
+  page_size: number;
 }
 
 export default function Hrm8CompanyJobsPage() {
@@ -164,12 +164,12 @@ export default function Hrm8CompanyJobsPage() {
       )
     },
     {
-      key: 'postedAt',
+      key: 'posted_at',
       label: 'Posted',
       render: (job: CompanyJob) => (
         <div className="flex items-center gap-1 text-muted-foreground">
           <Calendar className="h-3 w-3" />
-          {job.postedAt}
+          {job.posted_at}
         </div>
       )
     },

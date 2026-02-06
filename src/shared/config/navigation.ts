@@ -13,8 +13,8 @@ import {
     ClipboardList,
     MessageSquare,
     Wallet,
-    User,
     Building2,
+    Plug,
 
     ArrowRightLeft,
     UserCheck,
@@ -46,8 +46,8 @@ const adminMenuItems: MenuItem[] = [
     { id: "attribution", path: "/hrm8/attribution", label: "Attribution", icon: UserCheck, adminOnly: true },
     { id: "pricing", path: "/hrm8/pricing", label: "Pricing", icon: BookOpen },
     { id: "reports", path: "/hrm8/reports", label: "Reports", icon: FileText },
-    { id: "settings", path: "/hrm8/settings", label: "Account Settings", icon: Settings },
     { id: "careers-requests", path: "/hrm8/careers-requests", label: "Careers Requests", icon: UserCheck, adminOnly: true },
+    { id: "integrations", path: "/hrm8/integrations", label: "Integrations", icon: Plug, adminOnly: true },
     { id: "system", path: "/hrm8/system-settings", label: "System Settings", icon: Settings, adminOnly: true },
     { id: "email-templates", path: "/hrm8/email-templates", label: "Email Templates", icon: FileText, adminOnly: true },
     { id: "audit", path: "/hrm8/audit-logs", label: "Audit Logs", icon: ClipboardList, adminOnly: true },
@@ -62,8 +62,6 @@ const consultantMenuItems: MenuItem[] = [
     { id: "messages", path: "/consultant/messages", label: "Messages", icon: MessageSquare },
     { id: "commissions", path: "/consultant/commissions", label: "Commissions", icon: DollarSign },
     { id: "wallet", path: "/consultant/wallet", label: "Wallet", icon: Wallet },
-    { id: "profile", path: "/consultant/profile", label: "Profile", icon: User },
-    { id: "settings", path: "/consultant/settings", label: "Settings", icon: Settings },
 ];
 
 /**
@@ -75,7 +73,6 @@ const salesMenuItems: MenuItem[] = [
     { id: "leads", path: "/sales-agent/leads", label: "Leads", icon: Users },
     { id: "clients", path: "/sales-agent/companies", label: "My Clients", icon: Building2 },
     { id: "commissions", path: "/sales-agent/commissions", label: "Commissions", icon: DollarSign },
-    { id: "settings", path: "/sales-agent/settings", label: "Settings", icon: Settings },
 ];
 
 /**
@@ -88,8 +85,6 @@ const consultant360MenuItems: MenuItem[] = [
     { id: "recruitment-messages", path: "/consultant360/messages", label: "Messages", icon: MessageSquare },
     { id: "sales-leads", path: "/consultant360/leads", label: "Leads", icon: Target },
     { id: "sales-pipeline", path: "/consultant360/pipeline", label: "Pipeline", icon: BarChart3 },
-    { id: "profile", path: "/consultant360/profile", label: "Profile", icon: User },
-    { id: "settings", path: "/consultant360/settings", label: "Settings", icon: Settings },
 ];
 
 export const getSidebarConfig = (userType: UserType, _user: any): SidebarConfig => {

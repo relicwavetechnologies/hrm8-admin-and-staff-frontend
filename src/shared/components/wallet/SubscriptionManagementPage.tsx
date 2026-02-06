@@ -13,10 +13,8 @@ import { Progress } from "@/shared/components/ui/progress";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import {
     Sparkles,
-    Check,
     Briefcase,
     Calendar,
-    TrendingUp,
     AlertCircle,
     CreditCard,
 } from "lucide-react";
@@ -67,9 +65,6 @@ export function SubscriptionManagementPage() {
         setShowRechargeDialog(true);
     };
 
-    const handleUpgrade = () => {
-        setShowUpgradeDialog(true);
-    };
 
     const subscription = subscriptionData;
     const wallet = walletData?.data;

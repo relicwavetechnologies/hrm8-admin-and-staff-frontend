@@ -18,8 +18,8 @@ export function CostSummaryStep({ form, candidateName, candidateEmail }: CostSum
   const referees = form.watch('referees') || [];
 
   const checksWithCost = selectedChecks.map(checkType => ({
-    type: checkType,
-    ...BACKGROUND_CHECK_PRICING[checkType]
+    ...BACKGROUND_CHECK_PRICING[checkType],
+    type: checkType
   }));
 
   const totalCost = checksWithCost.reduce((sum, check) => sum + check.cost, 0);
@@ -50,7 +50,7 @@ export function CostSummaryStep({ form, candidateName, candidateEmail }: CostSum
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {checksWithCost.map((check, index) => (
+            {checksWithCost.map((check, _index) => (
               <div key={check.type} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <span className="text-xl">{check.icon}</span>

@@ -1,4 +1,4 @@
-import { CheckCircle, Circle, Clock, Mail, FileCheck, Shield, AlertTriangle } from 'lucide-react';
+import { CheckCircle, Circle, Mail, FileCheck, Shield, AlertTriangle } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import type { BackgroundCheck } from '@/types/backgroundCheck';
 import type { ConsentRequest } from '@/types/consent';

@@ -12,7 +12,6 @@ import {
   connectATSProvider,
   disconnectATSIntegration,
   syncWithATS,
-  getATSIntegration,
   getATSProviderInfo,
   type ATSProvider,
   type ATSIntegration,
@@ -34,7 +33,7 @@ export function ATSIntegrationCard({ provider }: ATSIntegrationCardProps) {
   const [showConnectDialog, setShowConnectDialog] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
-  
+
   const [companyName, setCompanyName] = useState('');
   const [apiKey, setApiKey] = useState('');
   const [apiUrl, setApiUrl] = useState('');
@@ -85,12 +84,12 @@ export function ATSIntegrationCard({ provider }: ATSIntegrationCardProps) {
     setIsSyncing(true);
     try {
       const result = await syncWithATS(integration.id);
-      
+
       // Refresh integration to get updated lastSync
       const integrations = JSON.parse(localStorage.getItem('ats_integrations') || '[]');
       const updated = integrations.find((i: ATSIntegration) => i.id === integration.id);
       setIntegration(updated);
-      
+
       toast({
         title: "Sync completed",
         description: `Imported ${result.candidatesImported} candidates, exported ${result.candidatesExported} candidates`,

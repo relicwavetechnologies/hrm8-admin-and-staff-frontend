@@ -39,9 +39,8 @@ class Hrm8AuthService {
   }
 
   async changePassword(data: { currentPassword: string; newPassword: string }) {
-    return apiClient.post('/api/hrm8/auth/change-password', data);
+    return apiClient.put('/api/hrm8/auth/change-password', data);
   }
 }
 
 export const hrm8AuthService = new Hrm8AuthService();
-

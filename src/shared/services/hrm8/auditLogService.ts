@@ -7,23 +7,23 @@ import { apiClient } from '@/shared/lib/apiClient';
 
 export interface AuditLogEntry {
     id: string;
-    entityType: string;
-    entityId: string;
+    entity_type: string;
+    entity_id: string;
     action: string;
-    performedBy: string;
-    performedByEmail: string;
-    performedByRole: string;
+    performed_by: string;
+    performed_by_email: string;
+    performed_by_role: string;
     changes?: Record<string, unknown>;
-    ipAddress?: string;
-    userAgent?: string;
+    ip_address?: string;
+    user_agent?: string;
     description?: string;
-    performedAt: string;
+    performed_at: string;
 }
 
 export interface AuditLogStats {
-    totalLogs: number;
-    todayLogs: number;
-    topActions: { action: string; count: number }[];
+    total_logs: number;
+    today_logs: number;
+    top_actions: { action: string; count: number }[];
 }
 
 export const auditLogService = {
@@ -37,7 +37,7 @@ export const auditLogService = {
         offset?: number;
     }): Promise<{ success: boolean; data?: { logs: AuditLogEntry[]; total: number } }> => {
         const params = new URLSearchParams();
-        if (filters?.entityType) params.append('entityType', filters.entityType);
+        if (filters?.entityType) params.append('entity_type', filters.entityType);
         if (filters?.action) params.append('action', filters.action);
         if (filters?.limit) params.append('limit', filters.limit.toString());
         if (filters?.offset) params.append('offset', filters.offset.toString());

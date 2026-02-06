@@ -5,7 +5,6 @@
 
 import {
   LayoutDashboard,
-  User,
   FileText,
   Bookmark,
   Briefcase,
@@ -24,6 +23,7 @@ import {
   BarChart3,
   Target,
   UserCheck,
+  Plug,
 } from "lucide-react";
 // // import { ConsultantProfileCompletionDialog } from "@/components/consultants/ConsultantProfileCompletionDialog";
 import type { DashboardConfig, MenuItem } from "@/shared/types/dashboard";
@@ -44,12 +44,6 @@ export const candidateDashboardConfig: DashboardConfig = {
         path: "/candidate/dashboard",
         label: "Dashboard",
         icon: LayoutDashboard,
-      },
-      {
-        id: "profile",
-        path: "/candidate/profile",
-        label: "My Profile",
-        icon: User,
       },
       {
         id: "work-history",
@@ -95,13 +89,6 @@ export const candidateDashboardConfig: DashboardConfig = {
       },
     ],
     footerActions: [
-      {
-        id: "settings",
-        path: "/candidate/settings",
-        label: "Settings",
-        icon: Settings,
-        tooltip: "Settings",
-      },
       {
         id: "help",
         path: "/candidate/help",
@@ -165,21 +152,8 @@ export const consultantDashboardConfig: DashboardConfig = {
         label: "Commissions",
         icon: DollarSign,
       },
-      {
-        id: "profile",
-        path: "/consultant/profile",
-        label: "Profile",
-        icon: User,
-      },
     ],
     footerActions: [
-      {
-        id: "settings",
-        path: "/consultant/settings",
-        label: "Settings",
-        icon: Settings,
-        tooltip: "Settings",
-      },
       {
         id: "help",
         path: "/consultant/help",
@@ -243,21 +217,8 @@ export const salesAgentDashboardConfig: DashboardConfig = {
         label: "Commissions",
         icon: DollarSign,
       },
-      {
-        id: "profile",
-        path: "/sales-agent/profile",
-        label: "Profile",
-        icon: User,
-      },
     ],
     footerActions: [
-      {
-        id: "settings",
-        path: "/sales-agent/settings",
-        label: "Settings",
-        icon: Settings,
-        tooltip: "Settings",
-      },
       {
         id: "help",
         path: "/sales-agent/help",
@@ -411,16 +372,24 @@ export const hrm8DashboardConfig: DashboardConfig = {
         icon: BookOpen,
       },
       {
+        id: "billing",
+        path: "/hrm8/billing",
+        label: "Billing",
+        icon: DollarSign,
+        adminOnly: true,
+      },
+      {
         id: "reports",
         path: "/hrm8/reports",
         label: "Reports",
         icon: FileText,
       },
       {
-        id: "settings",
-        path: "/hrm8/settings",
-        label: "Account Settings",
-        icon: Settings,
+        id: "integrations",
+        path: "/hrm8/integrations",
+        label: "Integrations",
+        icon: Plug,
+        adminOnly: true,
       },
       {
         id: "careers-requests",
@@ -438,13 +407,6 @@ export const hrm8DashboardConfig: DashboardConfig = {
       },
     ],
     footerActions: [
-      {
-        id: "settings",
-        path: "/hrm8/settings",
-        label: "Settings",
-        icon: Settings,
-        tooltip: "Settings",
-      },
       {
         id: "help",
         path: "/hrm8/help",
@@ -528,21 +490,8 @@ export const consultant360DashboardConfig: DashboardConfig = {
         label: "Messages",
         icon: MessageSquare,
       },
-      {
-        id: "profile",
-        path: "/consultant360/profile",
-        label: "Profile",
-        icon: User,
-      },
     ],
     footerActions: [
-      {
-        id: "settings",
-        path: "/consultant360/settings",
-        label: "Settings",
-        icon: Settings,
-        tooltip: "Settings",
-      },
       {
         id: "help",
         path: "/consultant360/help",
@@ -579,4 +528,3 @@ export const dashboardConfigs = {
   consultant360: consultant360DashboardConfig,
   hrm8: hrm8DashboardConfig,
 } as const;
-

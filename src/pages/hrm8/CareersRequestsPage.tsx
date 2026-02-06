@@ -113,8 +113,8 @@ export default function CareersRequestsPage() {
 
   const getPendingSections = (pending: CareersRequest['pending']) => {
     const sections = [];
-    if (pending.logoUrl !== undefined) sections.push('logo');
-    if (pending.bannerUrl !== undefined) sections.push('banner');
+    if (pending.logo_url !== undefined) sections.push('logo');
+    if (pending.banner_url !== undefined) sections.push('banner');
     if (pending.about !== undefined) sections.push('about');
     if (pending.social !== undefined) sections.push('social');
     return sections;
@@ -162,10 +162,10 @@ export default function CareersRequestsPage() {
                     <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                       <div className="flex items-start gap-4">
                         <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                          {request.pending.logoUrl ? (
+                          {request.pending.logo_url ? (
                             <img
-                              src={request.pending.logoUrl}
-                              alt={request.companyName}
+                              src={request.pending.logo_url}
+                              alt={request.company_name}
                               className="h-full w-full object-cover rounded-lg"
                             />
                           ) : (
@@ -174,7 +174,7 @@ export default function CareersRequestsPage() {
                         </div>
 
                         <div>
-                          <h3 className="font-semibold text-lg">{request.companyName}</h3>
+                          <h3 className="font-semibold text-lg">{request.company_name}</h3>
                           <p className="text-sm text-muted-foreground">{request.domain}</p>
                           <div className="flex flex-wrap items-center gap-2 mt-2">
                             <Badge variant={request.type === 'NEW_PAGE' ? 'default' : 'secondary'}>
@@ -190,7 +190,7 @@ export default function CareersRequestsPage() {
                               </div>
                             )}
                             <span className="text-xs text-muted-foreground whitespace-nowrap">
-                              {formatDistanceToNow(new Date(request.submittedAt), { addSuffix: true })}
+                              {formatDistanceToNow(new Date(request.submitted_at), { addSuffix: true })}
                             </span>
                           </div>
                         </div>
@@ -243,7 +243,7 @@ export default function CareersRequestsPage() {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Building2 className="h-5 w-5" />
-                {selectedRequest?.companyName}
+                {selectedRequest?.company_name}
               </DialogTitle>
               <DialogDescription>
                 Review the pending changes before approving or rejecting
@@ -253,7 +253,7 @@ export default function CareersRequestsPage() {
             {selectedRequest && (
               <div className="space-y-6">
                 {/* Banner Preview */}
-                {selectedRequest.pending.bannerUrl && (
+                {selectedRequest.pending.banner_url && (
                   <div>
                     <h4 className="font-medium mb-2 flex items-center gap-2">
                       <ImageIcon className="h-4 w-4" />
@@ -261,20 +261,20 @@ export default function CareersRequestsPage() {
                     </h4>
                     <div
                       className="h-32 rounded-lg bg-muted bg-cover bg-center"
-                      style={{ backgroundImage: `url(${selectedRequest.pending.bannerUrl})` }}
+                      style={{ backgroundImage: `url(${selectedRequest.pending.banner_url})` }}
                     />
                   </div>
                 )}
 
                 {/* Logo Preview */}
-                {selectedRequest.pending.logoUrl && (
+                {selectedRequest.pending.logo_url && (
                   <div>
                     <h4 className="font-medium mb-2 flex items-center gap-2">
                       <Building2 className="h-4 w-4" />
                       Logo
                     </h4>
                     <img
-                      src={selectedRequest.pending.logoUrl}
+                      src={selectedRequest.pending.logo_url}
                       alt="Logo"
                       className="h-20 w-20 rounded-lg object-cover border"
                     />
@@ -373,7 +373,7 @@ export default function CareersRequestsPage() {
             <DialogHeader>
               <DialogTitle>Reject Careers Page</DialogTitle>
               <DialogDescription>
-                Provide feedback for {requestToReject?.companyName} so they can make improvements
+                Provide feedback for {requestToReject?.company_name} so they can make improvements
               </DialogDescription>
             </DialogHeader>
 

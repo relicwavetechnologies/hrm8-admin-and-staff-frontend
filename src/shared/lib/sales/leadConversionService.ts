@@ -7,26 +7,26 @@ import { apiClient } from '../api';
 
 export interface ConversionRequest {
     id: string;
-    leadId: string;
-    consultantId: string;
-    regionId: string;
+    lead_id: string;
+    consultant_id: string;
+    region_id: string;
     status: 'PENDING' | 'APPROVED' | 'DECLINED' | 'CONVERTED' | 'CANCELLED';
-    companyName: string;
+    company_name: string;
     email: string;
     phone?: string;
     website?: string;
     country: string;
     city?: string;
-    stateProvince?: string;
-    agentNotes?: string;
-    reviewedBy?: string;
-    reviewedAt?: string;
-    adminNotes?: string;
-    declineReason?: string;
-    convertedAt?: string;
-    companyId?: string;
-    createdAt: string;
-    updatedAt: string;
+    state_province?: string;
+    agent_notes?: string;
+    reviewed_by?: string;
+    reviewed_at?: string;
+    admin_notes?: string;
+    decline_reason?: string;
+    converted_at?: string;
+    company_id?: string;
+    created_at: string;
+    updated_at: string;
 }
 
 export const leadConversionService = {

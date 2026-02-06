@@ -69,10 +69,13 @@ export function JobDistributionChart() {
           <PieChart>
             <ChartTooltip
               content={<ChartTooltipContent />}
-              formatter={(value, name, props) => [
-                `${value} jobs (${Math.round((Number(value) / 120) * 100)}%)`,
-                props.payload.department,
-              ]}
+              formatter={(value, name, props) => {
+                void name;
+                return [
+                  `${value} jobs (${Math.round((Number(value) / 120) * 100)}%)`,
+                  props.payload.department,
+                ];
+              }}
             />
             <Pie
               data={data}
@@ -90,11 +93,14 @@ export function JobDistributionChart() {
             <Legend
               verticalAlign="bottom"
               height={36}
-              formatter={(value, entry: any) => (
-                <span className="text-xs text-muted-foreground">
-                  {entry.payload.department}: {entry.payload.value}
-                </span>
-              )}
+              formatter={(value, entry: any) => {
+                void value;
+                return (
+                  <span className="text-xs text-muted-foreground">
+                    {entry.payload.department}: {entry.payload.value}
+                  </span>
+                );
+              }}
             />
           </PieChart>
         </ChartContainer>

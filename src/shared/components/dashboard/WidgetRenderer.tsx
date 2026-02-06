@@ -87,7 +87,7 @@ interface WidgetRendererProps {
 export function WidgetRenderer({ widget, dashboardType = 'jobs' }: WidgetRendererProps) {
   const navigate = useNavigate();
   const Component = COMPONENT_MAP[widget.component];
-  
+
   if (!Component) {
     return (
       <div className="flex items-center justify-center h-full border-2 border-dashed border-border rounded-lg bg-muted/20">
@@ -97,11 +97,11 @@ export function WidgetRenderer({ widget, dashboardType = 'jobs' }: WidgetRendere
       </div>
     );
   }
-  
+
   // Add navigation and icons to stat cards using cardActions config
   if (widget.component === 'EnhancedStatCard') {
     const cardAction = getCardActions(widget.title, dashboardType);
-    
+
     if (!cardAction) {
       // Fallback if no card action found
       return <Component {...widget.props} />;
@@ -114,7 +114,7 @@ export function WidgetRenderer({ widget, dashboardType = 'jobs' }: WidgetRendere
     const menuItems = cardAction.actions?.map(action => ({
       label: action.label,
       icon: <action.icon className="h-4 w-4" />,
-      onClick: action.path ? () => navigate(action.path) : action.action || (() => {}),
+      onClick: action.path ? () => navigate(action.path!) : action.action || (() => { }),
     }));
 
     // Use first action as primary action button
@@ -126,12 +126,12 @@ export function WidgetRenderer({ widget, dashboardType = 'jobs' }: WidgetRendere
         icon={icon}
         showAction={!!primaryAction}
         actionLabel={primaryAction?.label || 'View'}
-        onAction={primaryAction?.path ? () => navigate(primaryAction.path) : primaryAction?.action}
+        onAction={primaryAction?.path ? () => navigate(primaryAction.path!) : primaryAction?.action}
         showMenu={!!menuItems && menuItems.length > 0}
         menuItems={menuItems}
       />
     );
   }
-  
+
   return <Component {...widget.props} />;
 }

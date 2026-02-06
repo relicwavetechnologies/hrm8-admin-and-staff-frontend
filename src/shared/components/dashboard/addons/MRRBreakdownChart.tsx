@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
-import { ResponsiveContainer, LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { Tabs, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
+import { ResponsiveContainer, Line, AreaChart, Area, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import { getHistoricalMRR } from '@/shared/lib/addons/revenueAnalytics';
 import { useCurrencyFormat } from '@/contexts/CurrencyFormatContext';
 import { useState } from 'react';

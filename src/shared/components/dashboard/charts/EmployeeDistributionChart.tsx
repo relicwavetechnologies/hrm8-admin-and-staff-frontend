@@ -39,9 +39,10 @@ export function EmployeeDistributionChart() {
               fill="hsl(var(--primary))"
               dataKey="value"
             >
-              {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
+              {data.map((entry, index) => {
+                void entry;
+                return <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />;
+              })}
             </Pie>
             <Tooltip />
             <Legend />

@@ -20,18 +20,18 @@ import {
 } from 'lucide-react';
 
 interface AnalyticsOverview {
-  totalJobs: number;
-  activeJobs: number;
-  totalCompanies: number;
-  totalViews: number;
-  totalClicks: number;
-  totalApplications: number;
-  conversionRates: {
-    viewToClick: number;
-    clickToApply: number;
-    viewToApply: number;
+  total_jobs: number;
+  active_jobs: number;
+  total_companies: number;
+  total_views: number;
+  total_clicks: number;
+  total_applications: number;
+  conversion_rates: {
+    view_to_click: number;
+    click_to_apply: number;
+    view_to_apply: number;
   };
-  bySource: Record<string, { views: number; clicks: number }>;
+  by_source: Record<string, { views: number; clicks: number }>;
 }
 
 interface TrendData {
@@ -42,13 +42,13 @@ interface TrendData {
 }
 
 interface TopCompany {
-  companyId: string;
-  companyName: string;
-  hasCareerPage: boolean;
-  totalJobs: number;
-  totalViews: number;
-  totalClicks: number;
-  totalApplications: number;
+  company_id: string;
+  company_name: string;
+  has_career_page: boolean;
+  total_jobs: number;
+  total_views: number;
+  total_clicks: number;
+  total_applications: number;
 }
 
 export default function AnalyticsDashboard() {
@@ -144,7 +144,7 @@ export default function AnalyticsDashboard() {
             {loading ? (
               <Skeleton className="h-8 w-24" />
             ) : (
-              <div className="text-3xl font-bold">{formatNumber(overview?.totalViews || 0)}</div>
+              <div className="text-3xl font-bold">{formatNumber(overview?.total_views || 0)}</div>
             )}
           </CardContent>
         </Card>
@@ -159,7 +159,7 @@ export default function AnalyticsDashboard() {
             {loading ? (
               <Skeleton className="h-8 w-24" />
             ) : (
-              <div className="text-3xl font-bold">{formatNumber(overview?.totalClicks || 0)}</div>
+              <div className="text-3xl font-bold">{formatNumber(overview?.total_clicks || 0)}</div>
             )}
           </CardContent>
         </Card>
@@ -174,7 +174,7 @@ export default function AnalyticsDashboard() {
             {loading ? (
               <Skeleton className="h-8 w-24" />
             ) : (
-              <div className="text-3xl font-bold">{formatNumber(overview?.totalApplications || 0)}</div>
+              <div className="text-3xl font-bold">{formatNumber(overview?.total_applications || 0)}</div>
             )}
           </CardContent>
         </Card>
@@ -190,9 +190,9 @@ export default function AnalyticsDashboard() {
               <Skeleton className="h-8 w-24" />
             ) : (
               <div className="text-3xl font-bold">
-                {overview?.activeJobs || 0}
+                {overview?.active_jobs || 0}
                 <span className="text-sm font-normal text-muted-foreground ml-2">
-                  / {overview?.totalJobs || 0}
+                  / {overview?.total_jobs || 0}
                 </span>
               </div>
             )}
@@ -220,23 +220,23 @@ export default function AnalyticsDashboard() {
               <div>
                 <div className="flex justify-between mb-2">
                   <span className="text-sm font-medium">View → Click</span>
-                  <span className="text-sm font-bold">{overview?.conversionRates.viewToClick || 0}%</span>
+                  <span className="text-sm font-bold">{overview?.conversion_rates.view_to_click || 0}%</span>
                 </div>
-                <Progress value={overview?.conversionRates.viewToClick || 0} className="h-2" />
+                <Progress value={overview?.conversion_rates.view_to_click || 0} className="h-2" />
               </div>
               <div>
                 <div className="flex justify-between mb-2">
                   <span className="text-sm font-medium">Click → Apply</span>
-                  <span className="text-sm font-bold">{overview?.conversionRates.clickToApply || 0}%</span>
+                  <span className="text-sm font-bold">{overview?.conversion_rates.click_to_apply || 0}%</span>
                 </div>
-                <Progress value={overview?.conversionRates.clickToApply || 0} className="h-2" />
+                <Progress value={overview?.conversion_rates.click_to_apply || 0} className="h-2" />
               </div>
               <div>
                 <div className="flex justify-between mb-2">
                   <span className="text-sm font-medium">View → Apply</span>
-                  <span className="text-sm font-bold">{overview?.conversionRates.viewToApply || 0}%</span>
+                  <span className="text-sm font-bold">{overview?.conversion_rates.view_to_apply || 0}%</span>
                 </div>
-                <Progress value={overview?.conversionRates.viewToApply || 0} className="h-2" />
+                <Progress value={overview?.conversion_rates.view_to_apply || 0} className="h-2" />
               </div>
             </div>
           )}
@@ -259,7 +259,7 @@ export default function AnalyticsDashboard() {
               </div>
             ) : (
               <div className="space-y-4">
-                {Object.entries(overview?.bySource || {}).map(([source, data]) => (
+                {Object.entries(overview?.by_source || {}).map(([source, data]) => (
                   <div key={source} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                     <div>
                       <p className="font-medium">{sourceLabels[source] || source}</p>
@@ -295,23 +295,23 @@ export default function AnalyticsDashboard() {
             ) : (
               <div className="space-y-3">
                 {topCompanies.slice(0, 5).map((company, index) => (
-                  <div key={company.companyId} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                  <div key={company.company_id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                     <div className="flex items-center gap-3">
                       <span className="text-lg font-bold text-muted-foreground">#{index + 1}</span>
                       <div>
                         <div className="font-medium flex items-center gap-2">
-                          {company.companyName}
-                          {company.hasCareerPage && (
+                          {company.company_name}
+                          {company.has_career_page && (
                             <Badge variant="outline" className="text-xs">Careers Page</Badge>
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          {company.totalJobs} jobs • {formatNumber(company.totalViews)} views
+                          {company.total_jobs} jobs • {formatNumber(company.total_views)} views
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">{company.totalApplications}</p>
+                      <p className="font-medium">{company.total_applications}</p>
                       <p className="text-xs text-muted-foreground">applies</p>
                     </div>
                   </div>

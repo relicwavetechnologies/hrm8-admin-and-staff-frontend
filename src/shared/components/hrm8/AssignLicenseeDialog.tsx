@@ -94,7 +94,6 @@ export function AssignLicenseeDialog({ open, onOpenChange, region, onSuccess }: 
 
   if (!region) return null;
 
-  const currentLicensee = licensees.find(l => l.id === region.licenseeId);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

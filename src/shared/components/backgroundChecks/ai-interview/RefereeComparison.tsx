@@ -62,7 +62,7 @@ export default function RefereeComparison({ reports, candidateName, candidateId 
   // Prepare radar chart data
   const radarData = comparison.categoryComparisons.map((cat) => {
     const dataPoint: any = { category: cat.category };
-    cat.scores.forEach((score, idx) => {
+    cat.scores.forEach((score, _idx) => {
       dataPoint[score.refereeName] = score.score;
     });
     dataPoint.average = cat.averageScore;

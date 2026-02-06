@@ -19,18 +19,18 @@ interface CompanyJobStats {
     name: string;
     logo?: string;
     domain?: string;
-    totalJobs: number;
-    activeJobs: number;
-    onHoldJobs: number;
-    totalViews: number;
-    totalClicks: number;
+    total_jobs: number;
+    active_jobs: number;
+    on_hold_jobs: number;
+    total_views: number;
+    total_clicks: number;
 }
 
 interface PaginatedCompaniesResponse {
     companies: CompanyJobStats[];
     total: number;
     page: number;
-    pageSize: number;
+    page_size: number;
 }
 
 export default function Hrm8JobBoardPage() {
@@ -91,10 +91,10 @@ export default function Hrm8JobBoardPage() {
     // Calculate stats only from current page companies
     const totalStats = filteredCompanies.reduce(
         (acc, company) => ({
-            totalJobs: acc.totalJobs + company.totalJobs,
-            activeJobs: acc.activeJobs + company.activeJobs,
-            totalViews: acc.totalViews + company.totalViews,
-            totalClicks: acc.totalClicks + company.totalClicks,
+            totalJobs: acc.totalJobs + company.total_jobs,
+            activeJobs: acc.activeJobs + company.active_jobs,
+            totalViews: acc.totalViews + company.total_views,
+            totalClicks: acc.totalClicks + company.total_clicks,
         }),
         { totalJobs: 0, activeJobs: 0, totalViews: 0, totalClicks: 0 }
     );
@@ -238,26 +238,26 @@ export default function Hrm8JobBoardPage() {
                                     <div className="grid grid-cols-2 gap-4 mb-4">
                                         <div>
                                             <p className="text-xs text-muted-foreground">Active Jobs</p>
-                                            <p className="text-lg font-semibold">{company.activeJobs}</p>
+                                            <p className="text-lg font-semibold">{company.active_jobs}</p>
                                         </div>
                                         <div>
                                             <p className="text-xs text-muted-foreground">Total Jobs</p>
-                                            <p className="text-lg font-semibold">{company.totalJobs}</p>
+                                            <p className="text-lg font-semibold">{company.total_jobs}</p>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                                         <div className="flex items-center gap-1">
                                             <Eye className="h-3.5 w-3.5" />
-                                            <span>{company.totalViews.toLocaleString()}</span>
+                                            <span>{company.total_views.toLocaleString()}</span>
                                         </div>
                                         <div className="flex items-center gap-1">
                                             <MousePointerClick className="h-3.5 w-3.5" />
-                                            <span>{company.totalClicks.toLocaleString()}</span>
+                                            <span>{company.total_clicks.toLocaleString()}</span>
                                         </div>
-                                        {company.onHoldJobs > 0 && (
+                                        {company.on_hold_jobs > 0 && (
                                             <Badge variant="secondary" className="text-xs">
-                                                {company.onHoldJobs} on hold
+                                                {company.on_hold_jobs} on hold
                                             </Badge>
                                         )}
                                     </div>

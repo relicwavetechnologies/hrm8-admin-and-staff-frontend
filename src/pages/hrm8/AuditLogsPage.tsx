@@ -74,7 +74,7 @@ export default function AuditLogsPage() {
       label: 'Time',
       render: (log: AuditLogEntry) => (
         <span className="text-sm text-muted-foreground">
-          {format(new Date(log.performedAt), 'MMM d, yyyy HH:mm')}
+          {format(new Date(log.performed_at), 'MMM d, yyyy HH:mm')}
         </span>
       ),
     },
@@ -92,9 +92,9 @@ export default function AuditLogsPage() {
       label: 'Entity',
       render: (log: AuditLogEntry) => (
         <div>
-          <span className="font-medium">{log.entityType}</span>
+          <span className="font-medium">{log.entity_type}</span>
           <span className="text-xs text-muted-foreground block">
-            {log.entityId.substring(0, 8)}...
+            {log.entity_id.substring(0, 8)}...
           </span>
         </div>
       ),
@@ -111,9 +111,9 @@ export default function AuditLogsPage() {
       label: 'Performed By',
       render: (log: AuditLogEntry) => (
         <div>
-          <span className="text-sm">{log.performedByEmail}</span>
+          <span className="text-sm">{log.performed_by_email}</span>
           <span className="text-xs text-muted-foreground block">
-            {log.performedByRole.replace('_', ' ')}
+            {log.performed_by_role.replace('_', ' ')}
           </span>
         </div>
       ),
@@ -123,7 +123,7 @@ export default function AuditLogsPage() {
       label: 'IP',
       render: (log: AuditLogEntry) => (
         <span className="text-xs text-muted-foreground">
-          {log.ipAddress || '-'}
+          {log.ip_address || '-'}
         </span>
       ),
     },
@@ -195,14 +195,14 @@ export default function AuditLogsPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <EnhancedStatCard
             title="Total Logs"
-            value={stats?.totalLogs?.toLocaleString() || '0'}
+            value={stats?.total_logs?.toLocaleString() || '0'}
             change="All time"
             icon={<FileText className="h-6 w-6" />}
             variant="neutral"
           />
           <EnhancedStatCard
             title="Today's Activity"
-            value={stats?.todayLogs?.toLocaleString() || '0'}
+            value={stats?.today_logs?.toLocaleString() || '0'}
             change="Last 24 hours"
             icon={<Activity className="h-6 w-6" />}
             variant="success"
@@ -216,8 +216,8 @@ export default function AuditLogsPage() {
           />
           <EnhancedStatCard
             title="Top Action"
-            value={stats?.topActions?.[0]?.action || '-'}
-            change={stats?.topActions?.[0]?.count ? `${stats.topActions[0].count} times` : ''}
+            value={stats?.top_actions?.[0]?.action || '-'}
+            change={stats?.top_actions?.[0]?.count ? `${stats.top_actions[0].count} times` : ''}
             icon={<User className="h-6 w-6" />}
             variant="neutral"
           />
@@ -236,7 +236,7 @@ export default function AuditLogsPage() {
                 data={logs}
                 columns={columns}
                 searchable
-                searchKeys={['performedByEmail', 'entityType', 'action', 'description']}
+                searchKeys={['performed_by_email', 'entity_type', 'action', 'description']}
                 emptyMessage="No audit logs found"
               />
             )}

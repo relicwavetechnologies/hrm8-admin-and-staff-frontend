@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 import { getLTVByService } from '@/shared/lib/addons/cohortAnalytics';
 import { useCurrencyFormat } from '@/contexts/CurrencyFormatContext';
 import { Badge } from "@/shared/components/ui/badge";

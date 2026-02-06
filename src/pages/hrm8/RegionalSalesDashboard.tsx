@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
@@ -44,7 +44,7 @@ import {
 } from '@/shared/components/ui/command';
 import { regionalSalesService, RegionalOpportunity, RegionalPipelineStats } from '@/shared/services/hrm8/regionalSalesService';
 import { formatCurrency } from '@/shared/lib/utils';
-import { Loader2, TrendingUp, Users, DollarSign, Activity, Check, ChevronsUpDown, Target } from 'lucide-react';
+import { Loader2, TrendingUp, Users, DollarSign, Activity, Target, Check, ChevronsUpDown } from 'lucide-react';
 import { useHrm8Auth } from '@/contexts/Hrm8AuthContext';
 import { regionService, Region } from '@/shared/services/hrm8/regionService';
 import { cn } from '@/shared/lib/utils';
@@ -66,7 +66,7 @@ interface Agent {
 }
 
 export default function RegionalSalesDashboard() {
-  const { hrm8User } = useHrm8Auth();
+  useHrm8Auth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [dataLoading, setDataLoading] = useState(false);
@@ -138,7 +138,7 @@ export default function RegionalSalesDashboard() {
     }
 
     try {
-      const filters = agentId !== 'all' ? { salesAgentId: agentId } : {};
+      const filters = agentId !== 'all' ? { salesAgentId: agentId } : undefined;
 
       // Fetch stats and opportunities independently to prevent one failure from blocking the other
       const fetchStatsPromise = regionalSalesService.getStats(regionId)
@@ -429,10 +429,10 @@ export default function RegionalSalesDashboard() {
                       tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
                     />
                     <Tooltip
-                      formatter={(value: number, _name: string, props: { payload: { count: number } }) => [
-                        formatCurrency(value),
-                        `${props.payload.count} deal${props.payload.count !== 1 ? 's' : ''}`
-                      ]}
+                      formatter={(value: number, _name: string, props: any) => {
+                        const count = props?.payload?.count ?? 0;
+                        return [formatCurrency(value), `${count} deal${count !== 1 ? 's' : ''}`];
+                      }}
                       cursor={{fill: 'rgba(0, 0, 0, 0.05)'}}
                       contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
                     />

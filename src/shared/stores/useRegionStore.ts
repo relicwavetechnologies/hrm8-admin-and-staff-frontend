@@ -9,19 +9,19 @@ import { RegionConfig } from '@/shared/types/systemSettings';
 
 interface RegionStore {
   // State
-  selectedRegionId: string | null;
+  selectedRegionId: string | 'all' | null;
   regions: RegionConfig[];
   isLoading: boolean;
 
   // Actions
-  setSelectedRegion: (regionId: string) => void;
+  setSelectedRegion: (regionId: string | 'all') => void;
   setRegions: (regions: RegionConfig[]) => void;
   setIsLoading: (loading: boolean) => void;
   reset: () => void;
 }
 
 const INITIAL_STATE = {
-  selectedRegionId: null,
+  selectedRegionId: 'all',
   regions: [],
   isLoading: false,
 };
@@ -46,7 +46,6 @@ export const useRegionStore = create<RegionStore>()(
       name: 'region-store',
       partialize: (state) => ({
         selectedRegionId: state.selectedRegionId,
-        regions: state.regions,
       }),
     }
   )

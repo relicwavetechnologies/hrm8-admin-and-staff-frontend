@@ -84,7 +84,7 @@ export function SubscriptionUpgradeDialog({
     const [selectedPlan, setSelectedPlan] = useState<string>('');
     const { toast } = useToast();
     const queryClient = useQueryClient();
-    const { showPrompt, setShowPrompt, redirectPath, checkStripeRequired } = useStripeIntegration();
+    const { showPrompt, setShowPrompt, redirectPath } = useStripeIntegration();
 
     const upgradeMutation = useMutation({
         mutationFn: async (planId: string) => {

@@ -120,13 +120,12 @@ class RegionService {
     auditNote?: string;
   }) {
     return apiClient.post<{ region: Region; transferredCounts: Record<string, number> }>(
-      `/api/hrm8/regions/${regionId}/transfer`,
+      `/api/hrm8/regions/${regionId}/transfer-ownership`,
       data
     );
   }
 }
 
 export const regionService = new RegionService();
-
 
 

@@ -1,4 +1,4 @@
-import { CheckCircle, XCircle, Clock, Mail, Eye, Calendar, MapPin, Globe } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Mail, Eye, Calendar, Globe } from 'lucide-react';
 import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
 import { Separator } from '@/shared/components/ui/separator';
@@ -12,7 +12,7 @@ interface ConsentStatusSectionProps {
   consents: ConsentRequest[];
 }
 
-export default function ConsentStatusSection({ check, consents }: ConsentStatusSectionProps) {
+export default function ConsentStatusSection({ check: _check, consents }: ConsentStatusSectionProps) {
   const latestConsent = consents[0];
 
   if (!latestConsent) {

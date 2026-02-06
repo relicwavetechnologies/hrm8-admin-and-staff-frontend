@@ -16,7 +16,7 @@ import { DataTableExport } from "./DataTableExport";
 import { AdvancedFilters, DateRangeFilter, MultiSelectFilter, FilterPreset } from "./AdvancedFilters";
 import { ColumnCustomization } from "./ColumnCustomization";
 import { EditableCell, EditableFieldType, SelectOption } from "./EditableCell";
-import { GroupConfig, GroupHeader, groupData, calculateAggregates, GroupedData } from "./TableGrouping";
+import { GroupConfig, GroupHeader, groupData, calculateAggregates } from "./TableGrouping";
 import { PivotTable, PivotConfig } from "./PivotTable";
 import { cn } from "@/shared/lib/utils";
 import { useColumnResize } from "@/shared/hooks/useColumnResize";
@@ -40,7 +40,7 @@ interface DataTableProps<T> {
   onSelectedRowsChange?: (selectedIds: string[]) => void;
   renderBulkActions?: (selectedIds: string[]) => React.ReactNode;
   searchable?: boolean;
-  searchKeys?: (keyof T)[];
+  searchKeys?: Array<keyof T | string>;
   statusFilter?: boolean;
   statusOptions?: FilterOption[];
   statusKey?: keyof T;
@@ -48,6 +48,7 @@ interface DataTableProps<T> {
   typeOptions?: FilterOption[];
   typeKey?: keyof T;
   emptyMessage?: string;
+  loading?: boolean;
   exportable?: boolean;
   exportFilename?: string;
   // Advanced filtering
@@ -74,6 +75,13 @@ interface DataTableProps<T> {
   // Column resizing
   tableId?: string;
   resizable?: boolean;
+  // Server-side pagination
+  serverPagination?: boolean;
+  totalItems?: number;
+  currentPage?: number;
+  pageSize?: number;
+  onPageChange?: (page: number) => void;
+  onPageSizeChange?: (size: number) => void;
 }
 
 export function DataTable<T extends { id: string }>({
@@ -91,6 +99,7 @@ export function DataTable<T extends { id: string }>({
   typeOptions = [],
   typeKey,
   emptyMessage = "No data available",
+  loading = false,
   exportable = false,
   exportFilename = "export",
   dateRangeFilters: initialDateRangeFilters = [],
@@ -110,6 +119,12 @@ export function DataTable<T extends { id: string }>({
   onRowClick,
   tableId = "default-table",
   resizable = true,
+  serverPagination = false,
+  totalItems,
+  currentPage: controlledCurrentPage,
+  pageSize: controlledPageSize,
+  onPageChange,
+  onPageSizeChange,
 }: DataTableProps<T>) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
@@ -118,12 +133,12 @@ export function DataTable<T extends { id: string }>({
   const [typeFilterValue, setTypeFilterValue] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  
+
   // Inline editing state
   const [editingCell, setEditingCell] = useState<{ rowId: string; columnKey: string } | null>(null);
-  
+
   // Grouping state
-  const [expandedGroups, setExpandedGroups] = useState<Set<string | number>>(() => 
+  const [expandedGroups, setExpandedGroups] = useState<Set<string | number>>(() =>
     defaultGroupsExpanded ? new Set(['__all__']) : new Set()
   );
 
@@ -144,7 +159,7 @@ export function DataTable<T extends { id: string }>({
   }, [columns]);
 
   const {
-    columnWidths,
+    columnWidths: _unused,
     getColumnWidth,
     handleResizeStart: onResizeStart,
     resetWidths,
@@ -154,7 +169,7 @@ export function DataTable<T extends { id: string }>({
     minWidth: 80,
     maxWidth: 600,
   });
-  
+
   // Advanced filtering state
   const [dateRangeFilters, setDateRangeFilters] = useState<DateRangeFilter[]>(initialDateRangeFilters);
   const [multiSelectFilters, setMultiSelectFilters] = useState<MultiSelectFilter[]>(initialMultiSelectFilters);
@@ -208,15 +223,16 @@ export function DataTable<T extends { id: string }>({
 
   // Handle selection
   const handleSelectAll = (checked: boolean) => {
+    const dataToSelect = paginatedData || filteredAndSortedData;
     if (checked) {
       // Select only items on the current page
-      const pageIds = paginatedData.map(item => item.id);
+      const pageIds = dataToSelect.map(item => item.id);
       const newSelectedIds = [...new Set([...selectedIds, ...pageIds])];
       setSelectedIds(newSelectedIds);
       onSelectedRowsChange?.(newSelectedIds);
     } else {
       // Deselect only items on the current page
-      const pageIds = paginatedData.map(item => item.id);
+      const pageIds = dataToSelect.map(item => item.id);
       const newSelectedIds = selectedIds.filter(id => !pageIds.includes(id));
       setSelectedIds(newSelectedIds);
       onSelectedRowsChange?.(newSelectedIds);
@@ -360,11 +376,11 @@ export function DataTable<T extends { id: string }>({
   // Get visible and ordered columns
   const displayColumns = useMemo(() => {
     if (!columnCustomization) return columns;
-    
+
     const ordered = columnOrder
       .map(key => columns.find(col => col.key === key))
       .filter(Boolean) as Column<T>[];
-    
+
     return ordered.filter(col => visibleColumns.includes(col.key));
   }, [columns, columnOrder, visibleColumns, columnCustomization]);
 
@@ -376,7 +392,7 @@ export function DataTable<T extends { id: string }>({
     if (searchable && searchValue && searchKeys.length > 0) {
       result = result.filter(item =>
         searchKeys.some(key => {
-          const value = item[key];
+          const value = (item as any)[key as string];
           if (typeof value === 'string') {
             return value.toLowerCase().includes(searchValue.toLowerCase());
           }
@@ -447,7 +463,7 @@ export function DataTable<T extends { id: string }>({
     if (!grouping) return null;
 
     const groups = groupData(filteredAndSortedData, grouping.column);
-    
+
     // Calculate aggregates for each group
     return groups.map((group) => ({
       ...group,
@@ -456,12 +472,17 @@ export function DataTable<T extends { id: string }>({
   }, [filteredAndSortedData, grouping]);
 
   // Pagination
-  const totalPages = Math.ceil(filteredAndSortedData.length / pageSize);
+  const effectivePageSize = serverPagination ? (controlledPageSize ?? pageSize) : pageSize;
+  const effectiveCurrentPage = serverPagination ? (controlledCurrentPage ?? currentPage) : currentPage;
+  const effectiveTotalItems = serverPagination ? (totalItems ?? data.length) : filteredAndSortedData.length;
+  const totalPages = Math.max(1, Math.ceil(effectiveTotalItems / effectivePageSize));
   const paginatedData = groupedData
     ? null // No pagination when grouping is enabled
-    : filteredAndSortedData.slice(
-        (currentPage - 1) * pageSize,
-        currentPage * pageSize
+    : serverPagination
+      ? data
+      : filteredAndSortedData.slice(
+        (effectiveCurrentPage - 1) * effectivePageSize,
+        effectiveCurrentPage * effectivePageSize
       );
 
   // Active filters
@@ -625,11 +646,11 @@ export function DataTable<T extends { id: string }>({
                   <Checkbox
                     checked={
                       (paginatedData || filteredAndSortedData).length > 0 &&
-                      (paginatedData || filteredAndSortedData).every(item => selectedIds.includes(item.id))
+                        (paginatedData || filteredAndSortedData).every(item => selectedIds.includes(item.id))
                         ? true
                         : (paginatedData || filteredAndSortedData).some(item => selectedIds.includes(item.id))
-                        ? "indeterminate"
-                        : false
+                          ? "indeterminate"
+                          : false
                     }
                     onCheckedChange={handleSelectAll}
                     aria-label="Select all on this page"
@@ -639,9 +660,9 @@ export function DataTable<T extends { id: string }>({
               {displayColumns.map((column, index) => {
                 const width = resizable ? getColumnWidth(column.key) : undefined;
                 return (
-                  <TableHead 
-                    key={column.key} 
-                    style={{ 
+                  <TableHead
+                    key={column.key}
+                    style={{
                       width: width ? `${width}px` : column.width,
                       position: 'relative',
                     }}
@@ -682,7 +703,7 @@ export function DataTable<T extends { id: string }>({
                     colSpan={displayColumns.length + (selectable ? 1 : 0)}
                     className="h-24 text-center"
                   >
-                    <p className="text-muted-foreground">{emptyMessage}</p>
+                    <p className="text-muted-foreground">{loading ? "Loading..." : emptyMessage}</p>
                   </TableCell>
                 </TableRow>
               ) : (
@@ -697,12 +718,12 @@ export function DataTable<T extends { id: string }>({
                         groupValue={group.groupValue}
                         count={group.items.length}
                         aggregates={group.aggregates}
-                        groupConfig={grouping}
+                        groupConfig={grouping!}
                         colSpan={displayColumns.length + (selectable ? 1 : 0)}
                       />
                       {isExpanded &&
                         group.items.map((item) => (
-                          <TableRow 
+                          <TableRow
                             key={item.id}
                             onClick={(e) => {
                               e.preventDefault();
@@ -759,12 +780,12 @@ export function DataTable<T extends { id: string }>({
                   colSpan={displayColumns.length + (selectable ? 1 : 0)}
                   className="h-24 text-center"
                 >
-                  <p className="text-muted-foreground">{emptyMessage}</p>
+                  <p className="text-muted-foreground">{loading ? "Loading..." : emptyMessage}</p>
                 </TableCell>
               </TableRow>
             ) : (
               paginatedData && paginatedData.map((item) => (
-                <TableRow 
+                <TableRow
                   key={item.id}
                   onClick={(e) => {
                     e.preventDefault();
@@ -817,12 +838,16 @@ export function DataTable<T extends { id: string }>({
       {/* Pagination - hidden when grouping is enabled */}
       {!grouping && filteredAndSortedData.length > 0 && (
         <TablePagination
-          currentPage={currentPage}
+          currentPage={effectiveCurrentPage}
           totalPages={totalPages}
-          pageSize={pageSize}
-          totalItems={filteredAndSortedData.length}
-          onPageChange={setCurrentPage}
+          pageSize={effectivePageSize}
+          totalItems={effectiveTotalItems}
+          onPageChange={serverPagination && onPageChange ? onPageChange : setCurrentPage}
           onPageSizeChange={(size) => {
+            if (serverPagination && onPageSizeChange) {
+              onPageSizeChange(size);
+              return;
+            }
             setPageSize(size);
             setCurrentPage(1);
           }}

@@ -18,7 +18,6 @@ import { AlertTriangle } from 'lucide-react';
 interface AutoAssignmentOverrideModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  jobTitle: string;
   currentConsultantName?: string;
   onConfirm: () => void;
   onCancel: () => void;
@@ -27,7 +26,6 @@ interface AutoAssignmentOverrideModalProps {
 export function AutoAssignmentOverrideModal({
   open,
   onOpenChange,
-  jobTitle,
   currentConsultantName,
   onConfirm,
   onCancel,

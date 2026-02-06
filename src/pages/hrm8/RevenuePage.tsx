@@ -17,38 +17,38 @@ import { CompanyRevenueTable } from '@/shared/components/hrm8/CompanyRevenueTabl
 
 const columns = [
   {
-    key: 'regionId',
+    key: 'region_id',
     label: 'Region',
-    render: (revenue: RegionalRevenue) => revenue.regionName || revenue.regionId?.substring(0, 8) + '...' || 'Unknown',
+    render: (revenue: RegionalRevenue) => revenue.region_name || revenue.region_id?.substring(0, 8) + '...' || 'Unknown',
   },
   {
-    key: 'periodStart',
+    key: 'period_start',
     label: 'Period',
     render: (revenue: RegionalRevenue) => (
       <span>
-        {new Date(revenue.periodStart).toLocaleDateString()} - {new Date(revenue.periodEnd).toLocaleDateString()}
+        {new Date(revenue.period_start).toLocaleDateString()} - {new Date(revenue.period_end).toLocaleDateString()}
       </span>
     ),
   },
   {
-    key: 'totalRevenue',
+    key: 'total_revenue',
     label: 'Total Revenue',
     render: (revenue: RegionalRevenue) => (
-      <span className="font-semibold">${(revenue.totalRevenue || 0).toLocaleString()}</span>
+      <span className="font-semibold">${(revenue.total_revenue || 0).toLocaleString()}</span>
     ),
   },
   {
-    key: 'hrm8Share',
+    key: 'hrm8_share',
     label: 'HRM8 Share',
     render: (revenue: RegionalRevenue) => (
-      <span className="text-blue-600 font-medium">${(revenue.hrm8Share || 0).toLocaleString()}</span>
+      <span className="text-blue-600 font-medium">${(revenue.hrm8_share || 0).toLocaleString()}</span>
     ),
   },
   {
-    key: 'licenseeShare',
+    key: 'licensee_share',
     label: 'Licensee Share',
     render: (revenue: RegionalRevenue) => (
-      <span className="text-purple-600 font-medium">${(revenue.licenseeShare || 0).toLocaleString()}</span>
+      <span className="text-purple-600 font-medium">${(revenue.licensee_share || 0).toLocaleString()}</span>
     ),
   },
   {
@@ -108,7 +108,7 @@ export default function RevenuePage() {
         filters.status = statusFilter;
       }
       if (regionFilter !== 'all') {
-        filters.regionId = regionFilter;
+        filters.region_id = regionFilter;
       }
 
       const response = await revenueService.getAll(filters);
@@ -149,9 +149,9 @@ export default function RevenuePage() {
   };
 
   // Compute stats from real-time company data (not pre-computed RegionalRevenue table)
-  const totalRevenue = companyRevenues.reduce((sum, c) => sum + (c.totalRevenue || 0), 0);
-  const totalHRM8Share = companyRevenues.reduce((sum, c) => sum + (c.hrm8Share || 0), 0);
-  const totalLicenseeShare = companyRevenues.reduce((sum, c) => sum + (c.licenseeShare || 0), 0);
+  const totalRevenue = companyRevenues.reduce((sum, c) => sum + (c.total_revenue || 0), 0);
+  const totalHRM8Share = companyRevenues.reduce((sum, c) => sum + (c.hrm8_share || 0), 0);
+  const totalLicenseeShare = companyRevenues.reduce((sum, c) => sum + (c.licensee_share || 0), 0);
 
   return (
     <div className="p-6 space-y-6">

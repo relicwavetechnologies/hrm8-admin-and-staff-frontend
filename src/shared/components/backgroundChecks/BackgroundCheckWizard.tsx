@@ -16,7 +16,7 @@ import { useToast } from '@/shared/hooks/use-toast';
 import { v4 as uuidv4 } from 'uuid';
 import { saveBackgroundCheck } from '@/shared/lib/mockBackgroundCheckStorage';
 import { createConsentRequest, sendConsentEmail } from '@/shared/lib/backgroundChecks/consentService';
-import { createReferee, inviteReferee } from '@/shared/lib/backgroundChecks/referenceCheckService';
+import { createReferee } from '@/shared/lib/backgroundChecks/referenceCheckService';
 import { getDefaultTemplate } from '@/shared/lib/backgroundChecks/questionnaireTemplateStorage';
 import { calculateTotalCost, getCostBreakdown } from '@/shared/lib/backgroundChecks/pricingConstants';
 import type { BackgroundCheck } from '@/types/backgroundCheck';
@@ -105,12 +105,12 @@ export function BackgroundCheckWizard({
     ] : []),
     {
       title: 'Review Consent',
-      component: ConsentReviewStep,
+      component: null, // Handled separately to satisfy TS props narrowing
       canProceed: () => true
     },
     {
       title: 'Confirm & Send',
-      component: CostSummaryStep,
+      component: null, // Handled separately to satisfy TS props narrowing
       canProceed: () => true
     }
   ];
@@ -263,11 +263,20 @@ export function BackgroundCheckWizard({
                 estimatedDuration={estimatedDuration}
                 onEstimatedDurationChange={setEstimatedDuration}
               />
-            ) : CurrentStepComponent ? (
-              <CurrentStepComponent
+            ) : steps[currentStep].title === 'Review Consent' ? (
+              <ConsentReviewStep
                 form={form}
-                {...(currentStep >= steps.length - 2 ? { candidateName, candidateEmail } : {})}
+                candidateName={candidateName || ''}
+                candidateEmail={candidateEmail || ''}
               />
+            ) : steps[currentStep].title === 'Confirm & Send' ? (
+              <CostSummaryStep
+                form={form}
+                candidateName={candidateName || ''}
+                candidateEmail={candidateEmail || ''}
+              />
+            ) : CurrentStepComponent ? (
+              <CurrentStepComponent form={form} />
             ) : null}
           </div>
 

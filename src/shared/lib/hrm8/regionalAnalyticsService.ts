@@ -2,16 +2,16 @@
 import { apiClient as api } from '@/shared/lib/api';
 
 export interface RegionalOperationalStats {
-    regionId: string;
-    openJobsCount: number;
-    activeConsultantsCount: number;
-    placementsThisMonth: number;
-    activeEmployerCount: number;
-    newEmployerCount: number;
-    inactiveEmployerCount: number;
+    region_id?: string;
+    open_jobs_count: number;
+    active_consultants_count: number;
+    placements_this_month: number;
+    active_employer_count: number;
+    new_employer_count: number;
+    inactive_employer_count: number;
     trends: {
-        openJobs: Array<{ name: string; value: number }>;
-        activeConsultants: Array<{ name: string; value: number }>;
+        open_jobs: Array<{ name: string; value: number }>;
+        active_consultants: Array<{ name: string; value: number }>;
         placements: Array<{ name: string; value: number }>;
     };
 }

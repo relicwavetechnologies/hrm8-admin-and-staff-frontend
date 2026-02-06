@@ -40,6 +40,9 @@ import ConsultantCommissionsPage from './pages/consultant/ConsultantCommissionsP
 import ConsultantSettingsPage from './pages/consultant360/ConsultantSettingsPage'
 import ConsultantHelpPage from './pages/consultant360/ConsultantHelpPage'
 import ConsultantMessagesPage from './pages/consultant/ConsultantMessagesPage'
+import ConsultantNotificationsPage from './pages/consultant/NotificationsPage'
+import SalesAgentNotificationsPage from './pages/sales/NotificationsPage'
+import Consultant360NotificationsPage from './pages/consultant360/NotificationsPage'
 import ClientCompaniesPage from './pages/sales/ClientCompaniesPage'
 import SalesCommissionsPage from './pages/sales/CommissionsPage'
 import WithdrawalsPage from './pages/admin/WithdrawalsPage'
@@ -59,10 +62,13 @@ import RegionsPage from './pages/hrm8/RegionsPage'
 import RegionalLeadsPage from './pages/hrm8/RegionalLeadsPage'
 import ReportsPage from './pages/hrm8/ReportsPage'
 import Hrm8SettingsPage from './pages/hrm8/Hrm8SettingsPage'
+import Hrm8IntegrationsPage from './pages/hrm8/Hrm8IntegrationsPage'
+import Hrm8ProfilePage from './pages/hrm8/Hrm8ProfilePage'
 import UtilsNotificationsPage from './pages/hrm8/NotificationsPage'
 import StaffProfilePage from './pages/hrm8/StaffProfilePage'
 import AttributionPage from './pages/hrm8/AttributionPage'
 import PricingPage from './pages/hrm8/PricingPage'
+import BillingPage from './pages/hrm8/BillingPage'
 import RegionalSalesDashboard from './pages/hrm8/RegionalSalesDashboard'
 import RevenuePage from './pages/hrm8/RevenuePage'
 import ConsultantOverview from './pages/consultant/ConsultantOverview'
@@ -110,10 +116,13 @@ function App() {
                     <Route path="/hrm8/leads" element={<RegionalLeadsPage />} />
                     <Route path="/hrm8/reports" element={<ReportsPage />} />
                     <Route path="/hrm8/system-settings" element={<Hrm8SettingsPage />} />
+                    <Route path="/hrm8/integrations" element={<Hrm8IntegrationsPage />} />
                     <Route path="/hrm8/sales-pipeline" element={<SalesPipelinePage />} />
                     <Route path="/hrm8/settings" element={<Hrm8SettingsPage />} />
+                    <Route path="/hrm8/profile" element={<Hrm8ProfilePage />} />
                     <Route path="/hrm8/attribution" element={<AttributionPage />} />
                     <Route path="/hrm8/pricing" element={<PricingPage />} />
+                    <Route path="/hrm8/billing" element={<BillingPage />} />
                     <Route path="/hrm8/regional-sales" element={<RegionalSalesDashboard />} />
                     <Route path="/hrm8/revenue" element={<RevenuePage />} />
                     <Route path="/hrm8/revenue-analytics" element={<RevenueDashboardPage />} />
@@ -125,6 +134,7 @@ function App() {
                     <Route path="/consultant/jobs" element={<ConsultantJobsPage />} />
                     <Route path="/consultant/jobs/:jobId" element={<ConsultantJobDetailPage />} />
                     <Route path="/consultant/messages" element={<ConsultantMessagesPage />} />
+                    <Route path="/consultant/notifications" element={<ConsultantNotificationsPage />} />
                     <Route path="/consultant/commissions" element={<ConsultantCommissionsPage />} />
                     <Route path="/consultant/wallet" element={<Consultant360EarningsPage />} />
                     <Route path="/consultant/profile" element={<ConsultantProfilePage />} />
@@ -144,6 +154,7 @@ function App() {
                     <Route path="/sales/opportunities/:id" element={<SalesOpportunityDetailPage />} />
 
                     <Route path="/sales-agent/companies" element={<ClientCompaniesPage />} />
+                    <Route path="/sales-agent/notifications" element={<SalesAgentNotificationsPage />} />
                     <Route path="/sales-agent/commissions" element={<SalesCommissionsPage />} />
                     <Route path="/sales-agent/settings" element={<ConsultantSettingsPage />} />
                 </Route>
@@ -160,6 +171,7 @@ function App() {
                     <Route path="/hrm8/settlements" element={<SettlementsPage />} />
                     <Route path="/hrm8/careers-requests" element={<CareersRequestsPage />} />
                     <Route path="/consultant360/messages" element={<ConsultantMessagesPage />} />
+                    <Route path="/consultant360/notifications" element={<Consultant360NotificationsPage />} />
                     <Route path="/consultant360/profile" element={<ConsultantProfilePage />} />
                     <Route path="/consultant360/settings" element={<ConsultantSettingsPage />} />
                     <Route path="/consultant360/help" element={<ConsultantHelpPage />} />

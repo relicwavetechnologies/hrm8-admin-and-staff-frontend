@@ -79,11 +79,12 @@ class AuthService {
     }
 
     private mapToUnifiedUser(user: Hrm8User | ConsultantUser, type: UserType): UnifiedUser {
+        const hrm8User = user as Hrm8User;
         return {
             id: user.id,
             email: user.email,
-            firstName: user.firstName,
-            lastName: user.lastName,
+            firstName: hrm8User.firstName ?? (user as any).first_name ?? (user as any).firstName,
+            lastName: hrm8User.lastName ?? (user as any).last_name ?? (user as any).lastName,
             role: user.role,
             type,
             rawUser: user

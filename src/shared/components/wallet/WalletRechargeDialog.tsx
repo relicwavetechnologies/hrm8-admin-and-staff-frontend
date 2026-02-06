@@ -39,7 +39,7 @@ export function WalletRechargeDialog({
     const [selectedPreset, setSelectedPreset] = useState<number | null>(null);
     const { toast } = useToast();
     const queryClient = useQueryClient();
-    const { showPrompt, checkStripeRequired } = useStripeIntegration();
+    useStripeIntegration();
 
     const rechargeMutation = useMutation({
         mutationFn: async (rechargeAmount: number) => {

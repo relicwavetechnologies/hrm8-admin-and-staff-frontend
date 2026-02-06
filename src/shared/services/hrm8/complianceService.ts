@@ -9,14 +9,14 @@ export interface ComplianceAlert {
     id: string;
     type: 'OVERDUE_PAYOUT' | 'INACTIVE_REGION' | 'REVENUE_DECLINE' | 'EXPIRED_AGREEMENT';
     severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-    entityType: 'LICENSEE' | 'REGION';
-    entityId: string;
-    entityName: string;
+    entity_type: 'LICENSEE' | 'REGION';
+    entity_id: string;
+    entity_name: string;
     title: string;
     description: string;
     value?: number;
     threshold?: number;
-    detectedAt: string;
+    detected_at: string;
 }
 
 export interface AlertSummary {
@@ -25,20 +25,19 @@ export interface AlertSummary {
     high: number;
     medium: number;
     low: number;
-    byType: Record<string, number>;
+    by_type: Record<string, number>;
 }
 
 export interface AuditLogEntry {
     id: string;
-    entityType: string;
-    entityId: string;
+    entity_type: string;
+    entity_id: string;
     action: string;
-    oldValue: Record<string, unknown> | null;
-    newValue: Record<string, unknown> | null;
-    performedBy: string;
-    performedAt: string;
-    ipAddress: string | null;
-    notes: string | null;
+    changes?: Record<string, unknown> | null;
+    performed_by: string;
+    performed_at: string;
+    ip_address: string | null;
+    description?: string | null;
 }
 
 class ComplianceService {

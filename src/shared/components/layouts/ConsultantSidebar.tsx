@@ -7,11 +7,9 @@ import {
   LayoutDashboard,
   Briefcase,
   DollarSign,
-  User,
   MessageSquare,
   // import { ArrowRightLeft } from "lucide-react";
   Wallet,
-  Settings,
 } from "lucide-react";
 import {
   Sidebar,
@@ -35,8 +33,6 @@ const menuItems = [
   { path: "/consultant/messages", label: "Messages", icon: MessageSquare },
   { path: "/consultant/commissions", label: "Commissions", icon: DollarSign },
   { path: "/consultant/wallet", label: "Wallet", icon: Wallet },
-  { path: "/consultant/profile", label: "Profile", icon: User },
-  { path: "/consultant/settings", label: "Settings", icon: Settings },
 ];
 
 export function ConsultantSidebar() {
@@ -164,7 +160,6 @@ export function ConsultantSidebar() {
     </Sidebar>
   );
 }
-
 
 
 

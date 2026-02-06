@@ -83,3 +83,5 @@ export interface RetentionMetrics {
   averageClientLifespan: number; // months
   clientsByTenure: { tenure: string; count: number }[];
 }
+
+export type TenureMetric = { tenure: string; count: number };

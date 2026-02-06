@@ -1,15 +1,14 @@
 
 import { useState, useEffect } from 'react';
 import { useHrm8Auth } from "@/contexts/Hrm8AuthContext";
-import { settlementService, Settlement, SettlementStats } from '@/shared/services/hrm8/settlementService';
+import { settlementService, Settlement } from '@/shared/services/hrm8/settlementService';
 import { DataTable, Column } from '@/shared/components/tables/DataTable';
 import { Button } from '@/shared/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import { Card, CardContent } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
 import { useToast } from '@/shared/hooks/use-toast';
-import { DollarSign, CheckCircle, Clock, CreditCard } from 'lucide-react';
+import { DollarSign, CreditCard } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
-import { Label } from '@/shared/components/ui/label';
 import { MarkSettlementPaidDialog } from '@/shared/components/hrm8/MarkSettlementPaidDialog';
 import { CreateSettlementDialog } from '@/shared/components/hrm8/CreateSettlementDialog';
 import { useCurrencyFormat } from '@/shared/contexts/CurrencyFormatContext';
@@ -20,7 +19,6 @@ export default function SettlementsPage() {
   const { formatCurrency } = useCurrencyFormat();
   const { toast } = useToast();
   const [settlements, setSettlements] = useState<Settlement[]>([]);
-  const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -35,7 +33,6 @@ export default function SettlementsPage() {
 
   const loadSettlements = async () => {
     try {
-      setLoading(true);
       const filters: Record<string, string> = {};
       if (statusFilter !== 'all') {
         filters.status = statusFilter;
@@ -52,7 +49,7 @@ export default function SettlementsPage() {
           variant: "destructive"
       });
     } finally {
-      setLoading(false);
+      // no-op
     }
   };
 
@@ -86,20 +83,20 @@ export default function SettlementsPage() {
   // Define columns
   const columns: Column<Settlement>[] = [
     {
-      key: 'licenseeId', // Sorting by licenseeId as name might be nested
+      key: 'licensee_id',
       label: 'Licensee',
       render: (settlement) => (
         <span className="font-medium">
-          {settlement.licensee?.name || settlement.licenseeId}
+          {settlement.licensee?.name || settlement.licensee_id}
         </span>
       ),
     },
     {
-      key: 'periodStart',
+      key: 'period_start',
       label: 'Period',
       render: (settlement) => {
-        const start = settlement.periodStart ? new Date(settlement.periodStart) : null;
-        const end = settlement.periodEnd ? new Date(settlement.periodEnd) : null;
+        const start = settlement.period_start ? new Date(settlement.period_start) : null;
+        const end = settlement.period_end ? new Date(settlement.period_end) : null;
         
         if (!start || isNaN(start.getTime()) || !end || isNaN(end.getTime())) {
           return <span className="text-sm text-muted-foreground">-</span>;
@@ -113,29 +110,29 @@ export default function SettlementsPage() {
       },
     },
     {
-      key: 'totalRevenue',
+      key: 'total_revenue',
       label: 'Total Revenue',
       render: (settlement) => (
         <span className="font-semibold">
-          {formatCurrency(settlement.totalRevenue)}
+          {formatCurrency(settlement.total_revenue)}
         </span>
       ),
     },
     {
-      key: 'licenseeShare',
+      key: 'licensee_share',
       label: 'Licensee Share',
       render: (settlement) => (
         <span className="font-semibold text-primary">
-          {formatCurrency(settlement.licenseeShare)}
+          {formatCurrency(settlement.licensee_share)}
         </span>
       ),
     },
     {
-      key: 'hrm8Share',
+      key: 'hrm8_share',
       label: 'HRM8 Share',
       render: (settlement) => (
         <span className="font-semibold">
-          {formatCurrency(settlement.hrm8Share)}
+          {formatCurrency(settlement.hrm8_share)}
         </span>
       ),
     },
@@ -145,10 +142,10 @@ export default function SettlementsPage() {
       render: (settlement) => getStatusBadge(settlement.status),
     },
     {
-      key: 'paymentDate',
+      key: 'payment_date',
       label: 'Payment Date',
       render: (settlement) => {
-        const paymentDate = settlement.paymentDate ? new Date(settlement.paymentDate) : null;
+        const paymentDate = settlement.payment_date ? new Date(settlement.payment_date) : null;
         return paymentDate && !isNaN(paymentDate.getTime()) ? (
           <span className="text-sm">{format(paymentDate, 'MMM dd, yyyy')}</span>
         ) : (
@@ -214,7 +211,7 @@ export default function SettlementsPage() {
               data={settlements}
               columns={columns}
               searchable
-              searchKeys={['licenseeId', 'status']}
+              searchKeys={['licensee_id', 'status']}
               emptyMessage="No settlements found"
             />
         </CardContent>

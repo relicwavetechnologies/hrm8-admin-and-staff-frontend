@@ -2,15 +2,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/sha
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { 
-  Briefcase, 
-  Users, 
-  FileText, 
-  Calendar, 
-  TrendingUp, 
+import {
+  Briefcase,
+  Users,
+  Calendar,
+  TrendingUp,
   Clock,
   DollarSign,
-  Award,
   Lock
 } from "lucide-react";
 import { usePermissions } from "@/shared/hooks/usePermissions";
@@ -109,7 +107,7 @@ export function ModuleQuickAccessCard() {
               </Button>
             );
           })}
-          
+
           {lockedModules.map((module) => {
             const Icon = module.icon;
             return (
@@ -135,8 +133,8 @@ export function ModuleQuickAccessCard() {
 
         {lockedModules.length > 0 && (
           <div className="mt-4 text-center">
-            <Button 
-              variant="link" 
+            <Button
+              variant="link"
               size="sm"
               onClick={() => navigate('/settings?tab=subscription')}
             >

@@ -202,8 +202,8 @@ export function CommissionPaymentDialog({
                               {commission.description || `Commission #${commission.id.slice(0, 8)}`}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              Consultant: {commission.consultantId?.slice(0, 8) || 'N/A'}... •{" "}
-                              {safeFormatDate(commission.createdAt)} • {commission.status}
+                              Consultant: {commission.consultant_id?.slice(0, 8) || 'N/A'}... •{" "}
+                              {safeFormatDate(commission.created_at)} • {commission.status}
                             </p>
                           </div>
                           <span className="font-semibold text-sm whitespace-nowrap">

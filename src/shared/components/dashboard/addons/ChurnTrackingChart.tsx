@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { ResponsiveContainer, LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { ResponsiveContainer, LineChart, Line, AreaChart, Area, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import { getChurnMetrics } from '@/shared/lib/addons/cohortAnalytics';
 import { Badge } from "@/shared/components/ui/badge";
 import { AlertTriangle, TrendingDown } from 'lucide-react';

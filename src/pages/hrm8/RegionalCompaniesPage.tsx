@@ -12,13 +12,13 @@ interface Company {
     id: string;
     name: string;
     domain: string;
-    createdAt: string;
-    attributionStatus: 'OPEN' | 'LOCKED' | 'EXPIRED';
-    openJobsCount: number;
+    created_at: string;
+    attribution_status: 'OPEN' | 'LOCKED' | 'EXPIRED';
+    open_jobs_count: number;
     subscription: {
         plan: string;
-        startDate: string;
-        renewalDate: string;
+        start_date: string;
+        renewal_date: string;
     } | null;
 }
 
@@ -62,17 +62,17 @@ export default function RegionalCompaniesPage() {
         const sortParam = searchParams.get('sort');
 
         if (statusParam === 'active') {
-            result = result.filter(c => c.openJobsCount > 0);
+            result = result.filter(c => c.open_jobs_count > 0);
         } else if (statusParam === 'inactive') {
-            result = result.filter(c => c.openJobsCount === 0);
+            result = result.filter(c => c.open_jobs_count === 0);
         } else if (statusParam === 'new') {
             const now = new Date();
             const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-            result = result.filter(c => new Date(c.createdAt) >= startOfMonth);
+            result = result.filter(c => new Date(c.created_at) >= startOfMonth);
         }
 
         if (sortParam === 'newest') {
-            result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         }
 
         setFilteredCompanies(result);
@@ -80,7 +80,7 @@ export default function RegionalCompaniesPage() {
 
     const totalCompanies = allCompanies.length;
     const activeSubscriptions = allCompanies.filter(c => c.subscription !== null).length;
-    const lockedAttributions = allCompanies.filter(c => c.attributionStatus === 'LOCKED').length;
+    const lockedAttributions = allCompanies.filter(c => c.attribution_status === 'LOCKED').length;
 
     const companyColumns: Column<Company>[] = [
         {
@@ -105,11 +105,11 @@ export default function RegionalCompaniesPage() {
             ),
         },
         {
-            key: "attributionStatus",
+            key: "attribution_status",
             label: "Attribution",
             sortable: true,
             render: (company) => {
-                const status = company.attributionStatus;
+                const status = company.attribution_status;
                 const variantMap = {
                     OPEN: 'secondary',
                     LOCKED: 'success',
@@ -136,18 +136,18 @@ export default function RegionalCompaniesPage() {
             },
         },
         {
-            key: "createdAt",
+            key: "created_at",
             label: "Created Date",
             sortable: true,
-            render: (company) => new Date(company.createdAt).toLocaleDateString(),
+            render: (company) => new Date(company.created_at).toLocaleDateString(),
         },
         {
-            key: "openJobsCount",
+            key: "open_jobs_count",
             label: "Open Jobs",
             sortable: true,
             render: (company) => (
-                <Badge variant={company.openJobsCount > 0 ? "secondary" : "outline"}>
-                    {company.openJobsCount} Jobs
+                <Badge variant={company.open_jobs_count > 0 ? "secondary" : "outline"}>
+                    {company.open_jobs_count} Jobs
                 </Badge>
             ),
         },

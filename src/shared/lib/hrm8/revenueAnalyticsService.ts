@@ -6,22 +6,22 @@
 import { apiClient } from '../api';
 
 export interface RevenueSummary {
-    totalRevenue: number;
-    totalCommissions: number;
-    netRevenue: number;
-    commissionRate: number;
-    billCount: number;
-    paidCommissionCount: number;
+    total_revenue: number;
+    total_commissions: number;
+    net_revenue: number;
+    commission_rate: number;
+    bill_count: number;
+    paid_commission_count: number;
 }
 
 export interface RegionRevenue {
-    regionId: string;
-    regionName: string;
+    region_id: string;
+    region_name: string;
     revenue: number;
     commissions: number;
-    netRevenue: number;
-    billCount: number;
-    consultantCount: number;
+    net_revenue: number;
+    bill_count: number;
+    consultant_count: number;
 }
 
 export interface CommissionTypeBreakdown {
@@ -32,27 +32,27 @@ export interface CommissionTypeBreakdown {
 }
 
 export interface TopConsultant {
-    consultantId: string;
+    consultant_id: string;
     name: string;
-    totalCommissions: number;
-    commissionCount: number;
-    regionId: string;
-    regionName: string;
+    total_commissions: number;
+    commission_count: number;
+    region_id: string;
+    region_name: string;
 }
 
 export interface RevenueTimelineEntry {
     month: string;
     revenue: number;
     commissions: number;
-    netRevenue: number;
-    billCount: number;
+    net_revenue: number;
+    bill_count: number;
 }
 
 export interface DashboardData {
     summary: RevenueSummary;
-    byRegion: RegionRevenue[];
-    byCommissionType: CommissionTypeBreakdown[];
-    topConsultants: TopConsultant[];
+    by_region: RegionRevenue[];
+    by_commission_type: CommissionTypeBreakdown[];
+    top_consultants: TopConsultant[];
     timeline: RevenueTimelineEntry[];
 }
 
@@ -61,12 +61,12 @@ export const revenueAnalyticsService = {
      * Get comprehensive dashboard data
      */
     async getDashboard(filters: {
-        startDate?: string;
-        endDate?: string;
+        start_date?: string;
+        end_date?: string;
     }): Promise<DashboardData> {
         const params = new URLSearchParams();
-        if (filters.startDate) params.append('startDate', filters.startDate);
-        if (filters.endDate) params.append('endDate', filters.endDate);
+        if (filters.start_date) params.append('start_date', filters.start_date);
+        if (filters.end_date) params.append('end_date', filters.end_date);
 
         const queryString = params.toString();
         const endpoint = queryString
@@ -86,12 +86,12 @@ export const revenueAnalyticsService = {
      * Get revenue summary only
      */
     async getSummary(filters: {
-        startDate?: string;
-        endDate?: string;
+        start_date?: string;
+        end_date?: string;
     }): Promise<RevenueSummary> {
         const params = new URLSearchParams();
-        if (filters.startDate) params.append('startDate', filters.startDate);
-        if (filters.endDate) params.append('endDate', filters.endDate);
+        if (filters.start_date) params.append('start_date', filters.start_date);
+        if (filters.end_date) params.append('end_date', filters.end_date);
 
         const queryString = params.toString();
         const endpoint = queryString

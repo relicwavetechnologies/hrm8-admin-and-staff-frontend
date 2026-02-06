@@ -7,31 +7,31 @@ import { apiClient } from '@/shared/lib/apiClient';
 
 export interface Settlement {
   id: string;
-  licenseeId: string;
-  licenseeName?: string;
-  periodStart: string;
-  periodEnd: string;
-  totalRevenue: number;
-  licenseeShare: number;
-  hrm8Share: number;
+  licensee_id: string;
+  licensee_name?: string;
+  period_start: string;
+  period_end: string;
+  total_revenue: number;
+  licensee_share: number;
+  hrm8_share: number;
   status: 'PENDING' | 'PAID';
-  paymentDate?: string;
-  reference?: string;
-  generatedAt: string;
+  payment_date?: string;
+  payment_reference?: string;
+  generated_at: string;
   licensee?: {
     id: string;
     name: string;
     email: string;
-    revenueSharePercentage?: number;
+    revenue_share_percentage?: number;
   };
 }
 
 export interface SettlementStats {
-  totalPending: number;
-  totalPaid: number;
-  pendingCount: number;
-  paidCount: number;
-  currentPeriodRevenue: number;
+  total_pending: number;
+  total_paid: number;
+  pending_count: number;
+  paid_count: number;
+  current_period_revenue: number;
 }
 
 class SettlementService {
@@ -39,16 +39,16 @@ class SettlementService {
    * Get all settlements with filters
    */
   async getAll(filters?: {
-    licenseeId?: string;
+    licensee_id?: string;
     status?: string;
-    periodStart?: string;
-    periodEnd?: string;
+    period_start?: string;
+    period_end?: string;
   }) {
     const queryParams = new URLSearchParams();
-    if (filters?.licenseeId) queryParams.append('licenseeId', filters.licenseeId);
+    if (filters?.licensee_id) queryParams.append('licensee_id', filters.licensee_id);
     if (filters?.status) queryParams.append('status', filters.status);
-    if (filters?.periodStart) queryParams.append('periodStart', filters.periodStart);
-    if (filters?.periodEnd) queryParams.append('periodEnd', filters.periodEnd);
+    if (filters?.period_start) queryParams.append('period_start', filters.period_start);
+    if (filters?.period_end) queryParams.append('period_end', filters.period_end);
 
     const query = queryParams.toString();
     return apiClient.get<{ settlements: Settlement[] }>(`/api/hrm8/finance/settlements${query ? `?${query}` : ''}`);
@@ -65,9 +65,9 @@ class SettlementService {
    * Calculate/Generate settlement for a period
    */
   async calculate(data: {
-    licenseeId: string;
-    periodStart: string;
-    periodEnd: string;
+    licensee_id: string;
+    period_start: string;
+    period_end: string;
   }) {
     return apiClient.post<{ settlement: Settlement }>('/api/hrm8/finance/settlements/calculate', data);
   }
@@ -76,8 +76,8 @@ class SettlementService {
    * Mark settlement as paid
    */
   async markAsPaid(id: string, data: {
-    paymentDate: string;
-    reference: string;
+    payment_date: string;
+    payment_reference: string;
   }) {
     return apiClient.put<{ settlement: Settlement }>(`/api/hrm8/finance/settlements/${id}/pay`, data);
   }
@@ -85,9 +85,9 @@ class SettlementService {
   /**
    * Get settlement statistics
    */
-  async getStats(licenseeId?: string) {
+  async getStats(licensee_id?: string) {
     const queryParams = new URLSearchParams();
-    if (licenseeId) queryParams.append('licenseeId', licenseeId);
+    if (licensee_id) queryParams.append('licensee_id', licensee_id);
 
     const query = queryParams.toString();
     return apiClient.get<{ stats: SettlementStats }>(`/api/hrm8/finance/settlements/stats${query ? `?${query}` : ''}`);

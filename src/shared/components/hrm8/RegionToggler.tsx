@@ -14,48 +14,45 @@ import {
 import { useRegionStore } from '@/shared/stores/useRegionStore';
 import { regionService } from '@/shared/lib/hrm8/regionService';
 import { cn } from '@/shared/lib/utils';
+import { useHrm8Auth } from '@/contexts/Hrm8AuthContext';
 
 interface RegionTogglerProps {
   isExpanded?: boolean;
 }
 
 export function RegionToggler({ isExpanded = true }: RegionTogglerProps) {
+  const { hrm8User } = useHrm8Auth();
   const { selectedRegionId, regions, setRegions, setSelectedRegion, isLoading, setIsLoading } = useRegionStore();
+  const isGlobalAdmin = hrm8User?.role === 'GLOBAL_ADMIN';
 
   // Load regions on component mount
   useEffect(() => {
     const loadRegions = async () => {
-      if (regions.length === 0) {
-        try {
-          setIsLoading(true);
-          const response = await regionService.getAll();
-          const fetchedRegions = response.data?.regions || [];
+      try {
+        setIsLoading(true);
+        const response = await regionService.getAll(
+          isGlobalAdmin ? undefined : { licenseeId: hrm8User?.licenseeId }
+        );
+        const fetchedRegions = response.data?.regions || [];
 
-          // Map Region (service) to RegionConfig (store) if needed
-          // For now, they share enough properties for basic display
-          setRegions(fetchedRegions as any);
+        // Map Region (service) to RegionConfig (store) if needed
+        // For now, they share enough properties for basic display
+        setRegions(fetchedRegions as any);
 
-          // Auto-select first region if none is selected
-          if (!selectedRegionId && fetchedRegions.length > 0) {
-            setSelectedRegion(fetchedRegions[0].id);
-          }
-        } catch (error) {
-          console.error('Failed to load regions:', error);
-        } finally {
-          setIsLoading(false);
+        const hasSelected = fetchedRegions.some((r) => r.id === selectedRegionId);
+        if (!hasSelected && fetchedRegions.length > 0) {
+          setSelectedRegion(fetchedRegions[0].id);
         }
+      } catch (error) {
+        console.error('Failed to load regions:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     loadRegions();
-  }, []);
+  }, [hrm8User?.id, hrm8User?.role, hrm8User?.licenseeId]);
 
-  // Auto-select first region if none is selected
-  useEffect(() => {
-    if (!selectedRegionId && regions.length > 0) {
-      setSelectedRegion(regions[0].id);
-    }
-  }, [selectedRegionId, regions, setSelectedRegion]);
 
   const selectedRegion = regions.find((r) => r.id === selectedRegionId);
 
@@ -70,10 +67,12 @@ export function RegionToggler({ isExpanded = true }: RegionTogglerProps) {
         <Globe className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
       )}
       {isExpanded && (
-        <Select value={selectedRegionId || ''} onValueChange={setSelectedRegion} disabled={isLoading || regions.length === 0}>
+        <Select value={selectedRegionId || 'all'} onValueChange={setSelectedRegion} disabled={isLoading}>
           <SelectTrigger className="h-8 text-[13px] border-0 bg-transparent hover:bg-sidebar-accent/50 flex-1 px-1 focus:ring-0 focus:ring-offset-0">
             {isLoading ? (
               <span className="text-muted-foreground">Loading...</span>
+            ) : selectedRegionId === 'all' && isGlobalAdmin ? (
+              <span className="font-medium truncate">All Regions</span>
             ) : selectedRegion ? (
               <span className="font-medium truncate">{selectedRegion.name}</span>
             ) : (
@@ -81,17 +80,19 @@ export function RegionToggler({ isExpanded = true }: RegionTogglerProps) {
             )}
           </SelectTrigger>
           <SelectContent>
-            {regions.length === 0 ? (
-              <div className="px-2 py-1.5 text-xs text-muted-foreground">
-                No regions available
-              </div>
-            ) : (
-              regions.map((region) => (
-                <SelectItem key={region.id} value={region.id}>
-                  {region.name}
-                </SelectItem>
-              ))
+            {(isGlobalAdmin || hrm8User?.role === 'REGIONAL_LICENSEE') && (
+              <SelectItem value="all">
+                <div className="flex items-center gap-2">
+                  <Globe className="h-3.5 w-3.5" />
+                  <span>All Regions</span>
+                </div>
+              </SelectItem>
             )}
+            {regions.map((region) => (
+              <SelectItem key={region.id} value={region.id}>
+                {region.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       )}

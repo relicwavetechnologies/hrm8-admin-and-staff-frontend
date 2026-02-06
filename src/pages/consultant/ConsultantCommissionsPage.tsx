@@ -23,6 +23,7 @@ import { Checkbox } from '@/shared/components/ui/checkbox';
 import { DollarSign, Clock, CheckCircle, Wallet, Download, XCircle, ArrowDownToLine } from 'lucide-react';
 import { toast } from 'sonner';
 import { WithdrawalBalance, CommissionWithdrawal } from '@/shared/types/withdrawal';
+import { Skeleton } from '@/shared/components/ui/skeleton';
 
 export default function ConsultantCommissionsPage() {
   const { consultant } = useConsultantAuth();
@@ -193,7 +194,7 @@ export default function ConsultantCommissionsPage() {
       label: 'Type',
       render: (commission: Commission) => (
         <Badge variant="outline" className="h-6 px-2 text-xs rounded-full">
-          {(commission.type || commission.commissionType || 'N/A').replace('_', ' ')}
+          {(commission.type || 'N/A').replace('_', ' ')}
         </Badge>
       ),
     },
@@ -217,11 +218,11 @@ export default function ConsultantCommissionsPage() {
       },
     },
     {
-      key: 'createdAt',
+      key: 'created_at',
       label: 'Created',
       render: (commission: Commission) => (
         <span className="text-sm text-muted-foreground">
-          {commission.createdAt ? new Date(commission.createdAt).toLocaleDateString() : 'N/A'}
+          {commission.created_at ? new Date(commission.created_at).toLocaleDateString() : 'N/A'}
         </span>
       ),
     },
@@ -314,42 +315,56 @@ export default function ConsultantCommissionsPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <EnhancedStatCard
-          title="Available Balance"
-          value=""
-          change="Ready to withdraw"
-          isCurrency={true}
-          rawValue={balance?.availableBalance || 0}
-          icon={<Wallet className="h-5 w-5" />}
-          variant="success"
-        />
-        <EnhancedStatCard
-          title="Pending Commissions"
-          value=""
-          change="Being processed"
-          isCurrency={true}
-          rawValue={balance?.pendingBalance || totalPending}
-          icon={<Clock className="h-5 w-5" />}
-          variant="neutral"
-        />
-        <EnhancedStatCard
-          title="Total Paid"
-          value=""
-          change="All time"
-          isCurrency={true}
-          rawValue={totalPaid}
-          icon={<CheckCircle className="h-5 w-5" />}
-          variant="neutral"
-        />
-        <EnhancedStatCard
-          title="Total Withdrawn"
-          value=""
-          change="All time"
-          isCurrency={true}
-          rawValue={balance?.totalWithdrawn || 0}
-          icon={<Download className="h-5 w-5" />}
-          variant="neutral"
-        />
+        {loading ? (
+          <>
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="rounded-lg border bg-card p-4">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="mt-3 h-8 w-32" />
+                <Skeleton className="mt-2 h-3 w-24" />
+              </div>
+            ))}
+          </>
+        ) : (
+          <>
+            <EnhancedStatCard
+              title="Available Balance"
+              value=""
+              change="Ready to withdraw"
+              isCurrency={true}
+              rawValue={balance?.availableBalance || 0}
+              icon={<Wallet className="h-5 w-5" />}
+              variant="success"
+            />
+            <EnhancedStatCard
+              title="Pending Commissions"
+              value=""
+              change="Being processed"
+              isCurrency={true}
+              rawValue={balance?.pendingBalance || totalPending}
+              icon={<Clock className="h-5 w-5" />}
+              variant="neutral"
+            />
+            <EnhancedStatCard
+              title="Total Paid"
+              value=""
+              change="All time"
+              isCurrency={true}
+              rawValue={totalPaid}
+              icon={<CheckCircle className="h-5 w-5" />}
+              variant="neutral"
+            />
+            <EnhancedStatCard
+              title="Total Withdrawn"
+              value=""
+              change="All time"
+              isCurrency={true}
+              rawValue={balance?.totalWithdrawn || 0}
+              icon={<Download className="h-5 w-5" />}
+              variant="neutral"
+            />
+          </>
+        )}
       </div>
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="space-y-4">
@@ -368,8 +383,20 @@ export default function ConsultantCommissionsPage() {
             </CardHeader>
             <CardContent>
               {loading ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <div className="text-sm">Loading commissions...</div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Skeleton className="h-4 w-40" />
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="flex items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-48" />
+                        <Skeleton className="h-3 w-32" />
+                      </div>
+                      <Skeleton className="h-6 w-20" />
+                    </div>
+                  ))}
                 </div>
               ) : commissions.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
@@ -381,7 +408,7 @@ export default function ConsultantCommissionsPage() {
                   data={commissions}
                   columns={commissionColumns}
                   searchable
-                  searchKeys={['type', 'commissionType', 'status']}
+                  searchKeys={['type', 'status']}
                   emptyMessage="No commissions found"
                 />
               )}
@@ -398,7 +425,23 @@ export default function ConsultantCommissionsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {withdrawals.length === 0 ? (
+              {loading ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Skeleton className="h-4 w-40" />
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="flex items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-40" />
+                        <Skeleton className="h-3 w-28" />
+                      </div>
+                      <Skeleton className="h-6 w-20" />
+                    </div>
+                  ))}
+                </div>
+              ) : withdrawals.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <Download className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p className="text-sm">No withdrawals yet</p>

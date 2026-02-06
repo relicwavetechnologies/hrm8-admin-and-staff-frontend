@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, Cell } from 'recharts';
 import { getYoYComparison } from '@/shared/lib/addons/revenueAnalytics';
 import { useCurrencyFormat } from '@/contexts/CurrencyFormatContext';
 import { TrendingUp, TrendingDown } from 'lucide-react';

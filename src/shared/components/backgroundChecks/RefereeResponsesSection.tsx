@@ -1,4 +1,4 @@
-import { CheckCircle, Clock, Mail, Phone, Building, User, Star, MessageSquare } from 'lucide-react';
+import { Mail, Phone, Building, User, Star, MessageSquare } from 'lucide-react';
 import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
 import { Separator } from '@/shared/components/ui/separator';
@@ -19,7 +19,7 @@ const relationshipLabels = {
   other: 'Other',
 };
 
-export default function RefereeResponsesSection({ check, referees }: RefereeResponsesSectionProps) {
+export default function RefereeResponsesSection({ check: _check, referees }: RefereeResponsesSectionProps) {
   if (referees.length === 0) {
     return (
       <Card className="p-8 text-center">
@@ -66,7 +66,7 @@ export default function RefereeResponsesSection({ check, referees }: RefereeResp
       </Card>
 
       {/* Individual Referee Responses */}
-      {referees.map((referee, index) => (
+      {referees.map((referee, _index) => (
         <Card key={referee.id} className="p-6">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-start gap-3">

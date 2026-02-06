@@ -82,19 +82,27 @@ class JobAllocationService {
   async getJobsForAllocation(filters?: {
     regionId?: string;
     companyId?: string;
+    companySearch?: string;
+    industry?: string;
     assignmentStatus?: 'UNASSIGNED' | 'ASSIGNED' | 'ALL';
     consultantId?: string;
     search?: string;
+    limit?: number;
+    offset?: number;
   }) {
     const queryParams = new URLSearchParams();
     if (filters?.regionId && filters.regionId !== 'all') queryParams.append('regionId', filters.regionId);
     if (filters?.companyId) queryParams.append('companyId', filters.companyId);
+    if (filters?.companySearch) queryParams.append('company', filters.companySearch);
+    if (filters?.industry) queryParams.append('industry', filters.industry);
     if (filters?.assignmentStatus) queryParams.append('assignmentStatus', filters.assignmentStatus);
     if (filters?.consultantId && filters.consultantId !== 'all') queryParams.append('consultantId', filters.consultantId);
     if (filters?.search) queryParams.append('search', filters.search);
+    if (filters?.limit) queryParams.append('limit', String(filters.limit));
+    if (filters?.offset) queryParams.append('offset', String(filters.offset));
 
     const query = queryParams.toString();
-    return apiClient.get<{ jobs: JobForAllocation[] }>(
+    return apiClient.get<{ jobs: JobForAllocation[]; total?: number }>(
       `/api/hrm8/jobs/allocation${query ? `?${query}` : ''}`
     );
   }

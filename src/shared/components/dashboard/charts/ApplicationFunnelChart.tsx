@@ -85,7 +85,7 @@ export function ApplicationFunnelChart() {
             <YAxis tickLine={false} axisLine={false} tickMargin={8} className="text-xs" />
             <ChartTooltip
               content={<ChartTooltipContent />}
-              formatter={(value, name, props) => [
+              formatter={(value, _name, props) => [
                 `${value} (${props.payload.conversion}%)`,
                 "Candidates",
               ]}

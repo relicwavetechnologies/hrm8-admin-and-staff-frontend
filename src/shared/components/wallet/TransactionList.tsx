@@ -10,11 +10,7 @@ import { Skeleton } from "@/shared/components/ui/skeleton";
 import {
     ArrowUpCircle,
     ArrowDownCircle,
-    Briefcase,
-    CreditCard,
-    DollarSign,
     FileText,
-    RefreshCw,
     ChevronRight,
 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
@@ -42,19 +38,6 @@ interface TransactionListProps {
     className?: string;
 }
 
-function getTransactionIcon(type: string) {
-    const iconMap: Record<string, React.ReactNode> = {
-        'SUBSCRIPTION_PURCHASE': <CreditCard className="h-4 w-4" />,
-        'JOB_POSTING_DEDUCTION': <Briefcase className="h-4 w-4" />,
-        'COMMISSION_EARNED': <DollarSign className="h-4 w-4" />,
-        'COMMISSION_WITHDRAWAL': <ArrowDownCircle className="h-4 w-4" />,
-        'ADDON_SERVICE': <FileText className="h-4 w-4" />,
-        'JOB_REFUND': <RefreshCw className="h-4 w-4" />,
-        'SUBSCRIPTION_REFUND': <RefreshCw className="h-4 w-4" />,
-        'ADMIN_ADJUSTMENT': <DollarSign className="h-4 w-4" />,
-    };
-    return iconMap[type] || <FileText className="h-4 w-4" />;
-}
 
 function getTransactionTypeLabel(type: string): string {
     const labelMap: Record<string, string> = {
@@ -135,7 +118,6 @@ export function TransactionList({
                 <div className="space-y-2">
                     {transactions.map((transaction) => {
                         const isCredit = transaction.direction === 'CREDIT';
-                        const statusColor = transaction.status === 'COMPLETED' ? 'text-green-600' : transaction.status === 'PENDING' ? 'text-yellow-600' : 'text-red-600';
 
                         return (
                             <div

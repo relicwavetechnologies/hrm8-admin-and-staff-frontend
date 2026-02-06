@@ -13,9 +13,9 @@ import { CommissionPaymentDialog } from '@/shared/components/hrm8/CommissionPaym
 
 const columns = [
   {
-    key: 'consultantId',
+    key: 'consultant_id',
     label: 'Consultant',
-    render: (commission: Commission) => commission.consultantId ? (commission.consultantId.substring(0, 8) + '...') : 'N/A',
+    render: (commission: Commission) => commission.consultant_id ? (commission.consultant_id.substring(0, 8) + '...') : 'N/A',
   },
   {
     key: 'amount',
@@ -30,7 +30,7 @@ const columns = [
     key: 'type',
     label: 'Type',
     render: (commission: Commission) => (
-      <Badge variant="outline">{(commission.type || commission.commissionType || 'N/A').replace('_', ' ')}</Badge>
+      <Badge variant="outline">{(commission.type || 'N/A').replace('_', ' ')}</Badge>
     ),
   },
   {
@@ -55,9 +55,9 @@ const columns = [
     },
   },
   {
-    key: 'createdAt',
+    key: 'created_at',
     label: 'Created',
-    render: (commission: Commission) => new Date(commission.createdAt).toLocaleDateString(),
+    render: (commission: Commission) => new Date(commission.created_at).toLocaleDateString(),
   },
 ];
 
@@ -181,7 +181,7 @@ export default function CommissionsPage() {
               data={commissions}
               columns={columns}
               searchable
-              searchKeys={['consultantId', 'type', 'commissionType']}
+              searchKeys={['consultant_id', 'type']}
               emptyMessage="No commissions found"
             />
           )}

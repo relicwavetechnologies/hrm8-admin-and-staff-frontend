@@ -6,7 +6,7 @@ import { useToast } from "@/shared/hooks/use-toast";
 import { useCurrencyFormat } from "@/contexts/CurrencyFormatContext";
 import { hrm8RefundRequestService, RefundRequest } from "@/shared/services/hrm8/refundRequestService";
 import { format } from "date-fns";
-import { CheckCircle, XCircle, DollarSign, Filter, Eye, Loader2 } from "lucide-react";
+import { CheckCircle, XCircle, Filter, Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/shared/components/ui/dialog";
 import { Label } from "@/shared/components/ui/label";
@@ -17,7 +17,6 @@ export default function RefundRequestsPage() {
     const { formatCurrency } = useCurrencyFormat();
     const [refundRequests, setRefundRequests] = useState<RefundRequest[]>([]);
     const [statusFilter, setStatusFilter] = useState<string>('ALL');
-    const [loading, setLoading] = useState(true);
 
     // Dialog states
     const [selectedRequest, setSelectedRequest] = useState<RefundRequest | null>(null);
@@ -31,7 +30,6 @@ export default function RefundRequestsPage() {
     }, [statusFilter]);
 
     const loadRefundRequests = async () => {
-        setLoading(true);
         try {
             const filters = statusFilter && statusFilter !== 'ALL' ? { status: statusFilter } : undefined;
             const result = await hrm8RefundRequestService.getAll(filters);
@@ -56,7 +54,7 @@ export default function RefundRequestsPage() {
             });
             setRefundRequests([]);
         } finally {
-            setLoading(false);
+            // no-op
         }
     };
 
@@ -156,22 +154,22 @@ export default function RefundRequestsPage() {
 
     const columns: Column<RefundRequest>[] = [
         {
-            key: "createdAt",
+            key: "created_at",
             label: "Date",
             render: (request) => {
                 try {
-                    return <span>{request.createdAt ? format(new Date(request.createdAt), 'MMM dd, yyyy') : '-'}</span>;
+                    return <span>{request.created_at ? format(new Date(request.created_at), 'MMM dd, yyyy') : '-'}</span>;
                 } catch (e) {
                     return <span>Invalid Date</span>;
                 }
             },
         },
         {
-            key: "companyId",
+            key: "company_id",
             label: "Company",
             render: (request) => (
                 <div className="flex flex-col">
-                   <span className="font-medium">{request.company?.name || request.companyId}</span>
+                   <span className="font-medium">{request.company_id}</span>
                 </div>
             )
         },
@@ -179,9 +177,8 @@ export default function RefundRequestsPage() {
             key: "details",
             label: "Details",
             render: (request) => {
-                const isJob = request.transactionType === 'JOB_PAYMENT';
-                const displayText = Math.random().toString(36).substring(7); // Placeholder if context not complete, assuming context in real app
-                const title = request.transactionContext?.title || request.reason || "Payment";
+                const isJob = request.transaction_type === 'JOB_PAYMENT';
+                const title = request.transaction_context?.title || request.reason || "Payment";
 
                 return (
                     <div className="flex flex-col">
@@ -271,7 +268,7 @@ export default function RefundRequestsPage() {
                     columns={columns}
                     data={refundRequests}
                     searchable={true}
-                    searchKeys={['companyId', 'reason']}
+                    searchKeys={['company_id', 'reason']}
                 />
             </div>
 
@@ -291,7 +288,7 @@ export default function RefundRequestsPage() {
                             <div className="bg-muted/50 p-3 rounded-md space-y-2 text-sm">
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Company:</span>
-                                    <span className="font-medium">{selectedRequest.company?.name || selectedRequest.companyId}</span>
+                                    <span className="font-medium">{selectedRequest.company_id}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Reason:</span>

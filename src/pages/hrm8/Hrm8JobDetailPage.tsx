@@ -44,20 +44,20 @@ interface JobDetail {
     location: string;
     description: string;
     status: string;
-    hrm8Hidden: boolean;
-    hrm8Status?: string;
-    hrm8Notes?: string;
-    postedAt: string;
-    expiresAt?: string;
+    hrm8_hidden: boolean;
+    hrm8_status?: string;
+    hrm8_notes?: string;
+    posted_at: string;
+    expires_at?: string;
 }
 
 interface Analytics {
-    totalViews: number;
-    totalClicks: number;
-    totalApplications: number;
-    conversionRate: number;
-    viewsOverTime: { date: string; views: number; clicks: number }[];
-    sourceBreakdown: { source: string; count: number }[];
+    total_views: number;
+    total_clicks: number;
+    total_applications: number;
+    conversion_rate: number;
+    views_over_time: { date: string; views: number; clicks: number }[];
+    source_breakdown: { source: string; count: number }[];
 }
 
 interface ActivityItem {
@@ -91,7 +91,7 @@ export default function Hrm8JobDetailPage() {
                 setJob(response.data.job);
                 setAnalytics(response.data.analytics);
                 setActivities(response.data.activities || []);
-                setNotes(response.data.job.hrm8Notes || '');
+                setNotes(response.data.job.hrm8_notes || '');
             } else {
                 console.error('Failed to load job');
                 // Navigate back if job not found
@@ -108,9 +108,9 @@ export default function Hrm8JobDetailPage() {
     const toggleVisibility = async () => {
         if (!job) return;
         try {
-            await apiClient.put(`/api/hrm8/jobs/${job.id}/visibility`, { hidden: !job.hrm8Hidden });
-            setJob({ ...job, hrm8Hidden: !job.hrm8Hidden });
-            toast.success(job.hrm8Hidden ? 'Job is now visible' : 'Job hidden from job board');
+            await apiClient.put(`/api/hrm8/jobs/${job.id}/visibility`, { hidden: !job.hrm8_hidden });
+            setJob({ ...job, hrm8_hidden: !job.hrm8_hidden });
+            toast.success(job.hrm8_hidden ? 'Job is now visible' : 'Job hidden from job board');
         } catch (error) {
             toast.error('Failed to update visibility');
         }
@@ -120,7 +120,7 @@ export default function Hrm8JobDetailPage() {
         if (!job) return;
         try {
             await apiClient.put(`/api/hrm8/jobs/${job.id}/status`, { status: newStatus, notes });
-            setJob({ ...job, hrm8Status: newStatus });
+            setJob({ ...job, hrm8_status: newStatus, hrm8_notes: notes });
             toast.success(`Job marked as ${newStatus.replace('_', ' ').toLowerCase()}`);
         } catch (error) {
             toast.error('Failed to update status');
@@ -163,8 +163,8 @@ export default function Hrm8JobDetailPage() {
                     <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
                             <h1 className="text-2xl font-bold">{job.title}</h1>
-                            {getStatusBadge(job.hrm8Status || job.status)}
-                            {job.hrm8Hidden && (
+                            {getStatusBadge(job.hrm8_status || job.status)}
+                            {job.hrm8_hidden && (
                                 <Badge variant="outline" className="gap-1">
                                     <EyeOff className="h-3 w-3" /> Hidden
                                 </Badge>
@@ -181,7 +181,7 @@ export default function Hrm8JobDetailPage() {
                             </span>
                             <span className="flex items-center gap-1">
                                 <Calendar className="h-4 w-4" />
-                                Posted {job.postedAt}
+                                Posted {job.posted_at}
                             </span>
                         </div>
                     </div>
@@ -198,7 +198,7 @@ export default function Hrm8JobDetailPage() {
                                     </div>
                                     <div>
                                         <p className="text-sm text-muted-foreground">Total Views</p>
-                                        <p className="text-2xl font-bold">{analytics.totalViews.toLocaleString()}</p>
+                                        <p className="text-2xl font-bold">{analytics.total_views.toLocaleString()}</p>
                                     </div>
                                 </div>
                             </CardContent>
@@ -211,7 +211,7 @@ export default function Hrm8JobDetailPage() {
                                     </div>
                                     <div>
                                         <p className="text-sm text-muted-foreground">Detail Clicks</p>
-                                        <p className="text-2xl font-bold">{analytics.totalClicks.toLocaleString()}</p>
+                                        <p className="text-2xl font-bold">{analytics.total_clicks.toLocaleString()}</p>
                                     </div>
                                 </div>
                             </CardContent>
@@ -224,7 +224,7 @@ export default function Hrm8JobDetailPage() {
                                     </div>
                                     <div>
                                         <p className="text-sm text-muted-foreground">Applications</p>
-                                        <p className="text-2xl font-bold">{analytics.totalApplications}</p>
+                                        <p className="text-2xl font-bold">{analytics.total_applications}</p>
                                     </div>
                                 </div>
                             </CardContent>
@@ -237,7 +237,7 @@ export default function Hrm8JobDetailPage() {
                                     </div>
                                     <div>
                                         <p className="text-sm text-muted-foreground">Conversion</p>
-                                        <p className="text-2xl font-bold">{analytics.conversionRate}%</p>
+                                        <p className="text-2xl font-bold">{analytics.conversion_rate}%</p>
                                     </div>
                                 </div>
                             </CardContent>
@@ -268,7 +268,7 @@ export default function Hrm8JobDetailPage() {
                                     </CardHeader>
                                     <CardContent>
                                         <ResponsiveContainer width="100%" height={250}>
-                                            <AreaChart data={analytics?.viewsOverTime}>
+                                            <AreaChart data={analytics?.views_over_time}>
                                                 <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
                                                 <XAxis dataKey="date" tick={{ fontSize: 12 }} />
                                                 <YAxis tick={{ fontSize: 12 }} />
@@ -291,7 +291,7 @@ export default function Hrm8JobDetailPage() {
                                             <ResponsiveContainer width="50%" height={200}>
                                                 <PieChart>
                                                     <Pie
-                                                        data={analytics?.sourceBreakdown}
+                                                        data={analytics?.source_breakdown}
                                                         cx="50%"
                                                         cy="50%"
                                                         innerRadius={50}
@@ -299,7 +299,7 @@ export default function Hrm8JobDetailPage() {
                                                         dataKey="count"
                                                         nameKey="source"
                                                     >
-                                                        {analytics?.sourceBreakdown.map((_entry, index) => (
+                                                        {analytics?.source_breakdown?.map((_entry: { source: string; count: number }, index: number) => (
                                                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                                         ))}
                                                     </Pie>
@@ -307,7 +307,7 @@ export default function Hrm8JobDetailPage() {
                                                 </PieChart>
                                             </ResponsiveContainer>
                                             <div className="flex-1 space-y-2">
-                                                {analytics?.sourceBreakdown.map((item, index) => (
+                                                {analytics?.source_breakdown?.map((item: { source: string; count: number }, index: number) => (
                                                     <div key={item.source} className="flex items-center justify-between">
                                                         <div className="flex items-center gap-2">
                                                             <div className="h-3 w-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
@@ -364,7 +364,7 @@ export default function Hrm8JobDetailPage() {
                                         <Label>Show on Job Board</Label>
                                         <p className="text-xs text-muted-foreground">Toggle job visibility</p>
                                     </div>
-                                    <Switch checked={!job.hrm8Hidden} onCheckedChange={toggleVisibility} />
+                                    <Switch checked={!job.hrm8_hidden} onCheckedChange={toggleVisibility} />
                                 </div>
                             </CardContent>
                         </Card>

@@ -55,24 +55,25 @@ import { Skeleton } from "@/shared/components/ui/skeleton";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import { Separator } from "@/shared/components/ui/separator";
 import { apiClient } from "@/shared/lib/apiClient";
+import { messagingService, MessagingProvider } from "@/shared/services/hrm8/messagingService";
 
 // Types
 interface EmailTemplate {
     id: string;
-    companyId: string;
-    jobId?: string | null;
+    company_id: string;
+    job_id?: string | null;
     name: string;
     type: string;
     subject: string;
     body: string;
     variables: string[];
-    isActive: boolean;
-    isDefault: boolean;
-    isAiGenerated: boolean;
+    is_active: boolean;
+    is_default: boolean;
+    is_ai_generated: boolean;
     version: number;
-    createdBy: string;
-    createdAt: string;
-    updatedAt: string;
+    created_by: string;
+    created_at: string;
+    updated_at: string;
 }
 
 interface TemplateVariable {
@@ -96,8 +97,9 @@ const EMAIL_TEMPLATE_TYPES: { value: string; label: string }[] = [
     { value: "CUSTOM", label: "Custom" },
 ];
 
-async function fetchTemplates(): Promise<EmailTemplate[]> {
-    const res = await apiClient.get<EmailTemplate[]>("/api/email-templates");
+async function fetchTemplates(companyId?: string): Promise<EmailTemplate[]> {
+    const query = companyId ? `?company_id=${encodeURIComponent(companyId)}` : "";
+    const res = await apiClient.get<EmailTemplate[]>(`/api/email-templates${query}`);
     return res.data || [];
 }
 
@@ -133,6 +135,7 @@ export default function AdminEmailTemplatesPage() {
     const [templates, setTemplates] = useState<EmailTemplate[]>([]);
     const [variables, setVariables] = useState<TemplateVariable[]>([]);
     const [loading, setLoading] = useState(true);
+    const [companyIdFilter, setCompanyIdFilter] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
     const [filterType, setFilterType] = useState<string>("all");
     const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -146,27 +149,31 @@ export default function AdminEmailTemplatesPage() {
     const [previewOpen, setPreviewOpen] = useState(false);
     const [previewData, setPreviewData] = useState<{ subject: string; body: string } | null>(null);
     const [previewLoading, setPreviewLoading] = useState(false);
+    const [providers, setProviders] = useState<MessagingProvider[]>([]);
 
     // Form state
     const [formData, setFormData] = useState({
+        company_id: "",
         name: "",
         type: "CUSTOM",
         subject: "",
         body: "",
-        isActive: true,
-        isDefault: false,
+        is_active: true,
+        is_default: false,
     });
 
     // Load templates and variables
     const loadData = useCallback(async () => {
         setLoading(true);
         try {
-            const [templatesData, variablesData] = await Promise.all([
-                fetchTemplates(),
+            const [templatesData, variablesData, providerData] = await Promise.all([
+                fetchTemplates(companyIdFilter || undefined),
                 fetchVariables(),
+                messagingService.getProviders(),
             ]);
             setTemplates(templatesData);
             setVariables(variablesData);
+            setProviders(providerData.providers || []);
         } catch (error) {
             toast({
                 title: "Error loading templates",
@@ -176,7 +183,7 @@ export default function AdminEmailTemplatesPage() {
         } finally {
             setLoading(false);
         }
-    }, [toast]);
+    }, [toast, companyIdFilter]);
 
     useEffect(() => {
         loadData();
@@ -190,17 +197,19 @@ export default function AdminEmailTemplatesPage() {
         const matchesType = filterType === "all" || t.type === filterType;
         const matchesStatus =
             filterStatus === "all" ||
-            (filterStatus === "active" && t.isActive) ||
-            (filterStatus === "inactive" && !t.isActive);
+            (filterStatus === "active" && t.is_active) ||
+            (filterStatus === "inactive" && !t.is_active);
         return matchesSearch && matchesType && matchesStatus;
     });
 
     // Stats
     const stats = {
         total: templates.length,
-        active: templates.filter((t) => t.isActive).length,
-        defaults: templates.filter((t) => t.isDefault).length,
+        active: templates.filter((t) => t.is_active).length,
+        defaults: templates.filter((t) => t.is_default).length,
     };
+
+    const smtpProvider = providers.find((p) => p.provider === "smtp");
 
     // Type color mapping
     const getTypeColor = (type: string) => {
@@ -227,12 +236,13 @@ export default function AdminEmailTemplatesPage() {
     const handleCreate = () => {
         setSelectedTemplate(null);
         setFormData({
+            company_id: companyIdFilter || "",
             name: "",
             type: "CUSTOM",
             subject: "",
             body: "",
-            isActive: true,
-            isDefault: false,
+            is_active: true,
+            is_default: false,
         });
         setEditorOpen(true);
     };
@@ -240,21 +250,22 @@ export default function AdminEmailTemplatesPage() {
     const handleEdit = (template: EmailTemplate) => {
         setSelectedTemplate(template);
         setFormData({
+            company_id: template.company_id,
             name: template.name,
             type: template.type,
             subject: template.subject,
             body: template.body,
-            isActive: template.isActive,
-            isDefault: template.isDefault,
+            is_active: template.is_active,
+            is_default: template.is_default,
         });
         setEditorOpen(true);
     };
 
     const handleSave = async () => {
-        if (!formData.name || !formData.subject || !formData.body) {
+        if (!formData.company_id || !formData.name || !formData.subject || !formData.body) {
             toast({
                 title: "Validation Error",
-                description: "Please fill in all required fields",
+                description: "Please fill in all required fields, including company ID",
                 variant: "destructive",
             });
             return;
@@ -291,12 +302,13 @@ export default function AdminEmailTemplatesPage() {
     const handleDuplicate = async (template: EmailTemplate) => {
         try {
             await createTemplate({
+                company_id: template.company_id,
                 name: `${template.name} (Copy)`,
                 type: template.type,
                 subject: template.subject,
                 body: template.body,
-                isActive: template.isActive,
-                isDefault: false,
+                is_active: template.is_active,
+                is_default: false,
             });
             toast({
                 title: "Template Duplicated",
@@ -313,7 +325,7 @@ export default function AdminEmailTemplatesPage() {
     };
 
     const handleDelete = async (template: EmailTemplate) => {
-        if (template.isDefault) {
+        if (template.is_default) {
             toast({
                 title: "Cannot Delete",
                 description: "Default templates cannot be deleted",
@@ -421,6 +433,34 @@ export default function AdminEmailTemplatesPage() {
                     </Card>
                 </div>
 
+                {/* Providers */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Messaging Providers</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <div className="font-semibold">SMTP</div>
+                                <div className="text-sm text-muted-foreground">
+                                    {smtpProvider?.smtp_host ? `Host: ${smtpProvider.smtp_host}` : "Host: Not configured"}
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                    {smtpProvider?.smtp_from ? `From: ${smtpProvider.smtp_from}` : "From: Not configured"}
+                                </div>
+                            </div>
+                            <Badge variant={smtpProvider?.configured ? "default" : "secondary"}>
+                                {smtpProvider?.configured ? "Configured" : "Not configured"}
+                            </Badge>
+                        </div>
+                        <Separator />
+                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                            <span>Other providers (SendGrid, SES, Mailgun)</span>
+                            <Badge variant="outline">Coming soon</Badge>
+                        </div>
+                    </CardContent>
+                </Card>
+
                 {/* Filters */}
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="relative flex-1 min-w-[200px] max-w-md">
@@ -432,6 +472,12 @@ export default function AdminEmailTemplatesPage() {
                             className="pl-9"
                         />
                     </div>
+                    <Input
+                        placeholder="Company ID (optional)"
+                        value={companyIdFilter}
+                        onChange={(e) => setCompanyIdFilter(e.target.value)}
+                        className="min-w-[220px]"
+                    />
 
                     <Select value={filterType} onValueChange={setFilterType}>
                         <SelectTrigger className="w-[200px]">
@@ -498,16 +544,16 @@ export default function AdminEmailTemplatesPage() {
                                                 <Badge className={getTypeColor(template.type)}>
                                                     {getTypeLabel(template.type)}
                                                 </Badge>
-                                                {template.isDefault && (
+                                                {template.is_default && (
                                                     <Badge variant="outline">Default</Badge>
                                                 )}
-                                                {template.isAiGenerated && (
+                                                {template.is_ai_generated && (
                                                     <Badge variant="secondary">
                                                         <Sparkles className="h-3 w-3 mr-1" />
                                                         AI
                                                     </Badge>
                                                 )}
-                                                {!template.isActive && (
+                                                {!template.is_active && (
                                                     <Badge variant="secondary">
                                                         <XCircle className="h-3 w-3 mr-1" />
                                                         Inactive
@@ -526,7 +572,7 @@ export default function AdminEmailTemplatesPage() {
                                                 <span>•</span>
                                                 <span>
                                                     Updated{" "}
-                                                    {formatDistanceToNow(new Date(template.updatedAt), {
+                                                    {formatDistanceToNow(new Date(template.updated_at), {
                                                         addSuffix: true,
                                                     })}
                                                 </span>
@@ -553,7 +599,7 @@ export default function AdminEmailTemplatesPage() {
                                                     Duplicate
                                                 </DropdownMenuItem>
                                                 <DropdownMenuSeparator />
-                                                {!template.isDefault && (
+                                                {!template.is_default && (
                                                     <DropdownMenuItem
                                                         onClick={() => handleDelete(template)}
                                                         className="text-destructive"
@@ -606,6 +652,17 @@ export default function AdminEmailTemplatesPage() {
                         <div className="grid grid-cols-3 gap-6 max-h-[60vh] overflow-hidden">
                             {/* Form */}
                             <div className="col-span-2 space-y-4 overflow-y-auto pr-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="company_id">Company ID *</Label>
+                                    <Input
+                                        id="company_id"
+                                        value={formData.company_id}
+                                        onChange={(e) =>
+                                            setFormData((prev) => ({ ...prev, company_id: e.target.value }))
+                                        }
+                                        placeholder="Enter company id"
+                                    />
+                                </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="name">Template Name *</Label>
                                     <Input
@@ -669,9 +726,9 @@ export default function AdminEmailTemplatesPage() {
                                     <div className="flex items-center space-x-2">
                                         <Switch
                                             id="isActive"
-                                            checked={formData.isActive}
+                                            checked={formData.is_active}
                                             onCheckedChange={(checked) =>
-                                                setFormData((prev) => ({ ...prev, isActive: checked }))
+                                                setFormData((prev) => ({ ...prev, is_active: checked }))
                                             }
                                         />
                                         <Label htmlFor="isActive">Active</Label>
@@ -680,9 +737,9 @@ export default function AdminEmailTemplatesPage() {
                                     <div className="flex items-center space-x-2">
                                         <Switch
                                             id="isDefault"
-                                            checked={formData.isDefault}
+                                            checked={formData.is_default}
                                             onCheckedChange={(checked) =>
-                                                setFormData((prev) => ({ ...prev, isDefault: checked }))
+                                                setFormData((prev) => ({ ...prev, is_default: checked }))
                                             }
                                         />
                                         <Label htmlFor="isDefault">Set as Default</Label>

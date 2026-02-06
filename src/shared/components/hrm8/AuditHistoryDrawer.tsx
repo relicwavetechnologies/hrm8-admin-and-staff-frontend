@@ -79,7 +79,7 @@ export function AuditHistoryDrawer({
         );
     };
 
-    const formatValue = (value: Record<string, unknown> | null): string => {
+    const formatValue = (value: Record<string, unknown> | null | undefined): string => {
         if (!value) return '-';
 
         // Show only key changes, not entire object
@@ -127,7 +127,7 @@ export function AuditHistoryDrawer({
                     ) : (
                         <ScrollArea className="h-[calc(100vh-200px)]">
                             <div className="space-y-4 pr-4">
-                                {entries.map((entry, index) => (
+                                {entries.map((entry) => (
                                     <div
                                         key={entry.id}
                                         className="relative border-l-2 border-muted pl-4 pb-4 last:pb-0"
@@ -142,39 +142,34 @@ export function AuditHistoryDrawer({
                                             </div>
                                             <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                                 <Calendar className="h-3 w-3" />
-                                                {format(new Date(entry.performedAt), 'MMM d, yyyy h:mm a')}
-                                            </div>
-                                        </div>
-
-                                        {/* Performed by */}
-                                        <div className="flex items-center gap-1 mt-2 text-sm text-muted-foreground">
-                                            <User className="h-3 w-3" />
-                                            <span>{entry.performedBy || 'System'}</span>
-                                        </div>
-
-                                        {/* Notes */}
-                                        {entry.notes && (
-                                            <div className="mt-2 p-2 bg-muted rounded-md">
-                                                <div className="flex items-start gap-1">
-                                                    <FileText className="h-3 w-3 mt-0.5 text-muted-foreground" />
-                                                    <p className="text-sm">{entry.notes}</p>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Changes */}
-                                        {(entry.oldValue || entry.newValue) && (
-                                            <div className="mt-2 text-xs text-muted-foreground">
-                                                {entry.oldValue && (
-                                                    <div className="line-through">{formatValue(entry.oldValue)}</div>
-                                                )}
-                                                {entry.newValue && (
-                                                    <div className="text-foreground">{formatValue(entry.newValue)}</div>
-                                                )}
-                                            </div>
-                                        )}
+                                        {format(new Date(entry.performed_at), 'MMM d, yyyy h:mm a')}
                                     </div>
-                                ))}
+                                </div>
+
+                                {/* Performed by */}
+                                <div className="flex items-center gap-1 mt-2 text-sm text-muted-foreground">
+                                    <User className="h-3 w-3" />
+                                    <span>{entry.performed_by || 'System'}</span>
+                                </div>
+
+                                {/* Notes */}
+                                {entry.description && (
+                                    <div className="mt-2 p-2 bg-muted rounded-md">
+                                        <div className="flex items-start gap-1">
+                                            <FileText className="h-3 w-3 mt-0.5 text-muted-foreground" />
+                                            <p className="text-sm">{entry.description}</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Changes */}
+                                {entry.changes && (
+                                    <div className="mt-2 text-xs text-muted-foreground">
+                                        <div className="text-foreground">{formatValue(entry.changes)}</div>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
                             </div>
                         </ScrollArea>
                     )}

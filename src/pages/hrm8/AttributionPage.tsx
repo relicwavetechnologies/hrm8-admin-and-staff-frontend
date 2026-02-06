@@ -191,10 +191,10 @@ export default function AttributionPage() {
                   Attribution Details
                 </span>
                 <Badge 
-                  variant={attribution.attributionLocked ? "default" : "outline"}
-                  className={attribution.attributionLocked ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}
+                  variant={attribution.attribution_locked ? "default" : "outline"}
+                  className={attribution.attribution_locked ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}
                 >
-                  {attribution.attributionLocked ? (
+                  {attribution.attribution_locked ? (
                     <>
                       <Lock className="h-3 w-3 mr-1" />
                       Locked
@@ -212,25 +212,25 @@ export default function AttributionPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-muted-foreground">Company ID</Label>
-                  <p className="font-mono text-sm">{attribution.companyId}</p>
+                  <p className="font-mono text-sm">{attribution.company_id}</p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Sales Agent ID</Label>
-                  <p className="font-mono text-sm">{attribution.salesAgentId || 'None'}</p>
+                  <p className="font-mono text-sm">{attribution.sales_agent_id || 'None'}</p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Referred By</Label>
-                  <p className="font-mono text-sm">{attribution.referredBy || 'None'}</p>
+                  <p className="font-mono text-sm">{attribution.referred_by || 'None'}</p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Created By</Label>
-                  <p className="font-mono text-sm">{attribution.createdBy || 'Unknown'}</p>
+                  <p className="font-mono text-sm">{attribution.created_by || 'Unknown'}</p>
                 </div>
-                {attribution.attributionLockedAt && (
+                {attribution.attribution_locked_at && (
                   <div>
                     <Label className="text-muted-foreground">Locked At</Label>
                     <p className="text-sm">
-                      {safeFormatDate(attribution.attributionLockedAt)}
+                      {safeFormatDate(attribution.attribution_locked_at)}
                     </p>
                   </div>
                 )}
@@ -238,7 +238,7 @@ export default function AttributionPage() {
 
               {/* Action Buttons */}
               <div className="flex gap-2 pt-4 border-t">
-                {!attribution.attributionLocked && (
+                {!attribution.attribution_locked && (
                   <Button onClick={handleLock} variant="default">
                     <Lock className="h-4 w-4 mr-2" />
                     Lock Attribution
@@ -289,7 +289,7 @@ export default function AttributionPage() {
                         <p className="font-medium">{entry.subject}</p>
                         <p className="text-sm text-muted-foreground">{entry.description}</p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {safeFormatDate(entry.createdAt)}
+                          {safeFormatDate(entry.created_at)}
                         </p>
                       </div>
                     </div>

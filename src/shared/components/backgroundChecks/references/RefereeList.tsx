@@ -16,7 +16,7 @@ interface RefereeListProps {
 
 export function RefereeList({ 
   backgroundCheckId, 
-  candidateId, 
+  candidateId: _candidateId, 
   onViewResponse 
 }: RefereeListProps) {
   const [referees, setReferees] = useState<RefereeDetails[]>([]);

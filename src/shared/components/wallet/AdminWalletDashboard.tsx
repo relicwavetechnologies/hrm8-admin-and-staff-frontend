@@ -3,7 +3,6 @@
  * Global wallet stats, pending approvals, and platform overview
  */
 
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
@@ -14,14 +13,12 @@ import {
     Wallet,
     TrendingUp,
     TrendingDown,
-    Users,
     DollarSign,
     FileText,
     Clock,
     CheckCircle,
     XCircle,
 } from "lucide-react";
-import { cn } from "@/shared/lib/utils";
 
 export function AdminWalletDashboard() {
     // Fetch global wallet stats

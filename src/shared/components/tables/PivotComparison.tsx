@@ -1,3 +1,4 @@
+import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
 import { Switch } from "@/shared/components/ui/switch";
 import { Label } from "@/shared/components/ui/label";
@@ -30,8 +31,6 @@ export function PivotComparison({
     onConfigChange({ ...config, ...updates });
   };
 
-  const compareField = availableFields.find((f) => f.key === config.compareField);
-  const uniqueValues = compareField ? [] : []; // In real implementation, extract from data
 
   return (
     <Card className="p-4 space-y-4">
@@ -170,13 +169,13 @@ export function renderComparisonCell(
   baseValue: number,
   compareValue: number,
   config: ComparisonConfig
-): JSX.Element {
+): React.JSX.Element {
   const difference = compareValue - baseValue;
   const percentageChange = baseValue !== 0 ? ((difference / baseValue) * 100).toFixed(1) : "N/A";
-  
+
   const isPositive = difference > 0;
   const isNegative = difference < 0;
-  
+
   return (
     <div className="flex items-center gap-2">
       <span>{compareValue.toFixed(2)}</span>

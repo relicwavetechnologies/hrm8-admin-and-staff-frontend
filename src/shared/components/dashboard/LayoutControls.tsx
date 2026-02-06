@@ -1,5 +1,5 @@
 import { Button } from '@/shared/components/ui/button';
-import { Edit3, Save, RotateCcw, Plus, Lock, Unlock } from 'lucide-react';
+import { Edit3, Save, RotateCcw, Plus, Lock } from 'lucide-react';
 import { Badge } from '@/shared/components/ui/badge';
 import {
   AlertDialog,
@@ -58,7 +58,7 @@ export function LayoutControls({
             </>
           )}
         </Button>
-        
+
         {isEditMode && (
           <>
             <Button
@@ -70,9 +70,9 @@ export function LayoutControls({
               <Plus className="h-4 w-4" />
               Add Widget
             </Button>
-            
+
             <div className="flex-1" />
-            
+
             <Button
               variant="outline"
               size="sm"
@@ -82,7 +82,7 @@ export function LayoutControls({
               <RotateCcw className="h-4 w-4" />
               Reset
             </Button>
-            
+
             <Button
               size="sm"
               onClick={onSave}

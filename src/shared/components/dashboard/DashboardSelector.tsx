@@ -1,7 +1,6 @@
 import { DASHBOARD_METADATA } from "@/shared/lib/dashboard/dashboardTypes";
 import type { DashboardType } from "@/shared/lib/dashboard/dashboardTypes";
 import { Button } from "@/shared/components/ui/button";
-import { cn } from "@/shared/lib/utils";
 import { useNavigate } from "react-router-dom";
 
 interface DashboardSelectorProps {

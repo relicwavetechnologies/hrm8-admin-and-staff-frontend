@@ -8,7 +8,7 @@ interface AudioWaveformProps {
 
 export function AudioWaveform({ isActive, isSpeaking, color = 'hsl(var(--primary))' }: AudioWaveformProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | null>(null);
   const barsRef = useRef<number[]>([]);
 
   useEffect(() => {

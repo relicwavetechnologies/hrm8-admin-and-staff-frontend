@@ -27,17 +27,17 @@ export function RevenueByTypeChart({ data, title = "Revenue by Type", descriptio
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={data}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis 
-              dataKey="type" 
+            <XAxis
+              dataKey="type"
               className="text-xs"
               angle={-45}
               textAnchor="end"
               height={80}
             />
             <YAxis className="text-xs" />
-            <Tooltip 
+            <Tooltip
               formatter={(value: number) => `$${value.toLocaleString()}`}
-              contentStyle={{ 
+              contentStyle={{
                 backgroundColor: 'hsl(var(--popover))',
                 border: '1px solid hsl(var(--border))',
                 borderRadius: '6px'
@@ -45,7 +45,7 @@ export function RevenueByTypeChart({ data, title = "Revenue by Type", descriptio
             />
             <Legend />
             <Bar dataKey="revenue" name="Revenue" radius={[4, 4, 0, 0]}>
-              {data.map((entry, index) => (
+              {data.map((_entry, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Bar>

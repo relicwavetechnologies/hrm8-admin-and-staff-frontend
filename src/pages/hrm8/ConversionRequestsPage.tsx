@@ -3,7 +3,7 @@ import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { useToast } from "@/shared/hooks/use-toast";
 import { leadConversionAdminService } from "@/shared/services/hrm8/leadConversionAdminService";
-import { ConversionRequest } from "@/shared/services/sales/leadConversionService";
+import { ConversionRequest } from "@/shared/services/leadConversionService";
 import { format } from "date-fns";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/shared/components/ui/dialog";
@@ -14,7 +14,6 @@ import { DataTable, Column } from "@/shared/components/tables/DataTable";
 export default function ConversionRequestsPage() {
     const { toast } = useToast();
     const [requests, setRequests] = useState<ConversionRequest[]>([]);
-    const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState<string>('PENDING');
     
     // Action states
@@ -35,7 +34,6 @@ export default function ConversionRequestsPage() {
 
     const loadRequests = async () => {
         try {
-            setLoading(true);
             const data = await leadConversionAdminService.getAll(statusFilter === '' || statusFilter === 'ALL' ? undefined : statusFilter);
             setRequests(data);
         } catch (error: any) {
@@ -45,7 +43,7 @@ export default function ConversionRequestsPage() {
                 variant: 'destructive'
             });
         } finally {
-            setLoading(false);
+            // no-op
         }
     };
 
@@ -137,9 +135,9 @@ export default function ConversionRequestsPage() {
 
     const columns: Column<ConversionRequest>[] = [
         {
-            key: "companyName",
+            key: "company_name",
             label: "Company",
-            render: (item) => <span className="font-medium">{item.companyName}</span>
+            render: (item) => <span className="font-medium">{item.company_name}</span>
         },
         {
             key: "email",
@@ -157,10 +155,10 @@ export default function ConversionRequestsPage() {
             render: (item) => getStatusBadge(item.status)
         },
         {
-            key: "createdAt",
+            key: "created_at",
             label: "Submitted",
             render: (item) => {
-                const date = item.createdAt ? new Date(item.createdAt) : null;
+                const date = item.created_at ? new Date(item.created_at) : null;
                 return <span>{date && !isNaN(date.getTime()) ? format(date, 'MMM dd, yyyy') : '-'}</span>;
             }
         },
@@ -240,7 +238,7 @@ export default function ConversionRequestsPage() {
                     columns={columns} 
                     data={requests}
                     searchable={true} 
-                    searchKeys={["companyName", "email"]}
+                    searchKeys={["company_name", "email"]}
                 />
             </div>
 
@@ -255,15 +253,15 @@ export default function ConversionRequestsPage() {
                             {selectedRequest && (
                                 <div className="mt-4 space-y-2 text-sm text-foreground">
                                     <div>
-                                        <strong>Company:</strong> {selectedRequest.companyName}
+                                        <strong>Company:</strong> {selectedRequest.company_name}
                                     </div>
                                     <div>
                                         <strong>Email:</strong> {selectedRequest.email}
                                     </div>
-                                    {selectedRequest.agentNotes && (
+                                    {selectedRequest.agent_notes && (
                                         <div>
                                             <strong>Agent Notes:</strong>
-                                            <p className="mt-1 text-muted-foreground">{selectedRequest.agentNotes}</p>
+                                            <p className="mt-1 text-muted-foreground">{selectedRequest.agent_notes}</p>
                                         </div>
                                     )}
                                 </div>

@@ -3,7 +3,6 @@
  * Shows earnings, wallet balance, and withdrawal options
  */
 
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
@@ -22,7 +21,6 @@ import { TransactionList } from "@/shared/components/wallet/TransactionList";
 import { cn } from "@/shared/lib/utils";
 
 export function ConsultantEarningsDashboard() {
-    const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
 
     // Fetch wallet balance
     const { data: walletData, isLoading: walletLoading } = useQuery({
@@ -54,9 +52,6 @@ export function ConsultantEarningsDashboard() {
         },
     });
 
-    const handleWithdraw = () => {
-        setShowWithdrawDialog(true);
-    };
 
     const wallet = walletData?.data;
     const earnings = earningsData?.data;
@@ -141,7 +136,7 @@ export function ConsultantEarningsDashboard() {
 
                                 {/* Withdraw Button */}
                                 <Button
-                                    onClick={handleWithdraw}
+                                    onClick={() => { }}
                                     className="w-full"
                                     disabled={!wallet?.balance || wallet.balance <= 0 || wallet.status !== 'ACTIVE'}
                                 >

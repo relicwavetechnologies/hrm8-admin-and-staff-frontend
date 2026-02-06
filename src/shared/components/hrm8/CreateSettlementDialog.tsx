@@ -88,9 +88,9 @@ export function CreateSettlementDialog({
 
     try {
       const response = await settlementService.calculate({
-        licenseeId: selectedLicenseeId,
-        periodStart,
-        periodEnd,
+        licensee_id: selectedLicenseeId,
+        period_start: periodStart,
+        period_end: periodEnd,
       });
 
       if (!response.success) {

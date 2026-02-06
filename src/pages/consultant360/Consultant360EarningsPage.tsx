@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/sha
 import { Button } from "@/shared/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
 import { Badge } from "@/shared/components/ui/badge";
+import { EnhancedStatCard } from "@/shared/components/dashboard/EnhancedStatCard";
 import {
     Dialog,
     DialogContent,
@@ -343,69 +344,45 @@ export default function Consultant360EarningsPage() {
 
             {/* Balance Cards */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
-                    <CardContent className="p-6">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-green-100 rounded-full">
-                                <Wallet className="h-6 w-6 text-green-600" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-green-700">Available Balance</p>
-                                <p className="text-2xl font-bold text-green-800">
-                                    ${combined?.availableBalance?.toLocaleString() || 0}
-                                </p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                <EnhancedStatCard
+                    title="Available Balance"
+                    value={combined?.availableBalance ?? 0}
+                    change="Available now"
+                    icon={<Wallet className="h-5 w-5" />}
+                    variant="success"
+                    isCurrency
+                    rawValue={combined?.availableBalance ?? 0}
+                />
 
-                <Card className="bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200">
-                    <CardContent className="p-6">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-amber-100 rounded-full">
-                                <Clock className="h-6 w-6 text-amber-600" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-amber-700">Pending</p>
-                                <p className="text-2xl font-bold text-amber-800">
-                                    ${combined?.pendingBalance?.toLocaleString() || 0}
-                                </p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                <EnhancedStatCard
+                    title="Pending"
+                    value={combined?.pendingBalance ?? 0}
+                    change="Awaiting approval"
+                    icon={<Clock className="h-5 w-5" />}
+                    variant="warning"
+                    isCurrency
+                    rawValue={combined?.pendingBalance ?? 0}
+                />
 
-                <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-                    <CardContent className="p-6">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-blue-100 rounded-full">
-                                <DollarSign className="h-6 w-6 text-blue-600" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-blue-700">Total Earned</p>
-                                <p className="text-2xl font-bold text-blue-800">
-                                    ${combined?.totalEarned?.toLocaleString() || 0}
-                                </p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                <EnhancedStatCard
+                    title="Total Earned"
+                    value={combined?.totalEarned ?? 0}
+                    change="All time"
+                    icon={<DollarSign className="h-5 w-5" />}
+                    variant="primary"
+                    isCurrency
+                    rawValue={combined?.totalEarned ?? 0}
+                />
 
-                <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200">
-                    <CardContent className="p-6">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-purple-100 rounded-full">
-                                <CheckCircle2 className="h-6 w-6 text-purple-600" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-purple-700">Total Withdrawn</p>
-                                <p className="text-2xl font-bold text-purple-800">
-                                    ${combined?.totalWithdrawn?.toLocaleString() || 0}
-                                </p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                <EnhancedStatCard
+                    title="Total Withdrawn"
+                    value={combined?.totalWithdrawn ?? 0}
+                    change="All time"
+                    icon={<CheckCircle2 className="h-5 w-5" />}
+                    variant="neutral"
+                    isCurrency
+                    rawValue={combined?.totalWithdrawn ?? 0}
+                />
             </div>
 
             {/* Earnings Breakdown */}

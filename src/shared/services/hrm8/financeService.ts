@@ -8,8 +8,11 @@ import { apiClient } from '@/shared/lib/apiClient';
 // Types
 export interface Invoice {
     id: string;
+    bill_number: string;
     company_id: string;
     amount: number;
+    currency: string;
+    total_amount: number;
     status: 'PENDING' | 'PAID' | 'OVERDUE' | 'CANCELLED';
     due_date: string;
     paid_at?: string;
@@ -47,8 +50,9 @@ export interface SettlementCalculation {
 
 export interface InvoiceFilters {
     status?: string;
-    companyId?: string;
-    agingDays?: number;
+    company_id?: string;
+    aging_days?: number;
+    region_id?: string;
 }
 
 interface InvoicesResponse {
@@ -68,8 +72,9 @@ interface SettlementResponse {
 export const getInvoices = async (filters: InvoiceFilters = {}): Promise<Invoice[]> => {
     const params = new URLSearchParams();
     if (filters.status) params.append('status', filters.status);
-    if (filters.companyId) params.append('companyId', filters.companyId);
-    if (filters.agingDays) params.append('agingDays', filters.agingDays.toString());
+    if (filters.company_id) params.append('company_id', filters.company_id);
+    if (filters.aging_days) params.append('aging_days', filters.aging_days.toString());
+    if (filters.region_id) params.append('region_id', filters.region_id);
 
     const queryString = params.toString();
     const endpoint = queryString ? `/api/hrm8/finance/invoices?${queryString}` : '/api/hrm8/finance/invoices';
@@ -82,6 +87,20 @@ export const getInvoices = async (filters: InvoiceFilters = {}): Promise<Invoice
 export const getDunningCandidates = async (): Promise<DunningCandidate[]> => {
     const response = await apiClient.get<DunningResponse>('/api/hrm8/finance/dunning');
     return response.data?.candidates || [];
+};
+
+export const downloadInvoice = async (invoiceId: string): Promise<Blob> => {
+    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    const response = await fetch(`${baseUrl}/api/hrm8/finance/invoices/${invoiceId}/download`, {
+        method: 'GET',
+        credentials: 'include',
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to download invoice');
+    }
+
+    return response.blob();
 };
 
 // ==================== SETTLEMENTS ====================
@@ -104,6 +123,7 @@ const financeService = {
     getInvoices,
     getDunningCandidates,
     calculateSettlement,
+    downloadInvoice,
 };
 
 export default financeService;

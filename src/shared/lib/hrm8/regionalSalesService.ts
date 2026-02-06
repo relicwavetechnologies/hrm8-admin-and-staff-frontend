@@ -90,7 +90,7 @@ export const regionalSalesService = {
    * Reassign a lead
    */
   reassignLead: async (leadId: string, consultantId: string) => {
-    const response = await apiClient.post<{ success: boolean; data: { lead: RegionalLead } }>(`/api/hrm8/leads/${leadId}/reassign`, { consultantId });
+    const response = await apiClient.post<{ success: boolean; data: { lead: RegionalLead } }>(`/api/hrm8/leads/${leadId}/reassign`, { newConsultantId: consultantId });
     return response;
   },
 

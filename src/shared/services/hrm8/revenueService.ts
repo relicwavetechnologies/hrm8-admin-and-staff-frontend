@@ -7,34 +7,34 @@ import { apiClient } from '@/shared/lib/apiClient';
 
 export interface RegionalRevenue {
   id: string;
-  regionId: string;
-  regionName?: string;
-  licenseeId?: string;
-  periodStart: string;
-  periodEnd: string;
-  totalRevenue: number;
-  licenseeShare: number;
-  hrm8Share: number;
+  region_id: string;
+  region_name?: string;
+  licensee_id?: string;
+  period_start: string;
+  period_end: string;
+  total_revenue: number;
+  licensee_share: number;
+  hrm8_share: number;
   status: 'PENDING' | 'CONFIRMED' | 'PAID';
-  paidAt?: string;
-  createdAt: string;
-  updatedAt: string;
+  paid_at?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 class RevenueService {
   async getAll(filters?: {
-    regionId?: string;
-    licenseeId?: string;
+    region_id?: string;
+    licensee_id?: string;
     status?: string;
-    periodStart?: string;
-    periodEnd?: string;
+    period_start?: string;
+    period_end?: string;
   }) {
     const queryParams = new URLSearchParams();
-    if (filters?.regionId) queryParams.append('regionId', filters.regionId);
-    if (filters?.licenseeId) queryParams.append('licenseeId', filters.licenseeId);
+    if (filters?.region_id) queryParams.append('region_id', filters.region_id);
+    if (filters?.licensee_id) queryParams.append('licensee_id', filters.licensee_id);
     if (filters?.status) queryParams.append('status', filters.status);
-    if (filters?.periodStart) queryParams.append('periodStart', filters.periodStart);
-    if (filters?.periodEnd) queryParams.append('periodEnd', filters.periodEnd);
+    if (filters?.period_start) queryParams.append('period_start', filters.period_start);
+    if (filters?.period_end) queryParams.append('period_end', filters.period_end);
 
     const query = queryParams.toString();
     return apiClient.get<{ revenues: RegionalRevenue[] }>(`/api/hrm8/revenue${query ? `?${query}` : ''}`);
@@ -45,13 +45,13 @@ class RevenueService {
   }
 
   async create(data: {
-    regionId: string;
-    licenseeId?: string;
-    periodStart: string;
-    periodEnd: string;
-    totalRevenue: number;
-    licenseeShare: number;
-    hrm8Share: number;
+    region_id: string;
+    licensee_id?: string;
+    period_start: string;
+    period_end: string;
+    total_revenue: number;
+    licensee_share: number;
+    hrm8_share: number;
   }) {
     return apiClient.post<{ revenue: RegionalRevenue }>('/api/hrm8/revenue', data);
   }
@@ -71,6 +71,5 @@ class RevenueService {
 
 
 export const revenueService = new RevenueService();
-
 
 

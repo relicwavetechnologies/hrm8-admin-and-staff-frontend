@@ -54,9 +54,10 @@ class ConsultantService {
     return apiClient.put<{ consultant: ConsultantProfile }>('/api/consultant/profile', data);
   }
 
-  async getJobs(filters?: { status?: string }) {
+  async getJobs(filters?: { status?: string; region_id?: string }) {
     const queryParams = new URLSearchParams();
     if (filters?.status) queryParams.append('status', filters.status);
+    if (filters?.region_id) queryParams.append('region_id', filters.region_id);
     const query = queryParams.toString();
     return apiClient.get<{ jobs: any[] }>(`/api/consultant/jobs${query ? `?${query}` : ''}`);
   }

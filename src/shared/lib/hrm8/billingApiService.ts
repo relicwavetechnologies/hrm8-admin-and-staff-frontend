@@ -9,50 +9,50 @@ import { apiClient } from '../api';
 
 export interface Commission {
     id: string;
-    consultantId: string;
-    regionId: string;
-    jobId?: string;
-    companyId?: string;
+    consultant_id: string;
+    region_id: string;
+    job_id?: string;
+    company_id?: string;
     amount: number;
     currency: string;
-    commissionType: 'PLACEMENT' | 'SUBSCRIPTION_SALE' | 'RECRUITMENT_SERVICE' | 'CUSTOM';
+    commission_type: 'PLACEMENT' | 'SUBSCRIPTION_SALE' | 'RECRUITMENT_SERVICE' | 'CUSTOM';
     rate?: number;
     status: 'PENDING' | 'CONFIRMED' | 'PAID' | 'CANCELLED';
-    confirmedAt?: string;
-    paidAt?: string;
-    paidTo?: string;
+    confirmed_at?: string;
+    paid_at?: string;
+    paid_to?: string;
     description?: string;
-    createdAt: string;
-    updatedAt: string;
+    created_at: string;
+    updated_at: string;
 }
 
 export interface RegionalRevenue {
     id: string;
-    regionId: string;
-    licenseeId?: string;
-    periodStart: string;
-    periodEnd: string;
-    totalRevenue: number;
-    licenseeShare: number;
-    hrm8Share: number;
-    subscriptionRevenue: number;
-    jobPaymentRevenue: number;
+    region_id: string;
+    licensee_id?: string;
+    period_start: string;
+    period_end: string;
+    total_revenue: number;
+    licensee_share: number;
+    hrm8_share: number;
+    subscription_revenue: number;
+    job_payment_revenue: number;
     status: 'PENDING' | 'SETTLED';
-    createdAt: string;
+    created_at: string;
 }
 
 export interface Settlement {
     id: string;
-    licenseeId: string;
-    periodStart: string;
-    periodEnd: string;
-    totalRevenue: number;
-    licenseeShare: number;
-    hrm8Share: number;
+    licensee_id: string;
+    period_start: string;
+    period_end: string;
+    total_revenue: number;
+    licensee_share: number;
+    hrm8_share: number;
     status: 'PENDING' | 'PAID';
-    paymentDate?: string;
-    paymentReference?: string;
-    createdAt: string;
+    payment_date?: string;
+    payment_reference?: string;
+    created_at: string;
     licensee?: {
         id: string;
         name: string;
@@ -60,36 +60,36 @@ export interface Settlement {
 }
 
 export interface SettlementStats {
-    totalPending: number;
-    totalPaid: number;
-    pendingAmount: number;
-    paidAmount: number;
+    total_pending: number;
+    total_paid: number;
+    pending_amount: number;
+    paid_amount: number;
 }
 
 export interface AttributionData {
-    companyId: string;
-    salesAgentId: string | null;
-    referredBy: string | null;
-    attributionLocked: boolean;
-    attributionLockedAt: string | null;
-    createdBy: string | null;
+    company_id: string;
+    sales_agent_id: string | null;
+    referred_by: string | null;
+    attribution_locked: boolean;
+    attribution_locked_at: string | null;
+    created_by: string | null;
 }
 
 export interface AttributionHistoryEntry {
     id: string;
-    companyId: string;
+    company_id: string;
     type: string;
     subject: string;
     description: string;
     attachments: {
         audit_type: string;
         action: string;
-        previousSalesAgentId: string | null;
-        newSalesAgentId: string | null;
-        performedBy: string;
+        previous_sales_agent_id: string | null;
+        new_sales_agent_id: string | null;
+        performed_by: string;
         reason: string | null;
     };
-    createdAt: string;
+    created_at: string;
 }
 
 // ==================== BILLING API SERVICE ====================
@@ -98,18 +98,18 @@ class BillingApiService {
     // -------------------- COMMISSIONS --------------------
 
     async getCommissions(filters?: {
-        consultantId?: string;
-        regionId?: string;
-        jobId?: string;
+        consultant_id?: string;
+        region_id?: string;
+        job_id?: string;
         status?: string;
         type?: string;
         page?: number;
         limit?: number;
     }) {
         const params = new URLSearchParams();
-        if (filters?.consultantId) params.append('consultantId', filters.consultantId);
-        if (filters?.regionId) params.append('regionId', filters.regionId);
-        if (filters?.jobId) params.append('jobId', filters.jobId);
+        if (filters?.consultant_id) params.append('consultant_id', filters.consultant_id);
+        if (filters?.region_id) params.append('region_id', filters.region_id);
+        if (filters?.job_id) params.append('job_id', filters.job_id);
         if (filters?.status) params.append('status', filters.status);
         if (filters?.type) params.append('type', filters.type);
         if (filters?.page) params.append('page', filters.page.toString());
@@ -139,14 +139,14 @@ class BillingApiService {
     async payCommission(commissionId: string, paymentReference: string) {
         return apiClient.post<{ message: string }>(
             `/api/admin/billing/commissions/${commissionId}/pay`,
-            { paymentReference }
+            { payment_reference: paymentReference }
         );
     }
 
     async bulkPayCommissions(commissionIds: string[], paymentReference: string) {
         return apiClient.post<{ processed: number; errors: string[] }>(
             '/api/admin/billing/commissions/bulk-pay',
-            { commissionIds, paymentReference }
+            { commission_ids: commissionIds, payment_reference: paymentReference }
         );
     }
 
@@ -154,7 +154,7 @@ class BillingApiService {
 
     async getPendingRevenue(licenseeId?: string) {
         const params = new URLSearchParams();
-        if (licenseeId) params.append('licenseeId', licenseeId);
+        if (licenseeId) params.append('licensee_id', licenseeId);
 
         const query = params.toString();
         return apiClient.get<{ revenues: RegionalRevenue[] }>(
@@ -191,7 +191,7 @@ class BillingApiService {
 
     async getSettlements(filters?: { licenseeId?: string; status?: string; limit?: number }) {
         const params = new URLSearchParams();
-        if (filters?.licenseeId) params.append('licenseeId', filters.licenseeId);
+        if (filters?.licenseeId) params.append('licensee_id', filters.licenseeId);
         if (filters?.status) params.append('status', filters.status);
         if (filters?.limit) params.append('limit', filters.limit.toString());
 
@@ -214,21 +214,21 @@ class BillingApiService {
     async generateSettlement(licenseeId: string, periodEnd?: string) {
         return apiClient.post<{ settlement: Settlement; revenueRecordsIncluded: number }>(
             `/api/admin/billing/settlements/licensee/${licenseeId}/generate`,
-            { periodEnd }
+            { period_end: periodEnd }
         );
     }
 
     async generateAllSettlements(periodEnd?: string) {
         return apiClient.post<{ generated: number; errors: string[] }>(
             '/api/admin/billing/settlements/generate-all',
-            { periodEnd }
+            { period_end: periodEnd }
         );
     }
 
     async markSettlementPaid(settlementId: string, paymentReference: string) {
         return apiClient.post<{ message: string }>(
             `/api/admin/billing/settlements/${settlementId}/pay`,
-            { paymentReference }
+            { payment_reference: paymentReference }
         );
     }
 
@@ -255,7 +255,7 @@ class BillingApiService {
     async overrideAttribution(companyId: string, newConsultantId: string, reason: string) {
         return apiClient.post<{ message: string }>(
             `/api/admin/billing/attribution/${companyId}/override`,
-            { newConsultantId, reason }
+            { new_consultant_id: newConsultantId, reason }
         );
     }
 }

@@ -84,7 +84,7 @@ export function OfferConfigurationDrawer({
       try {
         const response = await jobService.getJobById(jobId);
         if (response.success && response.data) {
-          const mappedJob = mapBackendJobToFrontend(response.data);
+          const mappedJob = mapBackendJobToFrontend(response.data.job || response.data);
           setJob(mappedJob);
         }
       } catch (error) {

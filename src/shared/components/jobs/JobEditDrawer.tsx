@@ -88,9 +88,10 @@ export function JobEditDrawer({ open, onOpenChange, jobId, onSuccess }: JobEditD
       const response = await jobService.getJobById(jobId);
       if (response.success && response.data) {
         // Map backend job to frontend format first, then to form data
-        const frontendJob = mapBackendJobToFrontend(response.data);
+        const jobData = response.data.job || response.data;
+        const frontendJob = mapBackendJobToFrontend(jobData);
         setJob(frontendJob);
-        const formData = transformJobToFormData(response.data);
+        const formData = transformJobToFormData(jobData);
         form.reset(formData);
       } else {
         toast({

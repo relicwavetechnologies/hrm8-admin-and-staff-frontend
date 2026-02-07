@@ -74,7 +74,7 @@ export function ApplicationDetailPanel({ application, open, onOpenChange, onRefr
         try {
           const response = await jobService.getJobById(application.jobId);
           if (response.success && response.data) {
-            const mappedJob = mapBackendJobToFrontend(response.data);
+            const mappedJob = mapBackendJobToFrontend(response.data.job || response.data);
             setJob(mappedJob);
           }
         } catch (error) {

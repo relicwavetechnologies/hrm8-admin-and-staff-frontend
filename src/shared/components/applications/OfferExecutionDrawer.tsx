@@ -123,7 +123,7 @@ export function OfferExecutionDrawer({
         try {
           const response = await jobService.getJobById(jobId);
           if (response.success && response.data) {
-            const mappedJob = mapBackendJobToFrontend(response.data);
+            const mappedJob = mapBackendJobToFrontend(response.data.job || response.data);
             console.log('[OfferExecutionDrawer] Job loaded:', mappedJob.title);
             setJob(mappedJob);
           } else {

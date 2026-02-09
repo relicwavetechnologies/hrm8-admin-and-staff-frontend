@@ -97,7 +97,6 @@ function App() {
                     <Route path="/hrm8/analytics" element={<AnalyticsDashboard />} />
 
                     <Route path="/hrm8/commissions" element={<CommissionsPage />} />
-                    <Route path="/hrm8/licensees" element={<LicenseesPage />} />
                     <Route path="/hrm8/staff" element={<StaffPage />} />
                     <Route path="/hrm8/staff/:id" element={<StaffProfilePage />} />
                     <Route path="/hrm8/consultants/:id" element={<Hrm8ConsultantDetailPage />} />
@@ -111,14 +110,9 @@ function App() {
                     <Route path="/hrm8/billing/refund-requests" element={<RefundRequestsPage />} />
                     <Route path="/hrm8/notifications" element={<UtilsNotificationsPage />} />
                     <Route path="/hrm8/email-templates" element={<AdminEmailTemplatesPage />} />
-                    <Route path="/hrm8/regions" element={<RegionsPage />} />
-                    <Route path="/hrm8/audit-logs" element={<AuditLogsPage />} />
                     <Route path="/hrm8/leads" element={<RegionalLeadsPage />} />
                     <Route path="/hrm8/reports" element={<ReportsPage />} />
-                    <Route path="/hrm8/system-settings" element={<Hrm8SettingsPage />} />
-                    <Route path="/hrm8/integrations" element={<Hrm8IntegrationsPage />} />
                     <Route path="/hrm8/sales-pipeline" element={<SalesPipelinePage />} />
-                    <Route path="/hrm8/settings" element={<Hrm8SettingsPage />} />
                     <Route path="/hrm8/profile" element={<Hrm8ProfilePage />} />
                     <Route path="/hrm8/attribution" element={<AttributionPage />} />
                     <Route path="/hrm8/pricing" element={<PricingPage />} />
@@ -126,6 +120,19 @@ function App() {
                     <Route path="/hrm8/regional-sales" element={<RegionalSalesDashboard />} />
                     <Route path="/hrm8/revenue" element={<RevenuePage />} />
                     <Route path="/hrm8/revenue-analytics" element={<RevenueDashboardPage />} />
+                    <Route path="/hrm8/conversion-requests" element={<ConversionRequestsPage />} />
+                    <Route path="/hrm8/careers-requests" element={<CareersRequestsPage />} />
+                </Route>
+
+                {/* HRM8 Admin Routes (All Admins) */}
+                <Route element={<RoleGuard allowedTypes={['ADMIN']}><DashboardWrapper /></RoleGuard>}>
+                    <Route path="/hrm8/settlements" element={<SettlementsPage />} />
+                    <Route path="/hrm8/system-settings" element={<Hrm8SettingsPage />} />
+                    <Route path="/hrm8/settings" element={<Hrm8SettingsPage />} />
+                    <Route path="/hrm8/audit-logs" element={<AuditLogsPage />} />
+                    <Route path="/hrm8/integrations" element={<Hrm8IntegrationsPage />} />
+                    <Route path="/hrm8/regions" element={<RegionsPage />} />
+                    <Route path="/hrm8/licensees" element={<LicenseesPage />} />
                 </Route>
 
                 <Route element={<RoleGuard allowedTypes={['CONSULTANT']}><DashboardWrapper /></RoleGuard>}>
@@ -167,9 +174,6 @@ function App() {
                     <Route path="/consultant360/jobs/:jobId" element={<ConsultantJobDetailPage />} />
                     <Route path="/consultant360/leads" element={<OpportunitiesPage />} />
                     <Route path="/consultant360/pipeline" element={<SalesPipelinePage />} />
-                    <Route path="/hrm8/conversion-requests" element={<ConversionRequestsPage />} />
-                    <Route path="/hrm8/settlements" element={<SettlementsPage />} />
-                    <Route path="/hrm8/careers-requests" element={<CareersRequestsPage />} />
                     <Route path="/consultant360/messages" element={<ConsultantMessagesPage />} />
                     <Route path="/consultant360/notifications" element={<Consultant360NotificationsPage />} />
                     <Route path="/consultant360/profile" element={<ConsultantProfilePage />} />

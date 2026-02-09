@@ -15,21 +15,26 @@ import { useCurrencyFormat } from '@/shared/contexts/CurrencyFormatContext';
 import { format } from 'date-fns';
 
 export default function SettlementsPage() {
-  const { hrm8User } = useHrm8Auth();
+  const { hrm8User, isLoading } = useHrm8Auth();
   const { formatCurrency } = useCurrencyFormat();
   const { toast } = useToast();
+
   const [settlements, setSettlements] = useState<Settlement[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedSettlement, setSelectedSettlement] = useState<Settlement | null>(null);
 
-  const isGlobalAdmin = hrm8User?.role === 'GLOBAL_ADMIN';
+  const normalizedRole = hrm8User?.role ? hrm8User.role.toUpperCase() : '';
+  const isGlobalAdmin = normalizedRole === 'GLOBAL_ADMIN';
 
+  // Load settlements when component mounts and when filter changes
+  // Auth check is handled by RoleGuard at route level
   useEffect(() => {
-    loadSettlements();
-    // Stats loading skipped for now as EnhancedStatCard is not yet ported
-  }, [statusFilter]);
+    if (!isLoading && hrm8User) {
+      loadSettlements();
+    }
+  }, [statusFilter, hrm8User, isLoading]);
 
   const loadSettlements = async () => {
     try {
@@ -44,9 +49,9 @@ export default function SettlementsPage() {
       }
     } catch (error) {
       toast({
-          title: "Error",
-          description: "Failed to load settlements",
-          variant: "destructive"
+        title: "Error",
+        description: "Failed to load settlements",
+        variant: "destructive"
       });
     } finally {
       // no-op
@@ -70,14 +75,14 @@ export default function SettlementsPage() {
   };
 
   const getStatusBadge = (status: string) => {
-      switch(status) {
-          case 'PENDING':
-              return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pending</Badge>;
-          case 'PAID':
-              return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Paid</Badge>;
-          default:
-              return <Badge variant="outline">{status}</Badge>;
-      }
+    switch (status) {
+      case 'PENDING':
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pending</Badge>;
+      case 'PAID':
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Paid</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
   };
 
   // Define columns
@@ -97,7 +102,7 @@ export default function SettlementsPage() {
       render: (settlement) => {
         const start = settlement.period_start ? new Date(settlement.period_start) : null;
         const end = settlement.period_end ? new Date(settlement.period_end) : null;
-        
+
         if (!start || isNaN(start.getTime()) || !end || isNaN(end.getTime())) {
           return <span className="text-sm text-muted-foreground">-</span>;
         }
@@ -175,62 +180,62 @@ export default function SettlementsPage() {
   ];
 
   return (
-      <div className="p-6 space-y-6">
-       
-        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-            <div>
-                 <h1 className="text-2xl font-bold tracking-tight">Settlements</h1>
-                 <p className="text-muted-foreground">Track and manage regional licensee settlements</p>
-            </div>
+    <div className="p-6 space-y-6">
 
-            <div className="flex items-center gap-2">
-                {isGlobalAdmin && (
-                    <Button onClick={() => setCreateDialogOpen(true)}>
-                    <DollarSign className="mr-2 h-4 w-4" />
-                    Generate Settlement
-                    </Button>
-                )}
-                
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-[180px]">
-                    <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="PENDING">Pending</SelectItem>
-                    <SelectItem value="PAID">Paid</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
+      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Settlements</h1>
+          <p className="text-muted-foreground">Track and manage regional licensee settlements</p>
         </div>
 
-        {/* Settlements Table */}
-        <Card>
-          <CardContent className="p-1">
-            <DataTable
-              data={settlements}
-              columns={columns}
-              searchable
-              searchKeys={['licensee_id', 'status']}
-              emptyMessage="No settlements found"
-            />
-        </CardContent>
-        </Card>
+        <div className="flex items-center gap-2">
+          {isGlobalAdmin && (
+            <Button onClick={() => setCreateDialogOpen(true)}>
+              <DollarSign className="mr-2 h-4 w-4" />
+              Generate Settlement
+            </Button>
+          )}
 
-        {/* Mark as Paid Dialog */}
-        <MarkSettlementPaidDialog
-          settlement={selectedSettlement}
-          open={paymentDialogOpen}
-          onOpenChange={setPaymentDialogOpen}
-          onSuccess={handlePaymentSuccess}
-        />
-
-        {/* Create Settlement Dialog */}
-        <CreateSettlementDialog
-          open={createDialogOpen}
-          onOpenChange={setCreateDialogOpen}
-          onSuccess={handleCreateSuccess}
-        />
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="PENDING">Pending</SelectItem>
+              <SelectItem value="PAID">Paid</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
+
+      {/* Settlements Table */}
+      <Card>
+        <CardContent className="p-1">
+          <DataTable
+            data={settlements}
+            columns={columns}
+            searchable
+            searchKeys={['licensee_id', 'status']}
+            emptyMessage="No settlements found"
+          />
+        </CardContent>
+      </Card>
+
+      {/* Mark as Paid Dialog */}
+      <MarkSettlementPaidDialog
+        settlement={selectedSettlement}
+        open={paymentDialogOpen}
+        onOpenChange={setPaymentDialogOpen}
+        onSuccess={handlePaymentSuccess}
+      />
+
+      {/* Create Settlement Dialog */}
+      <CreateSettlementDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        onSuccess={handleCreateSuccess}
+      />
+    </div>
   );
 }

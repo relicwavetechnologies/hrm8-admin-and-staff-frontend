@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useHrm8Auth } from '@/contexts/Hrm8AuthContext';
 import { licenseeService, RegionalLicensee } from '@/shared/lib/hrm8/licenseeService';
 import { DataTable } from '@/shared/components/tables/DataTable';
 import { Button } from '@/shared/components/ui/button';
@@ -53,12 +52,12 @@ const columns = [
   {
     key: 'revenueSharePercent',
     label: 'Revenue Share %',
-    render: (licensee: RegionalLicensee) => `${licensee.revenueSharePercent}%`,
+    render: (licensee: RegionalLicensee) => `${ licensee.revenueSharePercent }% `,
   },
 ];
 
 export default function LicenseesPage() {
-  const { hrm8User } = useHrm8Auth();
+
   const [licensees, setLicensees] = useState<RegionalLicensee[]>([]);
   const [loading, setLoading] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -76,8 +75,6 @@ export default function LicenseesPage() {
     pendingRevenue: number;
   } | null>(null);
   const [loadingImpact, setLoadingImpact] = useState(false);
-
-  const isGlobalAdmin = hrm8User?.role === 'GLOBAL_ADMIN';
 
   useEffect(() => {
     loadLicensees();
@@ -131,7 +128,7 @@ export default function LicenseesPage() {
         : licenseeService.suspend(selectedLicensee.id));
 
       if (response.success) {
-        toast.success(`Licensee ${selectedLicensee.status === 'SUSPENDED' ? 'activated' : 'suspended'} successfully`);
+        toast.success(`Licensee ${ selectedLicensee.status === 'SUSPENDED' ? 'activated' : 'suspended' } successfully`);
         await loadLicensees();
       }
     } catch (error) {
@@ -224,153 +221,143 @@ export default function LicenseesPage() {
     },
   ];
 
-  if (!isGlobalAdmin) {
-    return (
-      
-        <div className="p-6">
-          <h1 className="text-2xl font-bold tracking-tight">Regional Licensees</h1>
-          <p className="text-muted-foreground">Global Admin access required</p>
-        </div>
-      
-    );
-  }
-
+  // Auth check is handled by RoleGuard at route level (allowedRoles: ['GLOBAL_ADMIN'])
   return (
-    
-      <div className="p-6 space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Regional Licensees</h1>
-            <p className="text-muted-foreground">Manage regional licensees</p>
-          </div>
-          <Button onClick={handleCreate}>
-            <Plus className="mr-2 h-4 w-4" />
-            Create Licensee
-          </Button>
+
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Regional Licensees</h1>
+          <p className="text-muted-foreground">Manage regional licensees</p>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Licensees</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <TableSkeleton columns={5} />
-            ) : (
-              <DataTable
-                data={licensees}
-                columns={pageColumns}
-                searchable
-                searchKeys={['name', 'email', 'legalEntityName']}
-                emptyMessage="No licensees found"
-              />
-            )}
-          </CardContent>
-        </Card>
-
-        <AlertDialog open={confirmSuspendOpen} onOpenChange={setConfirmSuspendOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>
-                {selectedLicensee?.status === 'SUSPENDED' ? 'Activate Licensee' : 'Suspend Licensee'}
-              </AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to {selectedLicensee?.status === 'SUSPENDED' ? 'activate' : 'suspend'} <strong>{selectedLicensee?.name}</strong>?
-                {selectedLicensee?.status !== 'SUSPENDED' && ' This will temporarily disable their access to regional data.'}
-
-                {/* Impact Preview */}
-                {selectedLicensee?.status !== 'SUSPENDED' && (
-                  <div className="mt-4 p-3 bg-amber-50 rounded-md border border-amber-200">
-                    {loadingImpact ? (
-                      <div className="flex items-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span className="text-sm">Loading impact preview...</span>
-                      </div>
-                    ) : impactData ? (
-                      <>
-                        <p className="font-medium text-amber-800">This will affect:</p>
-                        <ul className="mt-2 text-sm text-amber-700">
-                          <li>• {impactData.regions} region(s)</li>
-                          <li>• {impactData.activeJobs} active job(s) will be paused</li>
-                          <li>• {impactData.consultants} consultant(s)</li>
-                          {impactData.pendingRevenue > 0 && (
-                            <li>• ${impactData.pendingRevenue.toFixed(2)} pending revenue</li>
-                          )}
-                        </ul>
-                      </>
-                    ) : null}
-                  </div>
-                )}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={actionLoading}>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleSuspend();
-                }}
-                disabled={actionLoading}
-                className={selectedLicensee?.status === 'SUSPENDED' ? 'bg-green-600 hover:bg-green-700' : 'bg-amber-600 hover:bg-amber-700'}
-              >
-                {actionLoading ? 'Processing...' : (selectedLicensee?.status === 'SUSPENDED' ? 'Activate' : 'Suspend')}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        <AlertDialog open={confirmTerminateOpen} onOpenChange={setConfirmTerminateOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-red-600 flex items-center gap-2">
-                <ShieldAlert className="h-5 w-5" />
-                Terminate Licensee
-              </AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to permanently terminate <strong>{selectedLicensee?.name}</strong>?
-                This action <strong>cannot be undone</strong> and will revoke all access immediately.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={actionLoading}>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleTerminate();
-                }}
-                disabled={actionLoading}
-                className="bg-red-600 hover:bg-red-700"
-              >
-                {actionLoading ? 'Terminating...' : 'Terminate Licensee'}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        <FormDrawer
-          open={drawerOpen}
-          onOpenChange={setDrawerOpen}
-          title={editingLicenseeId ? 'Edit Licensee' : 'Create Licensee'}
-        >
-          <LicenseeForm
-            licenseeId={editingLicenseeId}
-            onSave={handleSave}
-            onCancel={() => {
-              setDrawerOpen(false);
-              setEditingLicenseeId(null);
-            }}
-          />
-        </FormDrawer>
-
-        {/* Audit History Drawer */}
-        <AuditHistoryDrawer
-          open={historyDrawerOpen}
-          onOpenChange={setHistoryDrawerOpen}
-          entityType="LICENSEE"
-          entityId={historyLicensee?.id || ''}
-          entityName={historyLicensee?.name || ''}
-        />
+        <Button onClick={handleCreate}>
+          <Plus className="mr-2 h-4 w-4" />
+          Create Licensee
+        </Button>
       </div>
-    
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Licensees</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <TableSkeleton columns={5} />
+          ) : (
+            <DataTable
+              data={licensees}
+              columns={pageColumns}
+              searchable
+              searchKeys={['name', 'email', 'legalEntityName']}
+              emptyMessage="No licensees found"
+            />
+          )}
+        </CardContent>
+      </Card>
+
+      <AlertDialog open={confirmSuspendOpen} onOpenChange={setConfirmSuspendOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {selectedLicensee?.status === 'SUSPENDED' ? 'Activate Licensee' : 'Suspend Licensee'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to {selectedLicensee?.status === 'SUSPENDED' ? 'activate' : 'suspend'} <strong>{selectedLicensee?.name}</strong>?
+              {selectedLicensee?.status !== 'SUSPENDED' && ' This will temporarily disable their access to regional data.'}
+
+              {/* Impact Preview */}
+              {selectedLicensee?.status !== 'SUSPENDED' && (
+                <div className="mt-4 p-3 bg-amber-50 rounded-md border border-amber-200">
+                  {loadingImpact ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="text-sm">Loading impact preview...</span>
+                    </div>
+                  ) : impactData ? (
+                    <>
+                      <p className="font-medium text-amber-800">This will affect:</p>
+                      <ul className="mt-2 text-sm text-amber-700">
+                        <li>• {impactData.regions} region(s)</li>
+                        <li>• {impactData.activeJobs} active job(s) will be paused</li>
+                        <li>• {impactData.consultants} consultant(s)</li>
+                        {impactData.pendingRevenue > 0 && (
+                          <li>• ${impactData.pendingRevenue.toFixed(2)} pending revenue</li>
+                        )}
+                      </ul>
+                    </>
+                  ) : null}
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={actionLoading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleSuspend();
+              }}
+              disabled={actionLoading}
+              className={selectedLicensee?.status === 'SUSPENDED' ? 'bg-green-600 hover:bg-green-700' : 'bg-amber-600 hover:bg-amber-700'}
+            >
+              {actionLoading ? 'Processing...' : (selectedLicensee?.status === 'SUSPENDED' ? 'Activate' : 'Suspend')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={confirmTerminateOpen} onOpenChange={setConfirmTerminateOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-red-600 flex items-center gap-2">
+              <ShieldAlert className="h-5 w-5" />
+              Terminate Licensee
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to permanently terminate <strong>{selectedLicensee?.name}</strong>?
+              This action <strong>cannot be undone</strong> and will revoke all access immediately.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={actionLoading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleTerminate();
+              }}
+              disabled={actionLoading}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {actionLoading ? 'Terminating...' : 'Terminate Licensee'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <FormDrawer
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        title={editingLicenseeId ? 'Edit Licensee' : 'Create Licensee'}
+      >
+        <LicenseeForm
+          licenseeId={editingLicenseeId}
+          onSave={handleSave}
+          onCancel={() => {
+            setDrawerOpen(false);
+            setEditingLicenseeId(null);
+          }}
+        />
+      </FormDrawer>
+
+      {/* Audit History Drawer */}
+      <AuditHistoryDrawer
+        open={historyDrawerOpen}
+        onOpenChange={setHistoryDrawerOpen}
+        entityType="LICENSEE"
+        entityId={historyLicensee?.id || ''}
+        entityName={historyLicensee?.name || ''}
+      />
+    </div>
+
   );
 }

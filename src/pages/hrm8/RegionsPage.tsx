@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useHrm8Auth } from '@/contexts/Hrm8AuthContext';
 import { regionService, Region } from '@/shared/lib/hrm8/regionService';
 import { DataTable } from '@/shared/components/tables/DataTable';
 import { Button } from '@/shared/components/ui/button';
@@ -133,7 +132,7 @@ const createColumns = (
   ];
 
 export default function RegionsPage() {
-  const { hrm8User } = useHrm8Auth();
+
   const [regions, setRegions] = useState<Region[]>([]);
   const [loading, setLoading] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -146,8 +145,6 @@ export default function RegionsPage() {
   const [regionForTransfer, setRegionForTransfer] = useState<Region | null>(null);
   const [historyDrawerOpen, setHistoryDrawerOpen] = useState(false);
   const [historyRegion, setHistoryRegion] = useState<Region | null>(null);
-
-  const isGlobalAdmin = hrm8User?.role === 'GLOBAL_ADMIN';
 
   useEffect(() => {
     loadRegions();
@@ -236,95 +233,85 @@ export default function RegionsPage() {
     }
   );
 
-  if (!isGlobalAdmin) {
-    return (
-      
-        <div className="p-6">
-          <h1 className="text-2xl font-bold tracking-tight">Regions Management</h1>
-          <p className="text-muted-foreground">Global Admin access required</p>
-        </div>
-      
-    );
-  }
-
+  // Auth check is handled by RoleGuard at route level (allowedRoles: ['GLOBAL_ADMIN'])
   return (
-    
-      <div className="p-6 space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Regions Management</h1>
-            <p className="text-muted-foreground">Manage geographic regions</p>
-          </div>
-          <Button onClick={handleCreate}>
-            <Plus className="mr-2 h-4 w-4" />
-            Create Region
-          </Button>
+
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Regions Management</h1>
+          <p className="text-muted-foreground">Manage geographic regions</p>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Regions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <TableSkeleton columns={6} />
-            ) : (
-              <DataTable
-                data={regions}
-                columns={columns}
-                searchable
-                searchKeys={['code', 'name', 'country']}
-                emptyMessage="No regions found"
-              />
-            )}
-          </CardContent>
-        </Card>
-
-        <FormDrawer
-          open={drawerOpen}
-          onOpenChange={setDrawerOpen}
-          title={editingRegionId ? 'Edit Region' : 'Create Region'}
-        >
-          <RegionForm
-            regionId={editingRegionId}
-            onSave={handleSave}
-            onCancel={() => {
-              setDrawerOpen(false);
-              setEditingRegionId(null);
-            }}
-          />
-        </FormDrawer>
-
-        <DeleteConfirmationDialog
-          open={deleteDialogOpen}
-          onOpenChange={setDeleteDialogOpen}
-          onConfirm={confirmDelete}
-          title="Delete Region"
-          description="Are you sure you want to delete this region? This action cannot be undone."
-        />
-
-        <AssignLicenseeDialog
-          open={assignLicenseeDialogOpen}
-          onOpenChange={setAssignLicenseeDialogOpen}
-          region={regionForLicensee}
-          onSuccess={handleLicenseeAssigned}
-        />
-
-        <TransferRegionDialog
-          open={transferDialogOpen}
-          onOpenChange={setTransferDialogOpen}
-          region={regionForTransfer}
-          onSuccess={handleTransferComplete}
-        />
-
-        <AuditHistoryDrawer
-          open={historyDrawerOpen}
-          onOpenChange={setHistoryDrawerOpen}
-          entityType="REGION"
-          entityId={historyRegion?.id || ''}
-          entityName={historyRegion?.name || ''}
-        />
+        <Button onClick={handleCreate}>
+          <Plus className="mr-2 h-4 w-4" />
+          Create Region
+        </Button>
       </div>
-    
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Regions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <TableSkeleton columns={6} />
+          ) : (
+            <DataTable
+              data={regions}
+              columns={columns}
+              searchable
+              searchKeys={['code', 'name', 'country']}
+              emptyMessage="No regions found"
+            />
+          )}
+        </CardContent>
+      </Card>
+
+      <FormDrawer
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        title={editingRegionId ? 'Edit Region' : 'Create Region'}
+      >
+        <RegionForm
+          regionId={editingRegionId}
+          onSave={handleSave}
+          onCancel={() => {
+            setDrawerOpen(false);
+            setEditingRegionId(null);
+          }}
+        />
+      </FormDrawer>
+
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDelete}
+        title="Delete Region"
+        description="Are you sure you want to delete this region? This action cannot be undone."
+      />
+
+      <AssignLicenseeDialog
+        open={assignLicenseeDialogOpen}
+        onOpenChange={setAssignLicenseeDialogOpen}
+        region={regionForLicensee}
+        onSuccess={handleLicenseeAssigned}
+      />
+
+      <TransferRegionDialog
+        open={transferDialogOpen}
+        onOpenChange={setTransferDialogOpen}
+        region={regionForTransfer}
+        onSuccess={handleTransferComplete}
+      />
+
+      <AuditHistoryDrawer
+        open={historyDrawerOpen}
+        onOpenChange={setHistoryDrawerOpen}
+        entityType="REGION"
+        entityId={historyRegion?.id || ''}
+        entityName={historyRegion?.name || ''}
+      />
+    </div>
+
   );
 }

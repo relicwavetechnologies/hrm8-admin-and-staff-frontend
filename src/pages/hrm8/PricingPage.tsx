@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { hrm8PricingService, Product, PriceBook, PromoCode } from '@/shared/services/hrm8/pricingService';
+import { hrm8PricingService, Product, PriceBook, PromoCode, ProductCategory } from '@/shared/services/hrm8/pricingService';
 import { Hrm8PageLayout } from '@/shared/components/layouts/Hrm8PageLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { DataTable } from '@/shared/components/tables/DataTable';
@@ -13,12 +13,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/shared/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { toast } from 'sonner';
-import { Package, BookOpen, Globe, MapPin, Plus } from 'lucide-react';
+import { Package, BookOpen, Globe, MapPin, Plus, Trash2, AlertTriangle } from 'lucide-react';
 import { TableSkeleton } from '@/shared/components/tables/TableSkeleton';
 import { Button } from '@/shared/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog';
 import { Input } from '@/shared/components/ui/input';
 import { Textarea } from '@/shared/components/ui/textarea';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/shared/components/ui/alert-dialog';
 
 export default function PricingPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -31,10 +41,16 @@ export default function PricingPage() {
 
   const [productDialogOpen, setProductDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [productForm, setProductForm] = useState({
+  const [productForm, setProductForm] = useState<{
+    name: string;
+    code: string;
+    category: ProductCategory;
+    description: string;
+    is_active: boolean;
+  }>({
     name: '',
     code: '',
-    category: '',
+    category: 'SUBSCRIPTION',
     description: '',
     is_active: true,
   });
@@ -51,13 +67,14 @@ export default function PricingPage() {
   });
 
   const [tierDialogOpen, setTierDialogOpen] = useState(false);
+  const [selectedPriceBook, setSelectedPriceBook] = useState<PriceBook | null>(null);
   const [editingTierId, setEditingTierId] = useState<string | null>(null);
   const [tierForm, setTierForm] = useState({
     price_book_id: '',
     product_id: '',
     name: '',
     min_quantity: 1,
-    max_quantity: '',
+    max_quantity: '' as string | undefined,
     unit_price: 0,
     period: 'MONTHLY',
   });
@@ -75,27 +92,22 @@ export default function PricingPage() {
     is_active: true,
   });
 
+  const [deleteProductId, setDeleteProductId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   useEffect(() => {
     loadProducts();
-  }, []);
-
-  useEffect(() => {
     loadPriceBooks();
-  }, [regionFilter]);
-
-  useEffect(() => {
     loadPromoCodes();
-  }, []);
+  }, [regionFilter]);
 
   const loadProducts = async () => {
     try {
       setLoadingProducts(true);
-      const res = await hrm8PricingService.getProducts();
-      if (res.success && res.data?.products) {
-        setProducts(res.data.products);
-      }
-    } catch {
-      toast.error('Failed to load pricing products');
+      const data = await hrm8PricingService.getProducts();
+      setProducts(data.data?.products || []);
+    } catch (error) {
+      toast.error('Failed to load products');
     } finally {
       setLoadingProducts(false);
     }
@@ -104,12 +116,9 @@ export default function PricingPage() {
   const loadPriceBooks = async () => {
     try {
       setLoadingBooks(true);
-      const params = regionFilter !== 'all' ? { regionId: regionFilter } : undefined;
-      const res = await hrm8PricingService.getPriceBooks(params);
-      if (res.success && res.data?.priceBooks) {
-        setPriceBooks(res.data.priceBooks);
-      }
-    } catch {
+      const data = await hrm8PricingService.getPriceBooks(regionFilter !== 'all' ? { regionId: regionFilter } : undefined);
+      setPriceBooks(data.data?.priceBooks || []);
+    } catch (error) {
       toast.error('Failed to load price books');
     } finally {
       setLoadingBooks(false);
@@ -119,11 +128,9 @@ export default function PricingPage() {
   const loadPromoCodes = async () => {
     try {
       setLoadingPromos(true);
-      const res = await hrm8PricingService.getPromoCodes();
-      if (res.success && res.data?.promoCodes) {
-        setPromoCodes(res.data.promoCodes);
-      }
-    } catch {
+      const data = await hrm8PricingService.getPromoCodes();
+      setPromoCodes(data.data?.promoCodes || []);
+    } catch (error) {
       toast.error('Failed to load promo codes');
     } finally {
       setLoadingPromos(false);
@@ -142,9 +149,29 @@ export default function PricingPage() {
       });
     } else {
       setEditingProduct(null);
-      setProductForm({ name: '', code: '', category: '', description: '', is_active: true });
+      setProductForm({ name: '', code: '', category: 'SUBSCRIPTION', description: '', is_active: true });
     }
     setProductDialogOpen(true);
+  };
+
+  const confirmDeleteProduct = (id: string) => {
+    setDeleteProductId(id);
+  };
+
+  const handleDeleteProduct = async () => {
+    if (!deleteProductId) return;
+
+    setIsDeleting(true);
+    try {
+      await hrm8PricingService.deleteProduct(deleteProductId);
+      toast.success('Product deleted successfully');
+      setDeleteProductId(null);
+      loadProducts();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete product');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const saveProduct = async () => {
@@ -190,12 +217,21 @@ export default function PricingPage() {
 
   const savePriceBook = async () => {
     try {
-      const payload = {
-        ...priceBookForm,
-        id: editingPriceBook?.id,
-        region_id: priceBookForm.is_global ? null : priceBookForm.region_id || null,
+      const payload: any = {
+        name: priceBookForm.name,
+        description: priceBookForm.description,
+        isGlobal: priceBookForm.is_global,
+        regionId: priceBookForm.is_global ? null : priceBookForm.region_id || null,
+        currency: priceBookForm.currency,
+        isActive: priceBookForm.is_active,
       };
-      await hrm8PricingService.upsertPriceBook(payload);
+
+      if (editingPriceBook) {
+        await hrm8PricingService.updatePriceBook(editingPriceBook.id, payload);
+      } else {
+        await hrm8PricingService.createPriceBook(payload);
+      }
+
       toast.success('Price book saved');
       setPriceBookDialogOpen(false);
       loadPriceBooks();
@@ -205,32 +241,55 @@ export default function PricingPage() {
   };
 
   const openTierDialog = (priceBook: PriceBook, tierId?: string) => {
-    setEditingTierId(tierId || null);
-    setTierForm({
-      price_book_id: priceBook.id,
-      product_id: '',
-      name: '',
-      min_quantity: 1,
-      max_quantity: '',
-      unit_price: 0,
-      period: 'MONTHLY',
-    });
+    setSelectedPriceBook(priceBook);
+    if (tierId) {
+      const tier = priceBook.tiers.find((t) => t.id === tierId);
+      if (tier) {
+        setEditingTierId(tierId);
+        setTierForm({
+          price_book_id: priceBook.id,
+          product_id: tier.product?.id || '',
+          name: tier.name,
+          min_quantity: tier.min_quantity,
+          max_quantity: tier.max_quantity ? String(tier.max_quantity) : undefined,
+          unit_price: tier.unit_price,
+          period: tier.period,
+        });
+      }
+    } else {
+      setEditingTierId(null);
+      setTierForm({
+        price_book_id: priceBook.id,
+        product_id: '',
+        name: '',
+        min_quantity: 1,
+        max_quantity: undefined,
+        unit_price: 0,
+        period: 'MONTHLY',
+      });
+    }
     setTierDialogOpen(true);
   };
 
   const saveTier = async () => {
     try {
-      const payload = {
-        id: editingTierId || undefined,
-        price_book_id: tierForm.price_book_id,
-        product_id: tierForm.product_id,
+      if (!selectedPriceBook) return;
+
+      const payload: any = {
         name: tierForm.name,
-        min_quantity: tierForm.min_quantity,
-        max_quantity: tierForm.max_quantity ? Number(tierForm.max_quantity) : null,
-        unit_price: Number(tierForm.unit_price),
+        minQuantity: tierForm.min_quantity,
+        maxQuantity: tierForm.max_quantity ? Number(tierForm.max_quantity) : null,
+        unitPrice: Number(tierForm.unit_price),
         period: tierForm.period,
       };
-      await hrm8PricingService.upsertPriceTier(payload);
+
+      if (editingTierId) {
+        await hrm8PricingService.updatePriceTier(editingTierId, payload);
+      } else {
+        payload.productId = tierForm.product_id;
+        await hrm8PricingService.createPriceTier(selectedPriceBook.id, payload);
+      }
+
       toast.success('Tier saved');
       setTierDialogOpen(false);
       loadPriceBooks();
@@ -317,9 +376,14 @@ export default function PricingPage() {
       key: 'actions',
       label: 'Actions',
       render: (p: Product) => (
-        <Button size="sm" variant="outline" onClick={() => openProductDialog(p)}>
-          Edit
-        </Button>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={() => openProductDialog(p)}>
+            Edit
+          </Button>
+          <Button size="sm" variant="destructive" onClick={() => confirmDeleteProduct(p.id)}>
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
       ),
     },
   ];
@@ -450,18 +514,18 @@ export default function PricingPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-            {loadingProducts ? (
-              <TableSkeleton columns={5} />
-            ) : (
-              <DataTable
-                data={products}
-                columns={productColumns}
-                searchable
-                searchKeys={['name', 'code', 'category']}
-                emptyMessage="No products found"
-              />
-            )}
-          </CardContent>
+                {loadingProducts ? (
+                  <TableSkeleton columns={5} />
+                ) : (
+                  <DataTable
+                    data={products}
+                    columns={productColumns}
+                    searchable
+                    searchKeys={['name', 'code', 'category']}
+                    emptyMessage="No products found"
+                  />
+                )}
+              </CardContent>
             </Card>
           </TabsContent>
 
@@ -539,7 +603,20 @@ export default function PricingPage() {
             </div>
             <div className="space-y-1">
               <Label>Category</Label>
-              <Input value={productForm.category} onChange={(e) => setProductForm({ ...productForm, category: e.target.value })} />
+              <Select value={productForm.category} onValueChange={(v) => setProductForm({ ...productForm, category: v as ProductCategory })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="SUBSCRIPTION">Subscription</SelectItem>
+                  <SelectItem value="JOB_POSTING">Job Posting</SelectItem>
+                  <SelectItem value="ASSESSMENT">Assessment</SelectItem>
+                  <SelectItem value="ADDON_SERVICE">Add-on Service</SelectItem>
+                  <SelectItem value="FEATURE_UNLOCK">Feature Unlock</SelectItem>
+                  <SelectItem value="SUPPORT">Support</SelectItem>
+                  <SelectItem value="OTHER">Other</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1">
               <Label>Description</Label>
@@ -753,6 +830,40 @@ export default function PricingPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteProductId} onOpenChange={(open) => !open && setDeleteProductId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Delete Product?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>This action cannot be undone. This will permanently delete this product and remove it from:</p>
+              <ul className="list-disc pl-5 text-sm">
+                <li>All Price Books and Tiers</li>
+                <li>All Active User Subscriptions/Accounts</li>
+                <li>Future billing cycles</li>
+              </ul>
+              <p className="font-medium text-destructive">If any user has purchased this product, it will be removed from their account.</p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={(e) => {
+                e.preventDefault();
+                handleDeleteProduct();
+              }}
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Deleting...' : 'Yes, Delete Product'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Hrm8PageLayout>
   );
 }

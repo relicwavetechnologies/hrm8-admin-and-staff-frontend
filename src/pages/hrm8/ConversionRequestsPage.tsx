@@ -54,10 +54,8 @@ export default function ConversionRequestsPage() {
             setProcessing(true);
             const result = await leadConversionAdminService.approve(selectedRequest.id, adminNotes);
 
-            // Show credentials to admin
             setCredentials({
                 email: selectedRequest.email,
-                password: result.tempPassword,
                 companyName: result.company.name
             });
 
@@ -315,9 +313,9 @@ export default function ConversionRequestsPage() {
             <Dialog open={!!credentials} onOpenChange={(open) => !open && setCredentials(null)}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Account Created Successfully</DialogTitle>
+                        <DialogTitle>Invite Sent Successfully</DialogTitle>
                         <DialogDescription>
-                            The lead has been converted to a company account. Please share these login details with the user.
+                            The lead has been converted to a company account. A secure invite link was sent to the company admin to set their password.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -331,15 +329,15 @@ export default function ConversionRequestsPage() {
                             <span className="text-sm font-mono col-span-2 break-all">{credentials?.email}</span>
                         </div>
                         <div className="grid grid-cols-3 gap-2 py-1">
-                            <span className="text-sm font-medium text-muted-foreground">Password:</span>
+                            <span className="text-sm font-medium text-muted-foreground">Status:</span>
                             <span className="text-sm font-mono text-primary font-bold col-span-2">
-                                {credentials?.password || '******** (Manually set by agent)'}
+                                Invite link sent
                             </span>
                         </div>
                     </div>
 
                     <div className="bg-blue-50 border border-blue-200 p-3 rounded text-xs text-blue-700 mt-2">
-                        <strong>Security Note:</strong> This password will not be shown again. Please ensure you copy it now.
+                        <strong>Next step:</strong> The admin should set their password using the emailed link.
                     </div>
 
                     <DialogFooter>

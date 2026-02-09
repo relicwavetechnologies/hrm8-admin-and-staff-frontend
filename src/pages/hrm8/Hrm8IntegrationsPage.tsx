@@ -1,5 +1,5 @@
+
 import { useEffect, useMemo, useState } from "react";
-import { useHrm8Auth } from "@/contexts/Hrm8AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
@@ -8,10 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/shared/components/ui/switch";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Badge } from "@/shared/components/ui/badge";
-import { Alert, AlertDescription } from "@/shared/components/ui/alert";
+
 import { DataTable, Column } from "@/shared/components/tables/DataTable";
 import { useToast } from "@/shared/hooks/use-toast";
-import { AlertCircle, Database, Plus, RefreshCw, Settings2 } from "lucide-react";
+import { Database, Plus, RefreshCw, Settings2 } from "lucide-react";
 import {
   CompanyIntegration,
   GlobalIntegration,
@@ -48,9 +48,8 @@ const categoryOptions = [
 ];
 
 export default function Hrm8IntegrationsPage() {
-  const { hrm8User } = useHrm8Auth();
+
   const { toast } = useToast();
-  const isGlobalAdmin = hrm8User?.role === "GLOBAL_ADMIN";
 
   const [loading, setLoading] = useState(true);
   const [savingGlobal, setSavingGlobal] = useState(false);
@@ -374,19 +373,7 @@ export default function Hrm8IntegrationsPage() {
     },
   ];
 
-  if (!isGlobalAdmin) {
-    return (
-      <div className="p-6">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Access denied. Only HRM8 Global Administrators can access integrations.
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
+  // Auth check is handled by RoleGuard at route level (allowedRoles: ['GLOBAL_ADMIN'])
   return (
     <div className="p-6 space-y-6">
       <div className="flex flex-col gap-2">

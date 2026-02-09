@@ -47,7 +47,7 @@ export default function JobAllocationPage() {
       setLoading(true);
       const filters: {
         regionId?: string;
-        companySearch?: string;
+        company?: string;
         industry?: string;
         assignmentStatus?: 'UNASSIGNED' | 'ASSIGNED' | 'ALL';
         search?: string;
@@ -57,7 +57,7 @@ export default function JobAllocationPage() {
 
       if (selectedRegionId && selectedRegionId !== 'all') filters.regionId = selectedRegionId;
       if (debouncedCompany) {
-        filters.companySearch = debouncedCompany;
+        filters.company = debouncedCompany;
       }
       if (debouncedIndustry) {
         filters.industry = debouncedIndustry;
@@ -176,117 +176,117 @@ export default function JobAllocationPage() {
   ];
 
   return (
-    
-      <div className="p-6 space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Job Allocation</h1>
-          <p className="text-muted-foreground">Manage open jobs and assign the best consultant</p>
-        </div>
 
-        {/* Filters */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              Filters
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <div className="space-y-2">
-                <Label>Assignment Status</Label>
-                <Select value={assignmentStatusFilter} onValueChange={(val: any) => setAssignmentStatusFilter(val)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ALL">All Status</SelectItem>
-                    <SelectItem value="UNASSIGNED">Unassigned Only</SelectItem>
-                    <SelectItem value="ASSIGNED">Assigned Only</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+    <div className="p-6 space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Job Allocation</h1>
+        <p className="text-muted-foreground">Manage open jobs and assign the best consultant</p>
+      </div>
 
-              <div className="space-y-2">
-                <Label>Company</Label>
-                <Input
-                  placeholder="Filter by company..."
-                  value={companyFilter}
-                  onChange={(e) => setCompanyFilter(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Industry</Label>
-                <Input
-                  placeholder="Filter by industry..."
-                  value={industryFilter}
-                  onChange={(e) => setIndustryFilter(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Search</Label>
-                <Input
-                  placeholder="Search job title..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
+      {/* Filters */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            Filters
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="space-y-2">
+              <Label>Assignment Status</Label>
+              <Select value={assignmentStatusFilter} onValueChange={(val: any) => setAssignmentStatusFilter(val)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All Status</SelectItem>
+                  <SelectItem value="UNASSIGNED">Unassigned Only</SelectItem>
+                  <SelectItem value="ASSIGNED">Assigned Only</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            {hasActiveFilters && (
-              <div className="flex justify-end mt-4">
-                <Button variant="outline" onClick={clearFilters}>
-                  <X className="mr-2 h-4 w-4" />
-                  Clear Filters
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Jobs Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Briefcase className="h-5 w-5" />
-              Open Jobs ({jobs.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <TableSkeleton columns={8} />
-            ) : (
-              <DataTable
-                data={jobs}
-                columns={columns}
-                searchable={false}
-                serverPagination
-                currentPage={currentPage}
-                pageSize={pageSize}
-                totalItems={totalJobs}
-                onPageChange={setCurrentPage}
-                onPageSizeChange={(size) => {
-                  setPageSize(size);
-                  setCurrentPage(1);
-                }}
-                emptyMessage="No unassigned jobs found"
+            <div className="space-y-2">
+              <Label>Company</Label>
+              <Input
+                placeholder="Filter by company..."
+                value={companyFilter}
+                onChange={(e) => setCompanyFilter(e.target.value)}
               />
-            )}
-          </CardContent>
-        </Card>
+            </div>
 
-        {/* Assign Drawer */}
-        {selectedJobId && (
-          <AssignConsultantDrawer
-            open={drawerOpen}
-            onOpenChange={setDrawerOpen}
-            jobId={selectedJobId}
-            onSuccess={handleAssignSuccess}
-          />
-        )}
-      </div>
-    
+            <div className="space-y-2">
+              <Label>Industry</Label>
+              <Input
+                placeholder="Filter by industry..."
+                value={industryFilter}
+                onChange={(e) => setIndustryFilter(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Search</Label>
+              <Input
+                placeholder="Search job title..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {hasActiveFilters && (
+            <div className="flex justify-end mt-4">
+              <Button variant="outline" onClick={clearFilters}>
+                <X className="mr-2 h-4 w-4" />
+                Clear Filters
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Jobs Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Briefcase className="h-5 w-5" />
+            Open Jobs ({jobs.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <TableSkeleton columns={8} />
+          ) : (
+            <DataTable
+              data={jobs}
+              columns={columns}
+              searchable={false}
+              serverPagination
+              currentPage={currentPage}
+              pageSize={pageSize}
+              totalItems={totalJobs}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+              emptyMessage="No unassigned jobs found"
+            />
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Assign Drawer */}
+      {selectedJobId && (
+        <AssignConsultantDrawer
+          open={drawerOpen}
+          onOpenChange={setDrawerOpen}
+          jobId={selectedJobId}
+          onSuccess={handleAssignSuccess}
+        />
+      )}
+    </div>
+
   );
 }

@@ -1,5 +1,14 @@
 import { apiClient } from '@/shared/lib/apiClient';
 
+export type ProductCategory =
+  | 'SUBSCRIPTION'
+  | 'JOB_POSTING'
+  | 'ASSESSMENT'
+  | 'ADDON_SERVICE'
+  | 'FEATURE_UNLOCK'
+  | 'SUPPORT'
+  | 'OTHER';
+
 export interface ProductTier {
   id: string;
   name: string;
@@ -14,7 +23,7 @@ export interface Product {
   name: string;
   code: string;
   description?: string;
-  category: string;
+  category: ProductCategory;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -69,53 +78,82 @@ class Hrm8PricingService {
     return apiClient.get<{ products: Product[] }>('/api/hrm8/pricing/products');
   }
 
+  async upsertProduct(data: Partial<Product> & { name: string; code: string; category: string }) {
+    // Backend repository handles upsert logic based on ID presence
+    return apiClient.post<{ product: Product }>('/api/hrm8/pricing/products', data);
+  }
+
+  async deleteProduct(id: string) {
+    return apiClient.delete(`/api/hrm8/pricing/products/${id}`);
+  }
+
   async getPriceBooks(params?: { regionId?: string }) {
     const query = new URLSearchParams();
     if (params?.regionId) query.append('regionId', params.regionId);
     const suffix = query.toString() ? `?${query.toString()}` : '';
-    return apiClient.get<{ priceBooks: PriceBook[] }>(`/api/hrm8/pricing/books${suffix}`);
+    return apiClient.get<{ priceBooks: PriceBook[] }>(`/api/hrm8/pricing/price-books${suffix}`);
   }
 
-  async upsertProduct(data: Partial<Product> & { name: string; code: string; category: string }) {
-    if (data.id) {
-      return apiClient.put<{ product: Product }>(`/api/hrm8/pricing/products/${data.id}`, data);
-    }
-    return apiClient.post<{ product: Product }>('/api/hrm8/pricing/products', data);
-  }
-
-  async upsertPriceBook(data: Partial<PriceBook> & { name: string }) {
-    if (data.id) {
-      return apiClient.put<{ priceBook: PriceBook }>(`/api/hrm8/pricing/price-books/${data.id}`, data);
-    }
+  async createPriceBook(data: Partial<PriceBook> & { name: string }) {
     return apiClient.post<{ priceBook: PriceBook }>('/api/hrm8/pricing/price-books', data);
   }
 
-  async upsertPriceTier(data: {
-    id?: string;
-    price_book_id: string;
-    product_id: string;
+  async updatePriceBook(id: string, data: Partial<PriceBook>) {
+    return apiClient.put<{ priceBook: PriceBook }>(`/api/hrm8/pricing/price-books/${id}`, data);
+  }
+
+  async deletePriceBook(id: string) {
+    return apiClient.delete(`/api/hrm8/pricing/price-books/${id}`);
+  }
+
+  async createPriceTier(priceBookId: string, data: {
+    productId: string;
     name: string;
-    min_quantity?: number;
-    max_quantity?: number | null;
-    unit_price: number;
+    minQuantity?: number;
+    maxQuantity?: number | null;
+    unitPrice: number;
     period?: string;
   }) {
-    if (data.id) {
-      return apiClient.put<{ tier: PriceBookTier }>(`/api/hrm8/pricing/price-tiers/${data.id}`, data);
-    }
-    return apiClient.post<{ tier: PriceBookTier }>('/api/hrm8/pricing/price-tiers', data);
+    return apiClient.post<{ tier: PriceBookTier }>(`/api/hrm8/pricing/tiers/${priceBookId}`, data);
+  }
+
+  async updatePriceTier(id: string, data: {
+    name?: string;
+    minQuantity?: number;
+    maxQuantity?: number | null;
+    unitPrice?: number;
+    period?: string;
+  }) {
+    return apiClient.put<{ tier: PriceBookTier }>(`/api/hrm8/pricing/tiers/${id}`, data);
+  }
+
+  async deletePriceTier(id: string) {
+    return apiClient.delete(`/api/hrm8/pricing/tiers/${id}`);
   }
 
   async getPromoCodes() {
     return apiClient.get<{ promoCodes: PromoCode[] }>('/api/hrm8/pricing/promo-codes');
   }
 
-  async createPromoCode(data: Omit<PromoCode, 'id' | 'used_count' | 'created_at' | 'updated_at'>) {
+  async createPromoCode(data: any) {
     return apiClient.post<{ promoCode: PromoCode }>('/api/hrm8/pricing/promo-codes', data);
   }
 
-  async updatePromoCode(id: string, data: Partial<PromoCode>) {
+  async updatePromoCode(id: string, data: any) {
     return apiClient.put<{ promoCode: PromoCode }>(`/api/hrm8/pricing/promo-codes/${id}`, data);
+  }
+
+  async deletePromoCode(id: string) {
+    return apiClient.delete(`/api/hrm8/pricing/promo-codes/${id}`);
+  }
+
+  async validatePromoCode(code: string) {
+    return apiClient.post<{
+      valid: boolean;
+      discount: number;
+      discountType?: string;
+      message?: string;
+    }>('/api/hrm8/pricing/promo-codes/validate', { code });
   }
 }
 

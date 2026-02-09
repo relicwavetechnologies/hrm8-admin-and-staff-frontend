@@ -345,6 +345,7 @@ export const hrm8DashboardConfig: DashboardConfig = {
         path: "/hrm8/settlements",
         label: "Settlements",
         icon: DollarSign,
+        adminOnly: true,
       },
       {
         id: "revenue",

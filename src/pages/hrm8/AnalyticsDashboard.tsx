@@ -71,8 +71,26 @@ export default function AnalyticsDashboard() {
         apiClient.get<TopCompany[]>('/api/hrm8/analytics/top-companies?limit=10'),
       ]);
 
+      console.debug('[AnalyticsDashboard] overviewRes', overviewRes);
+      console.debug('[AnalyticsDashboard] trendsRes', trendsRes);
+      console.debug('[AnalyticsDashboard] companiesRes', companiesRes);
+
       if (overviewRes.success && overviewRes.data) {
-        setOverview(overviewRes.data);
+        const normalizedOverview: AnalyticsOverview = {
+          total_jobs: overviewRes.data.total_jobs ?? 0,
+          active_jobs: overviewRes.data.active_jobs ?? 0,
+          total_companies: overviewRes.data.total_companies ?? 0,
+          total_views: overviewRes.data.total_views ?? 0,
+          total_clicks: overviewRes.data.total_clicks ?? 0,
+          total_applications: overviewRes.data.total_applications ?? 0,
+          conversion_rates: {
+            view_to_click: overviewRes.data.conversion_rates?.view_to_click ?? 0,
+            click_to_apply: overviewRes.data.conversion_rates?.click_to_apply ?? 0,
+            view_to_apply: overviewRes.data.conversion_rates?.view_to_apply ?? 0,
+          },
+          by_source: overviewRes.data.by_source ?? {},
+        };
+        setOverview(normalizedOverview);
       }
       if (trendsRes.success && trendsRes.data?.trends) {
         setTrends(trendsRes.data.trends);
@@ -89,10 +107,11 @@ export default function AnalyticsDashboard() {
     setLoading(false);
   };
 
-  const formatNumber = (num: number) => {
-    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
-    return num.toString();
+  const formatNumber = (num?: number | null) => {
+    const value = Number.isFinite(num as number) ? (num as number) : 0;
+    if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+    if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
+    return value.toString();
   };
 
   const sourceLabels: Record<string, string> = {
@@ -220,23 +239,23 @@ export default function AnalyticsDashboard() {
               <div>
                 <div className="flex justify-between mb-2">
                   <span className="text-sm font-medium">View → Click</span>
-                  <span className="text-sm font-bold">{overview?.conversion_rates.view_to_click || 0}%</span>
+                  <span className="text-sm font-bold">{overview?.conversion_rates?.view_to_click || 0}%</span>
                 </div>
-                <Progress value={overview?.conversion_rates.view_to_click || 0} className="h-2" />
+                <Progress value={overview?.conversion_rates?.view_to_click || 0} className="h-2" />
               </div>
               <div>
                 <div className="flex justify-between mb-2">
                   <span className="text-sm font-medium">Click → Apply</span>
-                  <span className="text-sm font-bold">{overview?.conversion_rates.click_to_apply || 0}%</span>
+                  <span className="text-sm font-bold">{overview?.conversion_rates?.click_to_apply || 0}%</span>
                 </div>
-                <Progress value={overview?.conversion_rates.click_to_apply || 0} className="h-2" />
+                <Progress value={overview?.conversion_rates?.click_to_apply || 0} className="h-2" />
               </div>
               <div>
                 <div className="flex justify-between mb-2">
                   <span className="text-sm font-medium">View → Apply</span>
-                  <span className="text-sm font-bold">{overview?.conversion_rates.view_to_apply || 0}%</span>
+                  <span className="text-sm font-bold">{overview?.conversion_rates?.view_to_apply || 0}%</span>
                 </div>
-                <Progress value={overview?.conversion_rates.view_to_apply || 0} className="h-2" />
+                <Progress value={overview?.conversion_rates?.view_to_apply || 0} className="h-2" />
               </div>
             </div>
           )}
@@ -259,8 +278,8 @@ export default function AnalyticsDashboard() {
               </div>
             ) : (
               <div className="space-y-4">
-                {Object.entries(overview?.by_source || {}).map(([source, data]) => (
-                  <div key={source} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                {Object.entries(overview?.by_source || {}).map(([source, data], index) => (
+                  <div key={`${source}-${index}`} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                     <div>
                       <p className="font-medium">{sourceLabels[source] || source}</p>
                       <p className="text-sm text-muted-foreground">
@@ -295,7 +314,7 @@ export default function AnalyticsDashboard() {
             ) : (
               <div className="space-y-3">
                 {topCompanies.slice(0, 5).map((company, index) => (
-                  <div key={company.company_id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                  <div key={`${company.company_id ?? 'company'}-${index}`} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                     <div className="flex items-center gap-3">
                       <span className="text-lg font-bold text-muted-foreground">#{index + 1}</span>
                       <div>
@@ -306,12 +325,12 @@ export default function AnalyticsDashboard() {
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          {company.total_jobs} jobs • {formatNumber(company.total_views)} views
+                        {company.total_jobs ?? 0} jobs • {formatNumber(company.total_views ?? 0)} views
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">{company.total_applications}</p>
+                      <p className="font-medium">{company.total_applications ?? 0}</p>
                       <p className="text-xs text-muted-foreground">applies</p>
                     </div>
                   </div>

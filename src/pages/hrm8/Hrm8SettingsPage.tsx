@@ -4,29 +4,12 @@ import { JobTagsTab } from "@/shared/components/admin/settings/JobTagsTab";
 import { GeneralSettingsTab } from "@/shared/components/admin/settings/GeneralSettingsTab";
 import { IntegrationsSettingsTab } from "@/shared/components/admin/settings/IntegrationsSettingsTab";
 import { EmailSettingsTab } from "@/shared/components/admin/settings/EmailSettingsTab";
-import { useHrm8Auth } from "@/contexts/Hrm8AuthContext";
-import { Alert, AlertDescription } from "@/shared/components/ui/alert";
-import { AlertCircle } from "lucide-react";
 
+/**
+ * HRM8 Settings Page - Global Admin Only
+ * Auth check is handled by RoleGuard at route level (allowedRoles: ['GLOBAL_ADMIN'])
+ */
 export default function Hrm8SettingsPage() {
-    const { hrm8User } = useHrm8Auth();
-    const isGlobalAdmin = hrm8User?.role === 'GLOBAL_ADMIN';
-
-    if (!isGlobalAdmin) {
-        return (
-            
-                <div className="p-6">
-                    <Alert variant="destructive">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertDescription>
-                            Access denied. Only HRM8 Global Administrators can access settings.
-                        </AlertDescription>
-                    </Alert>
-                </div>
-            
-        );
-    }
-
     return (
         
             <div className="p-6 space-y-6">

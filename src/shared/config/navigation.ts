@@ -40,7 +40,7 @@ const adminMenuItems: MenuItem[] = [
     { id: "withdrawals", path: "/hrm8/withdrawals", label: "Withdrawals", icon: DollarSign },
     { id: "refund-requests", path: "/hrm8/billing/refund-requests", label: "Refund Requests", icon: DollarSign },
     { id: "conversion-requests", path: "/hrm8/conversion-requests", label: "Conversion Requests", icon: UserCheck },
-    { id: "settlements", path: "/hrm8/settlements", label: "Settlements", icon: DollarSign },
+    { id: "settlements", path: "/hrm8/settlements", label: "Settlements", icon: DollarSign, adminOnly: true },
     { id: "revenue", path: "/hrm8/revenue", label: "Revenue", icon: TrendingUp },
     { id: "revenue-analytics", path: "/hrm8/revenue-analytics", label: "Revenue Analytics", icon: BarChart3 },
     { id: "attribution", path: "/hrm8/attribution", label: "Attribution", icon: UserCheck, adminOnly: true },

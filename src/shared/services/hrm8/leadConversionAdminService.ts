@@ -39,7 +39,7 @@ export const leadConversionAdminService = {
     /**
      * Approve a conversion request (auto-converts lead)
      */
-    async approve(id: string, adminNotes?: string): Promise<{ request: ConversionRequest; company: any; tempPassword?: string }> {
+    async approve(id: string, adminNotes?: string): Promise<{ request: ConversionRequest; company: any; inviteSent?: boolean }> {
         const response = await apiClient.put<any>(`/api/hrm8/conversion-requests/${id}/approve`, { adminNotes });
 
         if (!response.success) {

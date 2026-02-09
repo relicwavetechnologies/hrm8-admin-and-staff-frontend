@@ -273,11 +273,11 @@ export default function RegionalLeadsPage() {
           </CardContent>
         </Card>
 
-        {/* Reassign Lead Dialog */}
+        {/* Reassign Sales Agent Dialog */}
         <Dialog open={reassignDialogOpen} onOpenChange={setReassignDialogOpen}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Reassign Lead</DialogTitle>
+              <DialogTitle>Reassign Sales Agent</DialogTitle>
               <DialogDescription>
                 Select a new sales agent for {selectedLead?.company_name}.
               </DialogDescription>

@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/shared/components/ui/label';
 import { FileText, Activity, Clock, User } from 'lucide-react';
 import { format } from 'date-fns';
+import { Hrm8PageLayout } from '@/shared/components/layouts/Hrm8PageLayout';
 
 const ACTION_COLORS: Record<string, string> = {
   CREATE: 'bg-green-100 text-green-800',
@@ -42,12 +43,20 @@ export default function AuditLogsPage() {
         action: actionFilter !== 'all' ? actionFilter : undefined,
         limit: 100,
       });
+      if (!response.success && 'error' in response) {
+        toast.error((response as { error?: string }).error || 'Failed to load audit logs');
+        setLogs([]);
+        setTotal(0);
+        return;
+      }
       if (response.success && response.data) {
-        setLogs(response.data.logs);
-        setTotal(response.data.total);
+        setLogs(Array.isArray(response.data.logs) ? response.data.logs : []);
+        setTotal(typeof response.data.total === 'number' ? response.data.total : 0);
       }
     } catch (error) {
       toast.error('Failed to load audit logs');
+      setLogs([]);
+      setTotal(0);
     } finally {
       setLoading(false);
     }
@@ -56,11 +65,15 @@ export default function AuditLogsPage() {
   const loadStats = async () => {
     try {
       const response = await auditLogService.getStats();
+      if (!response.success && 'error' in response) {
+        toast.error((response as { error?: string }).error || 'Failed to load audit stats');
+        return;
+      }
       if (response.success && response.data) {
         setStats(response.data);
       }
     } catch (error) {
-      console.error('Failed to load audit stats:', error);
+      toast.error('Failed to load audit stats');
     }
   };
 
@@ -125,16 +138,11 @@ export default function AuditLogsPage() {
     },
   ];
 
-  // Auth check is handled by RoleGuard at route level (allowedRoles: ['GLOBAL_ADMIN'])
   return (
-
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Audit Logs</h1>
-          <p className="text-muted-foreground">Track all administrative actions across the platform</p>
-        </div>
-
+    <Hrm8PageLayout
+      title="Audit Logs"
+      subtitle="Track all administrative actions across the platform"
+      actions={
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <Label>Entity:</Label>
@@ -169,8 +177,9 @@ export default function AuditLogsPage() {
             </Select>
           </div>
         </div>
-      </div>
-
+      }
+    >
+    <div className="p-6 space-y-6">
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <EnhancedStatCard
@@ -223,6 +232,6 @@ export default function AuditLogsPage() {
         </CardContent>
       </Card>
     </div>
-
+    </Hrm8PageLayout>
   );
 }

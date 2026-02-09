@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useConsultantAuth } from '@/contexts/ConsultantAuthContext';
 import { consultantService } from '@/shared/lib/consultant/consultantService';
 import { Loader2, MessageSquare, Send } from 'lucide-react';
@@ -35,6 +36,8 @@ interface Message {
 
 export default function ConsultantMessagesPage() {
   const { consultant } = useConsultantAuth();
+  const [searchParams] = useSearchParams();
+  const conversationIdFromUrl = searchParams.get('conversationId');
   const [conversations, setConversations] = useState<Conversation[] | null>(null);
   const [messages, setMessages] = useState<Record<string, Message[]> | null>(null);
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
@@ -47,6 +50,16 @@ export default function ConsultantMessagesPage() {
   useEffect(() => {
     loadConversations();
   }, []);
+
+  // When URL has conversationId and conversations are loaded, auto-select it
+  useEffect(() => {
+    if (conversationIdFromUrl && conversations && conversations.length > 0) {
+      const exists = conversations.some((c) => c.id === conversationIdFromUrl);
+      if (exists) {
+        setSelectedConversationId(conversationIdFromUrl);
+      }
+    }
+  }, [conversationIdFromUrl, conversations]);
 
   // Load messages when conversation selected
   useEffect(() => {

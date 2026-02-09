@@ -52,9 +52,11 @@ export default function StaffPage() {
         ? { regionId: selectedRegionId }
         : undefined;
       const response = await staffService.getAll(filters);
-      if (response.success && response.data?.consultants) {
-        setStaffList(response.data.consultants);
+      if (!response.success && response.error) {
+        toast.error(response.error || 'Failed to load staff members');
+        return;
       }
+      setStaffList(response.data?.consultants ?? []);
     } catch (error) {
       toast.error('Failed to load staff members');
     } finally {

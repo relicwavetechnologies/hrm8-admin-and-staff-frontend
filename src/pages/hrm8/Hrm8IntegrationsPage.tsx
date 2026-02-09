@@ -101,14 +101,16 @@ export default function Hrm8IntegrationsPage() {
         hrm8IntegrationsService.getCatalog(),
         hrm8IntegrationsService.getUsage(),
       ]);
-      setGlobalIntegrations(catalog);
-      setUsageStats(usage);
+      setGlobalIntegrations(Array.isArray(catalog) ? catalog : []);
+      setUsageStats(Array.isArray(usage) ? usage : []);
     } catch (error: any) {
       toast({
         title: "Failed to load integrations",
         description: error?.message || "Unexpected error",
         variant: "destructive",
       });
+      setGlobalIntegrations([]);
+      setUsageStats([]);
     } finally {
       setLoading(false);
     }
@@ -125,13 +127,14 @@ export default function Hrm8IntegrationsPage() {
     }
     try {
       const integrations = await hrm8IntegrationsService.getCompanyIntegrations(companyId.trim());
-      setCompanyIntegrations(integrations);
+      setCompanyIntegrations(Array.isArray(integrations) ? integrations : []);
     } catch (error: any) {
       toast({
         title: "Failed to load company integrations",
         description: error?.message || "Unexpected error",
         variant: "destructive",
       });
+      setCompanyIntegrations([]);
     }
   };
 

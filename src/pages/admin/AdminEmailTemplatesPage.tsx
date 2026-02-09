@@ -56,6 +56,7 @@ import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import { Separator } from "@/shared/components/ui/separator";
 import { apiClient } from "@/shared/lib/apiClient";
 import { messagingService, MessagingProvider } from "@/shared/services/hrm8/messagingService";
+import { Hrm8PageLayout } from "@/shared/components/layouts/Hrm8PageLayout";
 
 // Types
 interface EmailTemplate {
@@ -99,13 +100,23 @@ const EMAIL_TEMPLATE_TYPES: { value: string; label: string }[] = [
 
 async function fetchTemplates(companyId?: string): Promise<EmailTemplate[]> {
     const query = companyId ? `?company_id=${encodeURIComponent(companyId)}` : "";
-    const res = await apiClient.get<EmailTemplate[]>(`/api/email-templates${query}`);
-    return res.data || [];
+    const res = await apiClient.get<EmailTemplate[] | { templates?: EmailTemplate[] }>(`/api/email-templates${query}`);
+    if (!res.success && res.error) throw new Error(res.error);
+    const data = res.data;
+    if (Array.isArray(data)) return data;
+    if (data && typeof data === 'object' && Array.isArray((data as { templates?: EmailTemplate[] }).templates))
+        return (data as { templates: EmailTemplate[] }).templates;
+    return [];
 }
 
 async function fetchVariables(): Promise<TemplateVariable[]> {
-    const res = await apiClient.get<TemplateVariable[]>("/api/email-templates/variables");
-    return res.data || [];
+    const res = await apiClient.get<TemplateVariable[] | { variables?: TemplateVariable[] }>("/api/email-templates/variables");
+    if (!res.success && res.error) throw new Error(res.error);
+    const data = res.data;
+    if (Array.isArray(data)) return data;
+    if (data && typeof data === 'object' && Array.isArray((data as { variables?: TemplateVariable[] }).variables))
+        return (data as { variables: TemplateVariable[] }).variables;
+    return [];
 }
 
 async function createTemplate(template: Partial<EmailTemplate>): Promise<EmailTemplate> {
@@ -169,11 +180,11 @@ export default function AdminEmailTemplatesPage() {
             const [templatesData, variablesData, providerData] = await Promise.all([
                 fetchTemplates(companyIdFilter || undefined),
                 fetchVariables(),
-                messagingService.getProviders(),
+                messagingService.getProviders().catch(() => ({ providers: [] })),
             ]);
-            setTemplates(templatesData);
-            setVariables(variablesData);
-            setProviders(providerData.providers || []);
+            setTemplates(Array.isArray(templatesData) ? templatesData : []);
+            setVariables(Array.isArray(variablesData) ? variablesData : []);
+            setProviders(Array.isArray(providerData?.providers) ? providerData.providers : []);
         } catch (error) {
             toast({
                 title: "Error loading templates",
@@ -378,28 +389,24 @@ export default function AdminEmailTemplatesPage() {
     };
 
     return (
-        
-            <div className="p-6 space-y-6">
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Email Templates</h1>
-                        <p className="text-muted-foreground">
-                            Manage automated email templates for candidate communications
-                        </p>
-                    </div>
-                    <div className="flex gap-2">
-                        <Button variant="outline" onClick={loadData} disabled={loading}>
-                            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-                            Refresh
-                        </Button>
-                        <Button onClick={handleCreate}>
-                            <Plus className="h-4 w-4 mr-2" />
-                            Create Template
-                        </Button>
-                    </div>
+        <Hrm8PageLayout
+            title="Email Templates"
+            subtitle="Manage automated email templates for candidate communications"
+            actions={
+                <div className="flex gap-2">
+                    <Button variant="outline" onClick={loadData} disabled={loading}>
+                        <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+                        Refresh
+                    </Button>
+                    <Button onClick={handleCreate}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Template
+                    </Button>
                 </div>
-
+            }
+        >
+            <div className="p-6 space-y-6">
+                {/* Filters */}
                 {/* Stats */}
                 <div className="grid gap-4 md:grid-cols-3">
                     <Card>
@@ -825,6 +832,6 @@ export default function AdminEmailTemplatesPage() {
                     </DialogContent>
                 </Dialog>
             </div>
-        
+        </Hrm8PageLayout>
     );
 }

@@ -10,6 +10,8 @@ import { DollarSign, CheckCircle, Clock, XCircle, CreditCard } from 'lucide-reac
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
 import { Label } from '@/shared/components/ui/label';
 import { CommissionPaymentDialog } from '@/shared/components/hrm8/CommissionPaymentDialog';
+import { Hrm8PageLayout } from '@/shared/components/layouts/Hrm8PageLayout';
+import { TableSkeleton } from '@/shared/components/tables/TableSkeleton';
 
 const columns = [
   {
@@ -81,9 +83,11 @@ export default function CommissionsPage() {
       }
 
       const response = await commissionService.getAll(filters);
-      if (response.success && response.data?.commissions) {
-        setCommissions(response.data.commissions);
+      if (!response.success && response.error) {
+        toast.error(response.error || 'Failed to load commissions');
+        return;
       }
+      setCommissions(response.data?.commissions ?? []);
     } catch (error) {
       toast.error('Failed to load commissions');
     } finally {
@@ -109,13 +113,10 @@ export default function CommissionsPage() {
   const totalPaid = commissions.filter(c => c.status === 'PAID').reduce((sum, c) => sum + c.amount, 0);
 
   return (
-
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Commissions</h1>
-          <p className="text-muted-foreground">Track and manage consultant commissions</p>
-        </div>
+    <Hrm8PageLayout
+      title="Commissions"
+      subtitle="Track and manage consultant commissions"
+      actions={
         <div className="flex items-center gap-2">
           <Label>Filter by Status:</Label>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -137,8 +138,9 @@ export default function CommissionsPage() {
             </Button>
           )}
         </div>
-      </div>
-
+      }
+    >
+    <div className="p-6 space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <EnhancedStatCard
           title="Total Pending"
@@ -175,7 +177,7 @@ export default function CommissionsPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8">Loading commissions...</div>
+            <TableSkeleton columns={5} />
           ) : (
             <DataTable
               data={commissions}
@@ -195,6 +197,6 @@ export default function CommissionsPage() {
         onSuccess={handlePaymentSuccess}
       />
     </div>
-
+    </Hrm8PageLayout>
   );
 }

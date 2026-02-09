@@ -13,6 +13,8 @@ import { Building2, Briefcase, Eye, MousePointerClick, Search, ArrowRight, Filte
 import { apiClient } from '@/shared/lib/apiClient';
 import { useRegionStore } from '@/shared/stores/useRegionStore';
 import { TablePagination } from '@/shared/components/tables/TablePagination';
+import { Hrm8PageLayout } from '@/shared/components/layouts/Hrm8PageLayout';
+import { toast } from 'sonner';
 
 interface CompanyJobStats {
     id: string;
@@ -26,29 +28,12 @@ interface CompanyJobStats {
     total_clicks: number;
 }
 
-const safeNumber = (value: unknown): number => {
-    const num = typeof value === 'number' ? value : Number(value ?? 0);
-    return Number.isFinite(num) ? num : 0;
-};
-
 interface PaginatedCompaniesResponse {
     companies: CompanyJobStats[];
     total: number;
     page: number;
     page_size: number;
 }
-
-const normalizeCompany = (company: any): CompanyJobStats => ({
-    id: company.id,
-    name: company.name,
-    logo: company.logo,
-    domain: company.domain,
-    total_jobs: safeNumber(company.total_jobs ?? company.totalJobs),
-    active_jobs: safeNumber(company.active_jobs ?? company.activeJobs),
-    on_hold_jobs: safeNumber(company.on_hold_jobs ?? company.onHoldJobs),
-    total_views: safeNumber(company.total_views ?? company.totalViews),
-    total_clicks: safeNumber(company.total_clicks ?? company.totalClicks),
-});
 
 export default function Hrm8JobBoardPage() {
     const navigate = useNavigate();
@@ -73,32 +58,26 @@ export default function Hrm8JobBoardPage() {
             params.append('page', page.toString());
             params.append('limit', size.toString());
 
-            // Add region filter only when a concrete region is selected
-            if (selectedRegionId && selectedRegionId !== 'all') {
+            // Add region filter if selected
+            if (selectedRegionId) {
                 params.append('region', selectedRegionId);
             }
 
             const endpoint = `/api/hrm8/jobs/companies?${params.toString()}`;
             const response = await apiClient.get<PaginatedCompaniesResponse>(endpoint);
 
-            if (response.data) {
-                const payload = response.data as Partial<PaginatedCompaniesResponse> & { companies?: any[] };
-                const rawCompanies = Array.isArray(payload.companies) ? payload.companies : [];
-                const normalized = rawCompanies.map(normalizeCompany);
-
-                setCompanies(normalized);
-                setTotalCompanies(safeNumber(payload.total) || normalized.length);
-                setCurrentPage(safeNumber(payload.page) || page);
-                if (safeNumber(payload.page_size) > 0) {
-                    setPageSize(safeNumber(payload.page_size));
-                }
+            if (response.success && response.data) {
+                const data = response.data;
+                setCompanies(Array.isArray(data.companies) ? data.companies : []);
+                setTotalCompanies(typeof data.total === 'number' ? data.total : 0);
+                setCurrentPage(typeof data.page === 'number' ? data.page : 1);
             } else {
-                console.error('Failed to load companies or invalid format');
+                if (!response.success && response.error) toast.error(response.error || 'Failed to load companies');
                 setCompanies([]);
                 setTotalCompanies(0);
             }
         } catch (error) {
-            console.error('Failed to load companies:', error);
+            toast.error('Failed to load companies');
             setCompanies([]);
             setTotalCompanies(0);
         } finally {
@@ -115,10 +94,10 @@ export default function Hrm8JobBoardPage() {
     // Calculate stats only from current page companies
     const totalStats = filteredCompanies.reduce(
         (acc, company) => ({
-            totalJobs: acc.totalJobs + safeNumber(company.total_jobs),
-            activeJobs: acc.activeJobs + safeNumber(company.active_jobs),
-            totalViews: acc.totalViews + safeNumber(company.total_views),
-            totalClicks: acc.totalClicks + safeNumber(company.total_clicks),
+            totalJobs: acc.totalJobs + company.total_jobs,
+            activeJobs: acc.activeJobs + company.active_jobs,
+            totalViews: acc.totalViews + company.total_views,
+            totalClicks: acc.totalClicks + company.total_clicks,
         }),
         { totalJobs: 0, activeJobs: 0, totalViews: 0, totalClicks: 0 }
     );
@@ -127,23 +106,19 @@ export default function Hrm8JobBoardPage() {
     const selectedRegion = useRegionStore().regions.find(r => r.id === selectedRegionId);
 
     return (
-
-            <div className="p-6 space-y-6">
-                <div className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h1 className="text-3xl font-bold tracking-tight">Job Board Management</h1>
-                            <p className="text-muted-foreground">Manage jobs across all companies with visibility controls and analytics</p>
-                        </div>
-                        {selectedRegion && (
-                            <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                                <Filter className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                                <span className="text-sm font-medium text-blue-900 dark:text-blue-100">{selectedRegion.name}</span>
-                            </div>
-                        )}
+        <Hrm8PageLayout
+            title="Job Board Management"
+            subtitle="Manage jobs across all companies with visibility controls and analytics"
+            actions={
+                selectedRegion && (
+                    <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                        <Filter className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        <span className="text-sm font-medium text-blue-900 dark:text-blue-100">{selectedRegion.name}</span>
                     </div>
-                </div>
-
+                )
+            }
+        >
+            <div className="p-6 space-y-6">
                 {/* Summary Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <Card>
@@ -262,26 +237,26 @@ export default function Hrm8JobBoardPage() {
                                     <div className="grid grid-cols-2 gap-4 mb-4">
                                         <div>
                                             <p className="text-xs text-muted-foreground">Active Jobs</p>
-                                            <p className="text-lg font-semibold">{safeNumber(company.active_jobs)}</p>
+                                            <p className="text-lg font-semibold">{company.active_jobs}</p>
                                         </div>
                                         <div>
                                             <p className="text-xs text-muted-foreground">Total Jobs</p>
-                                            <p className="text-lg font-semibold">{safeNumber(company.total_jobs)}</p>
+                                            <p className="text-lg font-semibold">{company.total_jobs}</p>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                                         <div className="flex items-center gap-1">
                                             <Eye className="h-3.5 w-3.5" />
-                                            <span>{safeNumber(company.total_views).toLocaleString()}</span>
+                                            <span>{company.total_views.toLocaleString()}</span>
                                         </div>
                                         <div className="flex items-center gap-1">
                                             <MousePointerClick className="h-3.5 w-3.5" />
-                                            <span>{safeNumber(company.total_clicks).toLocaleString()}</span>
+                                            <span>{company.total_clicks.toLocaleString()}</span>
                                         </div>
-                                        {safeNumber(company.on_hold_jobs) > 0 && (
+                                        {company.on_hold_jobs > 0 && (
                                             <Badge variant="secondary" className="text-xs">
-                                                {safeNumber(company.on_hold_jobs)} on hold
+                                                {company.on_hold_jobs} on hold
                                             </Badge>
                                         )}
                                     </div>
@@ -320,6 +295,6 @@ export default function Hrm8JobBoardPage() {
                     </div>
                 )}
             </div>
-
+        </Hrm8PageLayout>
     );
 }

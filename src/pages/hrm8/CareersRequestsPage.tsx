@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
@@ -26,6 +25,7 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { careersRequestService, CareersRequest } from '@/shared/services/hrm8/careersRequestService';
+import { Hrm8PageLayout } from '@/shared/components/layouts/Hrm8PageLayout';
 
 export default function CareersRequestsPage() {
   const { toast } = useToast();
@@ -45,13 +45,14 @@ export default function CareersRequestsPage() {
     setIsLoading(true);
     try {
       const data = await careersRequestService.getRequests();
-      setRequests(data.requests);
+      setRequests(Array.isArray(data?.requests) ? data.requests : []);
     } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to load careers requests',
         variant: 'destructive',
       });
+      setRequests([]);
     } finally {
       setIsLoading(false);
     }
@@ -120,30 +121,18 @@ export default function CareersRequestsPage() {
     return sections;
   };
 
-  const getSubmittedAtLabel = (request: CareersRequest) => {
-    const rawValue = request.submitted_at || (request as any).submittedAt;
-    if (!rawValue) return 'Recently';
-
-    const parsed = new Date(rawValue);
-    if (Number.isNaN(parsed.getTime())) return 'Recently';
-
-    return formatDistanceToNow(parsed, { addSuffix: true });
-  };
-
   return (
+    <Hrm8PageLayout
+      title="Careers Page Requests"
+      subtitle="Review and approve company careers page submissions"
+      actions={
+        <Badge variant="secondary" className="text-lg px-4 py-2">
+          <Clock className="h-4 w-4 mr-2" />
+          {requests.length} Pending
+        </Badge>
+      }
+    >
     <div className="p-6 space-y-6">
-       <div>
-            <h1 className="text-2xl font-bold tracking-tight">Careers Page Requests</h1>
-            <p className="text-muted-foreground">Review and approve company careers page submissions</p>
-        </div>
-
-        <div className="flex items-center justify-end mb-6">
-          <Badge variant="secondary" className="text-lg px-4 py-2">
-            <Clock className="h-4 w-4 mr-2" />
-            {requests.length} Pending
-          </Badge>
-        </div>
-
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
@@ -200,7 +189,7 @@ export default function CareersRequestsPage() {
                               </div>
                             )}
                             <span className="text-xs text-muted-foreground whitespace-nowrap">
-                              {getSubmittedAtLabel(request)}
+                              {formatDistanceToNow(new Date(request.submitted_at), { addSuffix: true })}
                             </span>
                           </div>
                         </div>
@@ -416,5 +405,6 @@ export default function CareersRequestsPage() {
           </DialogContent>
         </Dialog>
     </div>
+    </Hrm8PageLayout>
   );
 }

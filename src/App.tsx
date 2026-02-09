@@ -40,6 +40,7 @@ import ConsultantCommissionsPage from './pages/consultant/ConsultantCommissionsP
 import ConsultantSettingsPage from './pages/consultant360/ConsultantSettingsPage'
 import ConsultantHelpPage from './pages/consultant360/ConsultantHelpPage'
 import ConsultantMessagesPage from './pages/consultant/ConsultantMessagesPage'
+import ConsultantSetupAccountPage from './pages/consultant/ConsultantSetupAccountPage'
 import ConsultantNotificationsPage from './pages/consultant/NotificationsPage'
 import SalesAgentNotificationsPage from './pages/sales/NotificationsPage'
 import Consultant360NotificationsPage from './pages/consultant360/NotificationsPage'
@@ -89,6 +90,7 @@ function App() {
             <Routes>
                 {/* Auth Routes */}
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/consultant/setup-account" element={<ConsultantSetupAccountPage />} />
 
                 {/* Protected Dashboard Routes */}
                 <Route element={<RoleGuard allowedTypes={['ADMIN']}><DashboardWrapper /></RoleGuard>}>

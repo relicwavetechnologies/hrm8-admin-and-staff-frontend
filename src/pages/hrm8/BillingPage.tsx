@@ -31,7 +31,7 @@ export default function BillingPage() {
       setLoadingInvoices(true);
       const filters = statusFilter === "all" ? {} : { status: statusFilter };
       const data = await getInvoices(filters);
-      setInvoices(data);
+      setInvoices(Array.isArray(data) ? data : []);
     } catch {
       toast.error("Failed to load invoices");
     } finally {
@@ -43,7 +43,7 @@ export default function BillingPage() {
     try {
       setLoadingDunning(true);
       const data = await getDunningCandidates();
-      setDunning(data);
+      setDunning(Array.isArray(data) ? data : []);
     } catch {
       toast.error("Failed to load dunning candidates");
     } finally {

@@ -75,6 +75,9 @@ export default function AnalyticsDashboard() {
       console.debug('[AnalyticsDashboard] trendsRes', trendsRes);
       console.debug('[AnalyticsDashboard] companiesRes', companiesRes);
 
+      if (!overviewRes.success && overviewRes.error) {
+        toast.error(overviewRes.error || 'Failed to load analytics overview');
+      }
       if (overviewRes.success && overviewRes.data) {
         const normalizedOverview: AnalyticsOverview = {
           total_jobs: overviewRes.data.total_jobs ?? 0,

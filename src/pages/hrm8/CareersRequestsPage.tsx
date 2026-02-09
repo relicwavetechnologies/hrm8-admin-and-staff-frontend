@@ -120,6 +120,16 @@ export default function CareersRequestsPage() {
     return sections;
   };
 
+  const getSubmittedAtLabel = (request: CareersRequest) => {
+    const rawValue = request.submitted_at || (request as any).submittedAt;
+    if (!rawValue) return 'Recently';
+
+    const parsed = new Date(rawValue);
+    if (Number.isNaN(parsed.getTime())) return 'Recently';
+
+    return formatDistanceToNow(parsed, { addSuffix: true });
+  };
+
   return (
     <div className="p-6 space-y-6">
        <div>
@@ -190,7 +200,7 @@ export default function CareersRequestsPage() {
                               </div>
                             )}
                             <span className="text-xs text-muted-foreground whitespace-nowrap">
-                              {formatDistanceToNow(new Date(request.submitted_at), { addSuffix: true })}
+                              {getSubmittedAtLabel(request)}
                             </span>
                           </div>
                         </div>

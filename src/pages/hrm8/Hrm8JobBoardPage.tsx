@@ -26,12 +26,29 @@ interface CompanyJobStats {
     total_clicks: number;
 }
 
+const safeNumber = (value: unknown): number => {
+    const num = typeof value === 'number' ? value : Number(value ?? 0);
+    return Number.isFinite(num) ? num : 0;
+};
+
 interface PaginatedCompaniesResponse {
     companies: CompanyJobStats[];
     total: number;
     page: number;
     page_size: number;
 }
+
+const normalizeCompany = (company: any): CompanyJobStats => ({
+    id: company.id,
+    name: company.name,
+    logo: company.logo,
+    domain: company.domain,
+    total_jobs: safeNumber(company.total_jobs ?? company.totalJobs),
+    active_jobs: safeNumber(company.active_jobs ?? company.activeJobs),
+    on_hold_jobs: safeNumber(company.on_hold_jobs ?? company.onHoldJobs),
+    total_views: safeNumber(company.total_views ?? company.totalViews),
+    total_clicks: safeNumber(company.total_clicks ?? company.totalClicks),
+});
 
 export default function Hrm8JobBoardPage() {
     const navigate = useNavigate();
@@ -56,8 +73,8 @@ export default function Hrm8JobBoardPage() {
             params.append('page', page.toString());
             params.append('limit', size.toString());
 
-            // Add region filter if selected
-            if (selectedRegionId) {
+            // Add region filter only when a concrete region is selected
+            if (selectedRegionId && selectedRegionId !== 'all') {
                 params.append('region', selectedRegionId);
             }
 
@@ -65,9 +82,16 @@ export default function Hrm8JobBoardPage() {
             const response = await apiClient.get<PaginatedCompaniesResponse>(endpoint);
 
             if (response.data) {
-                setCompanies(response.data.companies);
-                setTotalCompanies(response.data.total);
-                setCurrentPage(response.data.page);
+                const payload = response.data as Partial<PaginatedCompaniesResponse> & { companies?: any[] };
+                const rawCompanies = Array.isArray(payload.companies) ? payload.companies : [];
+                const normalized = rawCompanies.map(normalizeCompany);
+
+                setCompanies(normalized);
+                setTotalCompanies(safeNumber(payload.total) || normalized.length);
+                setCurrentPage(safeNumber(payload.page) || page);
+                if (safeNumber(payload.page_size) > 0) {
+                    setPageSize(safeNumber(payload.page_size));
+                }
             } else {
                 console.error('Failed to load companies or invalid format');
                 setCompanies([]);
@@ -91,10 +115,10 @@ export default function Hrm8JobBoardPage() {
     // Calculate stats only from current page companies
     const totalStats = filteredCompanies.reduce(
         (acc, company) => ({
-            totalJobs: acc.totalJobs + company.total_jobs,
-            activeJobs: acc.activeJobs + company.active_jobs,
-            totalViews: acc.totalViews + company.total_views,
-            totalClicks: acc.totalClicks + company.total_clicks,
+            totalJobs: acc.totalJobs + safeNumber(company.total_jobs),
+            activeJobs: acc.activeJobs + safeNumber(company.active_jobs),
+            totalViews: acc.totalViews + safeNumber(company.total_views),
+            totalClicks: acc.totalClicks + safeNumber(company.total_clicks),
         }),
         { totalJobs: 0, activeJobs: 0, totalViews: 0, totalClicks: 0 }
     );
@@ -238,26 +262,26 @@ export default function Hrm8JobBoardPage() {
                                     <div className="grid grid-cols-2 gap-4 mb-4">
                                         <div>
                                             <p className="text-xs text-muted-foreground">Active Jobs</p>
-                                            <p className="text-lg font-semibold">{company.active_jobs}</p>
+                                            <p className="text-lg font-semibold">{safeNumber(company.active_jobs)}</p>
                                         </div>
                                         <div>
                                             <p className="text-xs text-muted-foreground">Total Jobs</p>
-                                            <p className="text-lg font-semibold">{company.total_jobs}</p>
+                                            <p className="text-lg font-semibold">{safeNumber(company.total_jobs)}</p>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                                         <div className="flex items-center gap-1">
                                             <Eye className="h-3.5 w-3.5" />
-                                            <span>{company.total_views.toLocaleString()}</span>
+                                            <span>{safeNumber(company.total_views).toLocaleString()}</span>
                                         </div>
                                         <div className="flex items-center gap-1">
                                             <MousePointerClick className="h-3.5 w-3.5" />
-                                            <span>{company.total_clicks.toLocaleString()}</span>
+                                            <span>{safeNumber(company.total_clicks).toLocaleString()}</span>
                                         </div>
-                                        {company.on_hold_jobs > 0 && (
+                                        {safeNumber(company.on_hold_jobs) > 0 && (
                                             <Badge variant="secondary" className="text-xs">
-                                                {company.on_hold_jobs} on hold
+                                                {safeNumber(company.on_hold_jobs)} on hold
                                             </Badge>
                                         )}
                                     </div>

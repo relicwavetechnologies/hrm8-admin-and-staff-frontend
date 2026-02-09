@@ -579,9 +579,9 @@ export default function AdminEmailTemplatesPage() {
                                                 <span>•</span>
                                                 <span>
                                                     Updated{" "}
-                                                    {formatDistanceToNow(new Date(template.updated_at), {
-                                                        addSuffix: true,
-                                                    })}
+                                                    {template.updated_at && !isNaN(new Date(template.updated_at).getTime())
+                                                      ? formatDistanceToNow(new Date(template.updated_at), { addSuffix: true })
+                                                      : '—'}
                                                 </span>
                                             </div>
                                         </div>

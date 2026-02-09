@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useHrm8Auth } from '@/contexts/Hrm8AuthContext';
 import { revenueService, RegionalRevenue } from '@/shared/services/hrm8/revenueService';
-import { regionService, Region } from '@/shared/services/hrm8/regionService';
+import { useRegionStore } from '@/shared/stores/useRegionStore';
 import { DataTable } from '@/shared/components/tables/DataTable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { EnhancedStatCard } from '@/shared/components/dashboard/EnhancedStatCard';
@@ -24,11 +24,13 @@ const columns = [
   {
     key: 'period_start',
     label: 'Period',
-    render: (revenue: RegionalRevenue) => (
-      <span>
-        {new Date(revenue.period_start).toLocaleDateString()} - {new Date(revenue.period_end).toLocaleDateString()}
-      </span>
-    ),
+    render: (revenue: RegionalRevenue) => {
+      const start = revenue.period_start ? new Date(revenue.period_start) : null;
+      const end = revenue.period_end ? new Date(revenue.period_end) : null;
+      const startStr = start && !isNaN(start.getTime()) ? start.toLocaleDateString() : '—';
+      const endStr = end && !isNaN(end.getTime()) ? end.toLocaleDateString() : '—';
+      return <span>{startStr} - {endStr}</span>;
+    },
   },
   {
     key: 'total_revenue',
@@ -75,24 +77,22 @@ export default function RevenuePage() {
   const { hrm8User } = useHrm8Auth();
   const [revenues, setRevenues] = useState<RegionalRevenue[]>([]);
   const [companyRevenues, setCompanyRevenues] = useState<any[]>([]);
-  const [regions, setRegions] = useState<Region[]>([]);
   const [loading, setLoading] = useState(true);
   const [companyLoading, setCompanyLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [regionFilter, setRegionFilter] = useState<string>('all');
+  const { selectedRegionId } = useRegionStore();
+  const effectiveRegionFilter = selectedRegionId === 'all' || !selectedRegionId ? 'all' : selectedRegionId;
 
   // Regional admins can only see company breakdown
   const isGlobalAdmin = hrm8User?.role === 'GLOBAL_ADMIN';
   const [activeTab, setActiveTab] = useState(isGlobalAdmin ? 'overview' : 'companies');
 
   useEffect(() => {
-    // Only load regional revenue data for global admins
     if (isGlobalAdmin) {
       loadRevenues();
-      loadRegions();
     }
-    loadCompanyRevenues(); // Load company data on mount for stats
-  }, [statusFilter, regionFilter, isGlobalAdmin]);
+    loadCompanyRevenues();
+  }, [statusFilter, effectiveRegionFilter, isGlobalAdmin]);
 
   useEffect(() => {
     if (activeTab === 'companies') {
@@ -107,8 +107,8 @@ export default function RevenuePage() {
       if (statusFilter !== 'all') {
         filters.status = statusFilter;
       }
-      if (regionFilter !== 'all') {
-        filters.region_id = regionFilter;
+      if (effectiveRegionFilter !== 'all') {
+        filters.region_id = effectiveRegionFilter;
       }
 
       const response = await revenueService.getAll(filters);
@@ -119,17 +119,6 @@ export default function RevenuePage() {
       toast.error('Failed to load revenue records');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadRegions = async () => {
-    try {
-      const response = await regionService.getAll();
-      if (response.success && response.data?.regions) {
-        setRegions(response.data.regions);
-      }
-    } catch (error) {
-      console.error('Failed to load regions:', error);
     }
   };
 
@@ -163,21 +152,6 @@ export default function RevenuePage() {
              <div className="flex items-center gap-2">
               {activeTab === 'overview' && (
                 <>
-                  <Label>Filter by Region:</Label>
-                  <Select value={regionFilter} onValueChange={setRegionFilter}>
-                    <SelectTrigger className="w-32 lg:w-48">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Regions</SelectItem>
-                      {regions.map((region) => (
-                        <SelectItem key={region.id} value={region.id}>
-                          {region.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
                   <Label>Filter by Status:</Label>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger className="w-32 lg:w-40">

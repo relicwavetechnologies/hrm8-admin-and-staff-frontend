@@ -175,27 +175,40 @@
 
 ---
 
+## 16. UI Bugs (Header, Global Toggler, Minor)
+
+| # | Item | F/B | Priority | Notes |
+|---|------|-----|----------|-------|
+| ~~16.1~~ | ~~Header duplication~~ | F | ~~High~~ | ✅ **Done** – Removed Hrm8Header from Hrm8PageLayout; UnifiedHeader is the single source |
+| **16.2** | **Global region toggler – all pages** | F+B | **High** | Sidebar RegionToggler drives data; no personal region selectors. Done: Staff, JobBoard, Overview, RegionalLeads, JobAllocation, ConsultantJobs, SalesPipeline, RegionalSalesDashboard, **Pricing**, **UnassignedJobs**, **Revenue** ✅. Hierarchy (keep own filter): Regions, Licensees, Territories (sales territory regions: north-america/emea/apac – different from HRM8 regions). Form fields (e.g. StaffForm region assignment) stay as-is |
+| 16.3 | Avatar styling inconsistency | F | Low | UserNav uses `bg-primary/10 text-primary`; Hrm8UserNav uses `bg-primary text-primary-foreground`. Causes visual diff when duplicate headers appear. Standardize once 16.1 is fixed |
+
+---
+
 ## Summary by Priority
 
 | Priority | Count | Items |
 |----------|-------|-------|
+| High | 2 | **16.1 (Header duplication)**, **16.2 (Global region toggler)** |
 | Medium | 12 | 1.3, 2.1, 4.1–4.3, 5.1, 6.1, 7.1, 8.1–8.2, 9.1, 11.2, 14.1–14.2 |
-| Low | 29 | All others |
+| Low | 30 | 16.3, and all others |
 
 ---
 
 ## Recommended Implementation Order
 
-1. **Password reset for HRM8 staff** (1.3) – usability
-2. **Company detail page with tabs** (5.1) – core CRM
-3. **Suspend/terminate licensee** (2.1) – operations
-4. **Company custom pricing UI** (6.1) – if backend ready
-5. **Commission dispute workflow** (7.1) – if disputes are common
-6. **Auto-assign verification** (4.1–4.3) – job allocation
-7. **Invoice generation from subscriptions** (8.1) – billing
-8. **DSR workflow** (14.2) – compliance
-9. **Audit log coverage** (14.1) – compliance
-10. **Opt-in/unsubscribe** (11.2) – compliance
+1. **Header duplication** (16.1) – remove Hrm8Header from Hrm8PageLayout; fix immediately
+2. **Global region toggler** (16.2) – migrate SalesPipeline, RegionalSalesDashboard to useRegionStore; add region filter to Licensees, Regions, Analytics, Revenue, Commissions, etc. where backend supports it
+3. **Password reset for HRM8 staff** (1.3) – usability
+4. **Company detail page with tabs** (5.1) – core CRM
+5. **Suspend/terminate licensee** (2.1) – operations
+6. **Company custom pricing UI** (6.1) – if backend ready
+7. **Commission dispute workflow** (7.1) – if disputes are common
+8. **Auto-assign verification** (4.1–4.3) – job allocation
+9. **Invoice generation from subscriptions** (8.1) – billing
+10. **DSR workflow** (14.2) – compliance
+11. **Audit log coverage** (14.1) – compliance
+12. **Opt-in/unsubscribe** (11.2) – compliance
 
 ---
 

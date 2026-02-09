@@ -81,11 +81,14 @@ export default function AuditLogsPage() {
     {
       key: 'performedAt',
       label: 'Time',
-      render: (log: AuditLogEntry) => (
-        <span className="text-sm text-muted-foreground">
-          {format(new Date(log.performed_at), 'MMM d, yyyy HH:mm')}
-        </span>
-      ),
+      render: (log: AuditLogEntry) => {
+        const d = log.performed_at ? new Date(log.performed_at) : null;
+        return (
+          <span className="text-sm text-muted-foreground">
+            {d && !isNaN(d.getTime()) ? format(d, 'MMM d, yyyy HH:mm') : '—'}
+          </span>
+        );
+      },
     },
     {
       key: 'action',

@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from 'react';
 import { hrm8PricingService, Product, PriceBook, PromoCode, ProductCategory } from '@/shared/services/hrm8/pricingService';
-import { regionService, Region } from '@/shared/services/hrm8/regionService';
+import { useRegionStore } from '@/shared/stores/useRegionStore';
 import { Hrm8PageLayout } from '@/shared/components/layouts/Hrm8PageLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { DataTable } from '@/shared/components/tables/DataTable';
@@ -38,8 +38,8 @@ export default function PricingPage() {
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingBooks, setLoadingBooks] = useState(true);
   const [loadingPromos, setLoadingPromos] = useState(true);
-  const [regionFilter, setRegionFilter] = useState<string>('all');
-  const [regions, setRegions] = useState<Region[]>([]);
+  const { selectedRegionId, regions } = useRegionStore();
+  const effectiveRegionFilter = selectedRegionId === 'all' || !selectedRegionId ? 'all' : selectedRegionId;
 
   const [productDialogOpen, setProductDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -98,23 +98,13 @@ export default function PricingPage() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    loadRegions();
+    loadProducts();
   }, []);
 
   useEffect(() => {
-    loadProducts();
     loadPriceBooks();
     loadPromoCodes();
-  }, [regionFilter]);
-
-  const loadRegions = async () => {
-    try {
-      const res = await regionService.getAll({ isActive: true });
-      if (res.success && res.data?.regions) setRegions(res.data.regions);
-    } catch {
-      // Non-blocking; filter will show "All" only
-    }
-  };
+  }, [effectiveRegionFilter]);
 
   const loadProducts = async () => {
     try {
@@ -135,7 +125,7 @@ export default function PricingPage() {
   const loadPriceBooks = async () => {
     try {
       setLoadingBooks(true);
-      const data = await hrm8PricingService.getPriceBooks(regionFilter !== 'all' ? { regionId: regionFilter } : undefined);
+      const data = await hrm8PricingService.getPriceBooks(effectiveRegionFilter !== 'all' ? { regionId: effectiveRegionFilter } : undefined);
       if (!data.success && data.error) {
         toast.error(data.error || 'Failed to load price books');
         return;
@@ -480,22 +470,7 @@ export default function PricingPage() {
     <Hrm8PageLayout
       title="Pricing Management"
       subtitle="View products and price books"
-      actions={
-        <div className="flex items-center gap-2">
-          <Label>Filter Price Books:</Label>
-          <Select value={regionFilter} onValueChange={setRegionFilter}>
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All (Global + Regional)</SelectItem>
-              {regions.map((r) => (
-                <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      }
+      actions={null}
     >
       <div className="p-6 space-y-6">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

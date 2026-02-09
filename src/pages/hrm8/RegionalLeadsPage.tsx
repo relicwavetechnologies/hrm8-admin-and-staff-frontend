@@ -203,7 +203,9 @@ export default function RegionalLeadsPage() {
       label: 'Created',
       render: (lead) => (
         <span className="text-sm text-muted-foreground">
-          {new Date(lead.created_at).toLocaleDateString()}
+          {lead.created_at && !isNaN(new Date(lead.created_at).getTime())
+            ? new Date(lead.created_at).toLocaleDateString()
+            : '—'}
         </span>
       ),
     },

@@ -189,7 +189,11 @@ export default function CareersRequestsPage() {
                               </div>
                             )}
                             <span className="text-xs text-muted-foreground whitespace-nowrap">
-                              {formatDistanceToNow(new Date(request.submitted_at), { addSuffix: true })}
+                              {(() => {
+                                const ts = (request as any).submitted_at ?? (request as any).submittedAt;
+                                if (!ts || isNaN(new Date(ts).getTime())) return '—';
+                                return formatDistanceToNow(new Date(ts), { addSuffix: true });
+                              })()}
                             </span>
                           </div>
                         </div>

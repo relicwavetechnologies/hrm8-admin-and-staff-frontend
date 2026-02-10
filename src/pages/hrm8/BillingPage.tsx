@@ -94,7 +94,10 @@ export default function BillingPage() {
       {
         key: "due_date",
         label: "Due",
-        render: (item: Invoice) => new Date(item.due_date).toLocaleDateString(),
+        render: (item: Invoice) => {
+          const d = item.due_date ? new Date(item.due_date) : null;
+          return d && !isNaN(d.getTime()) ? d.toLocaleDateString() : '—';
+        },
       },
       {
         key: "actions",
@@ -119,7 +122,8 @@ export default function BillingPage() {
       overdue31plus: 0,
     };
     dunning.forEach((c) => {
-      const due = new Date(c.due_date).getTime();
+      const due = c.due_date ? new Date(c.due_date).getTime() : NaN;
+      if (isNaN(due)) return;
       const diffDays = Math.floor((now - due) / (1000 * 60 * 60 * 24));
       if (diffDays <= 0) buckets.dueSoon += 1;
       else if (diffDays <= 7) buckets.overdue1to7 += 1;
@@ -144,7 +148,10 @@ export default function BillingPage() {
       {
         key: "due_date",
         label: "Due Date",
-        render: (item: DunningCandidate) => new Date(item.due_date).toLocaleDateString(),
+        render: (item: DunningCandidate) => {
+          const d = item.due_date ? new Date(item.due_date) : null;
+          return d && !isNaN(d.getTime()) ? d.toLocaleDateString() : '—';
+        },
       },
       {
         key: "status",

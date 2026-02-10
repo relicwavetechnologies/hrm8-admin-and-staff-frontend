@@ -333,7 +333,9 @@ export default function Hrm8ConsultantDetailPage() {
                                     <div className="flex justify-between text-sm">
                                         <span>Last Login</span>
                                         <span className="text-muted-foreground">
-                                            {new Date(consultant.lastLoginAt).toLocaleDateString()}
+                                            {consultant.lastLoginAt && !isNaN(new Date(consultant.lastLoginAt).getTime())
+                                              ? new Date(consultant.lastLoginAt).toLocaleDateString()
+                                              : '—'}
                                         </span>
                                     </div>
                                 )}

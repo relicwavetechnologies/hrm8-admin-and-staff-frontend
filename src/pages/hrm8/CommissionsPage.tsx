@@ -59,7 +59,10 @@ const columns = [
   {
     key: 'created_at',
     label: 'Created',
-    render: (commission: Commission) => new Date(commission.created_at).toLocaleDateString(),
+    render: (commission: Commission) => {
+      const d = commission.created_at ? new Date(commission.created_at) : null;
+      return d && !isNaN(d.getTime()) ? d.toLocaleDateString() : '—';
+    },
   },
 ];
 

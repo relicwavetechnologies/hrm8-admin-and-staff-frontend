@@ -68,11 +68,18 @@ export default function RegionalCompaniesPage() {
         } else if (statusParam === 'new') {
             const now = new Date();
             const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-            result = result.filter(c => new Date(c.created_at) >= startOfMonth);
+            result = result.filter(c => {
+                const d = c.created_at ? new Date(c.created_at) : null;
+                return d && !isNaN(d.getTime()) && d >= startOfMonth;
+            });
         }
 
         if (sortParam === 'newest') {
-            result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+            result.sort((a, b) => {
+                const da = a.created_at ? new Date(a.created_at).getTime() : 0;
+                const db = b.created_at ? new Date(b.created_at).getTime() : 0;
+                return db - da;
+            });
         }
 
         setFilteredCompanies(result);
@@ -139,7 +146,10 @@ export default function RegionalCompaniesPage() {
             key: "created_at",
             label: "Created Date",
             sortable: true,
-            render: (company) => new Date(company.created_at).toLocaleDateString(),
+            render: (company) => {
+                const d = company.created_at ? new Date(company.created_at) : null;
+                return d && !isNaN(d.getTime()) ? d.toLocaleDateString() : '—';
+            },
         },
         {
             key: "open_jobs_count",

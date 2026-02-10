@@ -189,7 +189,9 @@ export default function StaffProfilePage() {
               {stats?.lastActivityDate && (
                 <p className="text-sm">
                   <span className="font-medium">Last Activity:</span>{' '}
-                  {new Date(stats.lastActivityDate).toLocaleDateString()}
+                  {stats.lastActivityDate && !isNaN(new Date(stats.lastActivityDate).getTime())
+                    ? new Date(stats.lastActivityDate).toLocaleDateString()
+                    : '—'}
                 </p>
               )}
             </div>

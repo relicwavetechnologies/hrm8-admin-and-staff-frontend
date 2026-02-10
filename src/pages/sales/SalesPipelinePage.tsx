@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/shared/components/ui/button";
 import { Card } from "@/shared/components/ui/card";
 import { Plus, Target, DollarSign, TrendingUp, Award, LayoutGrid, List, Download, BarChart3, Loader2, Briefcase, Users } from "lucide-react";
@@ -16,14 +16,7 @@ import { useToast } from "@/shared/hooks/use-toast";
 import { exportOpportunities } from "@/shared/lib/salesExportService";
 import { SalesExportDialog, ExportConfig } from "@/modules/sales/components/SalesExportDialog";
 import { formatCurrency } from "@/shared/lib/utils";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/shared/components/ui/select';
-import { regionService, Region } from '@/shared/services/hrm8/regionService';
+import { useRegionStore } from '@/shared/stores/useRegionStore';
 
 // Types for recruiting pipeline
 interface RecruitingStats {
@@ -58,7 +51,6 @@ interface Opportunity {
 export default function SalesPipelinePage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'kanban' | 'table'>('kanban');
@@ -66,10 +58,12 @@ export default function SalesPipelinePage() {
   const [stats, setStats] = useState<PipelineStats | null>(null);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
 
-  // Admin / Regional Context
+  // Admin / Regional Context - use global region store
   const isHrm8 = location.pathname.startsWith('/hrm8');
-  const [regions, setRegions] = useState<Region[]>([]);
-  const [selectedRegionId, setSelectedRegionId] = useState<string>('');
+  const { selectedRegionId, regions } = useRegionStore();
+  const effectiveRegionId = selectedRegionId === 'all' || !selectedRegionId
+    ? regions[0]?.id
+    : selectedRegionId;
 
   // Recruiting stats for Consultant360 unified view
   const [recruitingStats, setRecruitingStats] = useState<RecruitingStats | null>(null);
@@ -85,51 +79,19 @@ export default function SalesPipelinePage() {
   const stages: OpportunityStage[] = ['prospecting', 'qualification', 'proposal', 'negotiation', 'closed-won', 'closed-lost'];
 
   useEffect(() => {
-    if (isHrm8) {
-      fetchRegions();
-    } else {
+    if (!isHrm8) {
       fetchData();
     }
   }, [isHrm8]);
 
-  // For Admin: Fetch data when region changes
+  // For Admin: Fetch data when global region changes
   useEffect(() => {
-    if (isHrm8 && selectedRegionId) {
-      // Update URL params
-      const params = new URLSearchParams(searchParams);
-      params.set('region', selectedRegionId);
-      setSearchParams(params, { replace: true });
+    if (isHrm8 && effectiveRegionId) {
       fetchData();
-    }
-  }, [selectedRegionId, isHrm8]);
-
-  const fetchRegions = async () => {
-    try {
-      const response = await regionService.getAll();
-      const regionsList = response.data?.regions || [];
-      setRegions(regionsList);
-
-      // Restore from URL params or use first region
-      const regionFromUrl = searchParams.get('region');
-
-      if (regionFromUrl && regionsList.find(r => r.id === regionFromUrl)) {
-        setSelectedRegionId(regionFromUrl);
-      } else if (regionsList.length > 0) {
-        setSelectedRegionId(regionsList[0].id);
-      } else {
-        // No regions found, stop loading
-        setLoading(false);
-      }
-    } catch (error) {
-      console.error('Failed to fetch regions:', error);
+    } else if (isHrm8 && regions.length === 0) {
       setLoading(false);
-      toast({
-        title: "Error",
-        description: "Failed to load regions.",
-        variant: "destructive"
-      });
     }
-  };
+  }, [effectiveRegionId, isHrm8, regions.length]);
 
   const fetchData = async () => {
     try {
@@ -141,14 +103,14 @@ export default function SalesPipelinePage() {
       let statsData: PipelineStats | null = null;
 
       if (isHrm8) {
-        if (!selectedRegionId) {
+        if (!effectiveRegionId) {
             setLoading(false);
             return;
         }
-        // Admin: Use regionalSalesService
+        // Admin: Use regionalSalesService (region from global store)
         const [oppsResponse, statsResponse] = await Promise.all([
-          regionalSalesService.getOpportunities(selectedRegionId),
-          regionalSalesService.getStats(selectedRegionId)
+          regionalSalesService.getOpportunities(effectiveRegionId),
+          regionalSalesService.getStats(effectiveRegionId)
         ]);
 
         // Map RegionalOpportunity to internal Opportunity type
@@ -361,21 +323,6 @@ export default function SalesPipelinePage() {
             </p>
           </div>
           <div className="text-base font-semibold flex items-center gap-2 flex-wrap">
-              {isHrm8 && (
-                 <Select value={selectedRegionId} onValueChange={setSelectedRegionId} disabled={regions.length === 0 || loading}>
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="Select Region" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {regions.map((r) => (
-                      <SelectItem key={r.id} value={r.id}>
-                        {r.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-
             <div className="flex items-center border rounded-lg p-1 gap-1">
               <Button
                 variant={viewMode === 'kanban' ? 'default' : 'ghost'}

@@ -23,13 +23,6 @@ import {
 } from '@/shared/components/ui/table';
 import { Badge } from '@/shared/components/ui/badge';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/shared/components/ui/select';
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -46,7 +39,7 @@ import { regionalSalesService, RegionalOpportunity, RegionalPipelineStats } from
 import { formatCurrency } from '@/shared/lib/utils';
 import { Loader2, TrendingUp, Users, DollarSign, Activity, Target, Check, ChevronsUpDown } from 'lucide-react';
 import { useHrm8Auth } from '@/contexts/Hrm8AuthContext';
-import { regionService, Region } from '@/shared/services/hrm8/regionService';
+import { useRegionStore } from '@/shared/stores/useRegionStore';
 import { cn } from '@/shared/lib/utils';
 import { EnhancedStatCard } from '@/shared/components/dashboard/EnhancedStatCard';
 
@@ -72,62 +65,37 @@ export default function RegionalSalesDashboard() {
   const [dataLoading, setDataLoading] = useState(false);
   const [stats, setStats] = useState<RegionalPipelineStats | null>(null);
   const [opportunities, setOpportunities] = useState<RegionalOpportunity[]>([]);
-  const [regions, setRegions] = useState<Region[]>([]);
-  const [selectedRegionId, setSelectedRegionId] = useState<string>('');
+  const { selectedRegionId, regions } = useRegionStore();
+  const effectiveRegionId = selectedRegionId === 'all' || !selectedRegionId
+    ? regions[0]?.id
+    : selectedRegionId;
   const [selectedAgentId, setSelectedAgentId] = useState<string>('all');
   const [agentComboOpen, setAgentComboOpen] = useState(false);
   const [agentSearchQuery, setAgentSearchQuery] = useState('');
 
-  // Initialize from URL query params
+  // Restore agent from URL on mount
   useEffect(() => {
-    fetchRegions();
+    const agentFromUrl = searchParams.get('agent');
+    if (agentFromUrl) {
+      setSelectedAgentId(agentFromUrl);
+    }
   }, []);
 
+  // Fetch data when global region or agent changes
   useEffect(() => {
-    if (selectedRegionId) {
-      // Update URL params
+    if (effectiveRegionId) {
       const params = new URLSearchParams(searchParams);
-      params.set('region', selectedRegionId);
       if (selectedAgentId !== 'all') {
         params.set('agent', selectedAgentId);
       } else {
         params.delete('agent');
       }
       setSearchParams(params, { replace: true });
-
-      // Fetch data
-      fetchData(selectedRegionId, selectedAgentId);
-    }
-  }, [selectedRegionId, selectedAgentId]);
-
-  const fetchRegions = async () => {
-    try {
-      // If user is Global Admin, fetch all regions.
-      // If Licensee, they might be restricted, but for now we fetch all available.
-      const response = await regionService.getAll();
-      const regionsList = response.data?.regions || [];
-      setRegions(regionsList);
-
-      // Restore from URL params or use first region
-      const regionFromUrl = searchParams.get('region');
-      const agentFromUrl = searchParams.get('agent');
-
-      if (regionFromUrl && regionsList.find(r => r.id === regionFromUrl)) {
-        setSelectedRegionId(regionFromUrl);
-      } else if (regionsList.length > 0) {
-        setSelectedRegionId(regionsList[0].id);
-      } else {
-        setLoading(false);
-      }
-
-      if (agentFromUrl) {
-        setSelectedAgentId(agentFromUrl);
-      }
-    } catch (error) {
-      console.error('Failed to fetch regions:', error);
+      fetchData(effectiveRegionId, selectedAgentId);
+    } else if (regions.length === 0) {
       setLoading(false);
     }
-  };
+  }, [effectiveRegionId, selectedAgentId, regions.length]);
 
   const fetchData = async (regionId: string, agentId: string) => {
     // Use dataLoading for subsequent fetches, loading only for initial load
@@ -220,24 +188,12 @@ export default function RegionalSalesDashboard() {
 
           <div className="flex items-center gap-2">
             {regions.length === 0 && !loading && (
-               <div className="text-sm text-amber-600 font-medium mr-2">No regions found</div>
+               <div className="text-sm text-amber-600 font-medium mr-2">No regions found. Use the sidebar to select a region.</div>
             )}
-            <Select value={selectedRegionId} onValueChange={setSelectedRegionId} disabled={regions.length === 0 || dataLoading}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Select Region" />
-              </SelectTrigger>
-              <SelectContent>
-                {regions.map((r) => (
-                  <SelectItem key={r.id} value={r.id}>
-                    {r.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
             <Button
               variant="outline"
-              onClick={() => selectedRegionId && fetchData(selectedRegionId, selectedAgentId)}
-              disabled={!selectedRegionId || dataLoading}
+              onClick={() => effectiveRegionId && fetchData(effectiveRegionId, selectedAgentId)}
+              disabled={!effectiveRegionId || dataLoading}
             >
               {dataLoading ? (
                 <>

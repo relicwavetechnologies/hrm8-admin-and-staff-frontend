@@ -157,7 +157,10 @@ export default function JobAllocationPage() {
     {
       key: 'createdAt',
       label: 'Created',
-      render: (job: JobForAllocation) => new Date(job.createdAt).toLocaleDateString(),
+      render: (job: JobForAllocation) => {
+        const d = job.createdAt ? new Date(job.createdAt) : null;
+        return d && !isNaN(d.getTime()) ? d.toLocaleDateString() : '—';
+      },
     },
     {
       key: 'actions',

@@ -5,11 +5,10 @@
 
 import { useState, useEffect } from 'react';
 import { jobAllocationService, UnassignedJob } from '@/shared/lib/hrm8/jobAllocationService';
-import { regionService } from '@/shared/lib/hrm8/regionService';
+import { useRegionStore } from '@/shared/stores/useRegionStore';
 import { DataTable } from '@/shared/components/tables/DataTable';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
 import { Label } from '@/shared/components/ui/label';
 import { Input } from '@/shared/components/ui/input';
 import { toast } from 'sonner';
@@ -19,41 +18,26 @@ import { Badge } from '@/shared/components/ui/badge';
 
 export default function UnassignedJobsPage() {
     const [jobs, setJobs] = useState<UnassignedJob[]>([]);
-    const [regions, setRegions] = useState<Array<{ id: string; name: string }>>([]);
     const [loading, setLoading] = useState(true);
     const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
     const [drawerOpen, setDrawerOpen] = useState(false);
 
-    // Filters
-    const [regionFilter, setRegionFilter] = useState<string>('all');
+    const { selectedRegionId } = useRegionStore();
+    const effectiveRegionId = selectedRegionId === 'all' || !selectedRegionId ? undefined : selectedRegionId;
+
+    // Filters (region comes from global toggler)
     const [companyFilter, setCompanyFilter] = useState<string>('');
     const [industryFilter, setIndustryFilter] = useState<string>('');
 
     useEffect(() => {
-        loadRegions();
         loadJobs();
-    }, []);
-
-    useEffect(() => {
-        loadJobs();
-    }, [regionFilter, companyFilter, industryFilter]);
-
-    const loadRegions = async () => {
-        try {
-            const response = await regionService.getAll({ isActive: true });
-            if (response.success && response.data?.regions) {
-                setRegions(response.data.regions.map(r => ({ id: r.id, name: r.name })));
-            }
-        } catch (error) {
-            console.error('Failed to load regions:', error);
-        }
-    };
+    }, [effectiveRegionId, companyFilter, industryFilter]);
 
     const loadJobs = async () => {
         try {
             setLoading(true);
             const filters: { regionId?: string; companyId?: string } = {};
-            if (regionFilter && regionFilter !== 'all') filters.regionId = regionFilter;
+            if (effectiveRegionId) filters.regionId = effectiveRegionId;
             if (companyFilter) filters.companyId = companyFilter;
 
             const response = await jobAllocationService.getUnassignedJobs(filters);
@@ -88,12 +72,11 @@ export default function UnassignedJobsPage() {
     };
 
     const clearFilters = () => {
-        setRegionFilter('all');
         setCompanyFilter('');
         setIndustryFilter('');
     };
 
-    const hasActiveFilters = (regionFilter && regionFilter !== 'all') || companyFilter || industryFilter;
+    const hasActiveFilters = !!companyFilter || !!industryFilter;
 
     const columns = [
         {
@@ -159,7 +142,10 @@ export default function UnassignedJobsPage() {
         {
             key: 'createdAt',
             label: 'Created',
-            render: (job: UnassignedJob) => new Date(job.createdAt).toLocaleDateString(),
+            render: (job: UnassignedJob) => {
+              const d = job.createdAt ? new Date(job.createdAt) : null;
+              return d && !isNaN(d.getTime()) ? d.toLocaleDateString() : '—';
+            },
         },
         {
             key: 'actions',
@@ -194,24 +180,7 @@ export default function UnassignedJobsPage() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div className="space-y-2">
-                                <Label>Region</Label>
-                                <Select value={regionFilter} onValueChange={setRegionFilter}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="All regions" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">All regions</SelectItem>
-                                        {regions.map((region) => (
-                                            <SelectItem key={region.id} value={region.id}>
-                                                {region.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="space-y-2">
                                 <Label>Company</Label>
                                 <Input

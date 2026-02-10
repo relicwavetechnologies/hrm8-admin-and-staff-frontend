@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { SidebarProvider, SidebarInset } from "@/shared/components/ui/sidebar";
 import { UnifiedSidebar } from "../components/layouts/unified/UnifiedSidebar";
 import { UnifiedHeader } from "../components/layouts/unified/UnifiedHeader";
+import { CommandPalette } from "../components/common/CommandPalette";
 import { getSidebarConfig } from "../config/navigation";
 import { useAuthStore } from "../stores/authStore";
 
@@ -24,15 +25,16 @@ export function UnifiedDashboardLayout({ children }: UnifiedDashboardLayoutProps
 
     return (
         <SidebarProvider>
-            <div className="flex min-h-screen w-full">
+            <CommandPalette />
+            <div className="flex h-svh w-full overflow-hidden">
                 <UnifiedSidebar config={config} auth={authAdapter} />
 
-                <SidebarInset className="flex flex-col flex-1">
+                <SidebarInset className="flex flex-col flex-1 min-h-0 overflow-hidden">
                     {/* Header */}
                     <UnifiedHeader />
 
                     {/* Main Content */}
-                    <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+                    <main className="flex-1 min-h-0 overflow-y-auto p-4 md:p-6 lg:p-8">
                         <div className="mx-auto max-w-7xl w-full">
                             {children}
                         </div>

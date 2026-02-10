@@ -3,9 +3,58 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { Skeleton } from "@/shared/components/ui/skeleton";
 import { Loader2, Save, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { SystemSettingsService } from "@/shared/lib/hrm8/systemSettingsService";
+
+function IntegrationsSettingsSkeleton() {
+    return (
+        <div className="space-y-6">
+            <Card>
+                <CardHeader>
+                    <Skeleton className="h-6 w-44" />
+                    <Skeleton className="h-4 w-80" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <Skeleton className="h-4 w-36" />
+                    <Skeleton className="h-10 w-full" />
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-28" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-32" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <Skeleton className="h-6 w-48" />
+                    <Skeleton className="h-4 w-96" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-20" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-28" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                    </div>
+                    <div className="flex justify-end pt-4">
+                        <Skeleton className="h-10 w-36" />
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    );
+}
 
 export function IntegrationsSettingsTab() {
     const [loading, setLoading] = useState(false);
@@ -67,9 +116,7 @@ export function IntegrationsSettingsTab() {
         setShowKeys(prev => ({ ...prev, [key]: !prev[key] }));
     };
 
-    if (loading) {
-        return <div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
-    }
+    if (loading) return <IntegrationsSettingsSkeleton />;
 
     return (
         <div className="space-y-6">

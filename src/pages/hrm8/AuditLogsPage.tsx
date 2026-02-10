@@ -6,6 +6,7 @@ import { Badge } from '@/shared/components/ui/badge';
 import { toast } from 'sonner';
 import { EnhancedStatCard } from '@/shared/components/dashboard/EnhancedStatCard';
 import { TableSkeleton } from '@/shared/components/tables/TableSkeleton';
+import { Skeleton } from '@/shared/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
 import { Label } from '@/shared/components/ui/label';
 import { FileText, Activity, Clock, User } from 'lucide-react';
@@ -29,6 +30,7 @@ export default function AuditLogsPage() {
   const [entityTypeFilter, setEntityTypeFilter] = useState<string>('all');
   const [actionFilter, setActionFilter] = useState<string>('all');
   const [total, setTotal] = useState(0);
+  const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
     loadLogs();
@@ -64,6 +66,7 @@ export default function AuditLogsPage() {
 
   const loadStats = async () => {
     try {
+      setStatsLoading(true);
       const response = await auditLogService.getStats();
       if (!response.success && 'error' in response) {
         toast.error((response as { error?: string }).error || 'Failed to load audit stats');
@@ -74,6 +77,8 @@ export default function AuditLogsPage() {
       }
     } catch (error) {
       toast.error('Failed to load audit stats');
+    } finally {
+      setStatsLoading(false);
     }
   };
 
@@ -106,7 +111,7 @@ export default function AuditLogsPage() {
         <div>
           <span className="font-medium">{log.entity_type}</span>
           <span className="text-xs text-muted-foreground block">
-            {log.entity_id.substring(0, 8)}...
+            {log.entity_id ? `${log.entity_id.substring(0, 8)}...` : 'N/A'}
           </span>
         </div>
       ),
@@ -121,14 +126,17 @@ export default function AuditLogsPage() {
     {
       key: 'performedByEmail',
       label: 'Performed By',
-      render: (log: AuditLogEntry) => (
-        <div>
-          <span className="text-sm">{log.performed_by_email}</span>
-          <span className="text-xs text-muted-foreground block">
-            {log.performed_by_role.replace('_', ' ')}
-          </span>
-        </div>
-      ),
+      render: (log: AuditLogEntry) => {
+        const roleLabel = (log.performed_by_role || 'UNKNOWN').replace(/_/g, ' ');
+        return (
+          <div>
+            <span className="text-sm">{log.performed_by_email || '-'}</span>
+            <span className="text-xs text-muted-foreground block">
+              {roleLabel}
+            </span>
+          </div>
+        );
+      },
     },
     {
       key: 'ipAddress',
@@ -182,59 +190,72 @@ export default function AuditLogsPage() {
         </div>
       }
     >
-    <div className="p-6 space-y-6">
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <EnhancedStatCard
-          title="Total Logs"
-          value={stats?.total_logs?.toLocaleString() || '0'}
-          change="All time"
-          icon={<FileText className="h-6 w-6" />}
-          variant="neutral"
-        />
-        <EnhancedStatCard
-          title="Today's Activity"
-          value={stats?.today_logs?.toLocaleString() || '0'}
-          change="Last 24 hours"
-          icon={<Activity className="h-6 w-6" />}
-          variant="success"
-        />
-        <EnhancedStatCard
-          title="Showing"
-          value={logs.length.toString()}
-          change={`of ${total} total`}
-          icon={<Clock className="h-6 w-6" />}
-          variant="neutral"
-        />
-        <EnhancedStatCard
-          title="Top Action"
-          value={stats?.top_actions?.[0]?.action || '-'}
-          change={stats?.top_actions?.[0]?.count ? `${stats.top_actions[0].count} times` : ''}
-          icon={<User className="h-6 w-6" />}
-          variant="neutral"
-        />
-      </div>
-
-      {/* Logs Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <TableSkeleton columns={6} />
-          ) : (
-            <DataTable
-              data={logs}
-              columns={columns}
-              searchable
-              searchKeys={['performed_by_email', 'entity_type', 'action', 'description']}
-              emptyMessage="No audit logs found"
+      <div className="p-6 space-y-6">
+        {/* Stats Cards */}
+        {statsLoading ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {[1, 2, 3, 4].map((i) => (
+              <Card key={i}>
+                <CardHeader className="space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-8 w-20" />
+                </CardHeader>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <EnhancedStatCard
+              title="Total Logs"
+              value={stats?.total_logs?.toLocaleString() || '0'}
+              change="All time"
+              icon={<FileText className="h-6 w-6" />}
+              variant="neutral"
             />
-          )}
-        </CardContent>
-      </Card>
-    </div>
+            <EnhancedStatCard
+              title="Today's Activity"
+              value={stats?.today_logs?.toLocaleString() || '0'}
+              change="Last 24 hours"
+              icon={<Activity className="h-6 w-6" />}
+              variant="success"
+            />
+            <EnhancedStatCard
+              title="Showing"
+              value={logs.length.toString()}
+              change={`of ${total} total`}
+              icon={<Clock className="h-6 w-6" />}
+              variant="neutral"
+            />
+            <EnhancedStatCard
+              title="Top Action"
+              value={stats?.top_actions?.[0]?.action || '-'}
+              change={stats?.top_actions?.[0]?.count ? `${stats.top_actions[0].count} times` : ''}
+              icon={<User className="h-6 w-6" />}
+              variant="neutral"
+            />
+          </div>
+        )}
+
+        {/* Logs Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Activity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <TableSkeleton columns={6} />
+            ) : (
+              <DataTable
+                data={logs}
+                columns={columns}
+                searchable
+                searchKeys={['performed_by_email', 'entity_type', 'action', 'description']}
+                emptyMessage="No audit logs found"
+              />
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </Hrm8PageLayout>
   );
 }

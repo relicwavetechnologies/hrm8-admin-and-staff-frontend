@@ -1,6 +1,5 @@
 import { SidebarTrigger } from "@/shared/components/ui/sidebar";
 import { Separator } from "@/shared/components/ui/separator";
-import { Input } from "@/shared/components/ui/input";
 import { Search, Command } from "lucide-react";
 import { UserNav } from "@/shared/components/layouts/UserNav";
 import { NotificationBell } from "@/shared/components/notifications/NotificationBell";
@@ -17,49 +16,49 @@ export function UnifiedHeader() {
 
     return (
         <TooltipProvider>
-            <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
-                {/* Main Header Row */}
-                <div className="flex h-14 items-center gap-3 px-4 md:px-6">
-                    <SidebarTrigger />
-                    <Separator orientation="vertical" className="h-6" />
+            <header className="sticky top-0 z-50 w-full shadow-sm">
+                {/* Thin top accent line */}
+                <div className="h-[2px] w-full bg-gradient-to-r from-primary/60 via-primary/80 to-violet-500/60" />
 
-                    {/* Search Bar - Hidden on mobile, visible on desktop */}
-                    <div className="flex-1 flex items-center gap-4">
-                        <div
-                            className="relative max-w-md w-full hidden md:block cursor-pointer group"
-                            onClick={handleSearchClick}
-                        >
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                type="search"
-                                placeholder="Search everywhere..."
-                                className="pl-10 pr-24 bg-muted/60 border-muted-foreground/20 hover:border-primary/50 transition-colors cursor-pointer rounded-full h-9 text-sm"
-                                readOnly
-                            />
-                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
-                                <Badge
-                                    variant="outline"
-                                    className="text-[10px] px-1.5 py-0.5 font-mono opacity-60 group-hover:opacity-100 transition-opacity flex items-center bg-background/50"
-                                >
-                                    <Command className="h-2.5 w-2.5 mr-0.5" />
-                                    K
-                                </Badge>
-                            </div>
+                {/* Single unified row */}
+                <div className="relative flex h-14 items-center gap-3 px-4 md:px-6 bg-background/95 backdrop-blur-xl border-b border-border/50">
+                    {/* Left: Sidebar trigger + Breadcrumbs */}
+                    <div className="flex items-center gap-3 min-w-0">
+                        <SidebarTrigger className="shrink-0 hover:bg-accent/60 transition-colors rounded-lg" />
+                        <Separator orientation="vertical" className="h-5 shrink-0 bg-border/60" />
+                        <div className="hidden sm:block min-w-0 overflow-hidden">
+                            <Breadcrumbs />
                         </div>
                     </div>
 
-                    {/* Right Side Actions */}
-                    <div className="flex items-center gap-1.5 md:gap-3">
+                    {/* Center spacer */}
+                    <div className="flex-1" />
+
+                    {/* Center/Right: Search bar */}
+                    <div
+                        className="relative max-w-xs w-full hidden md:block cursor-pointer group"
+                        onClick={handleSearchClick}
+                    >
+                        <div className="flex items-center gap-2 px-3.5 h-9 rounded-full bg-muted border border-border hover:border-primary/50 hover:bg-accent transition-all duration-200 group-hover:shadow-sm">
+                            <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                            <span className="text-sm text-muted-foreground truncate">Search...</span>
+                            <Badge
+                                variant="outline"
+                                className="ml-auto text-[10px] px-1.5 py-0 font-mono opacity-70 group-hover:opacity-100 transition-opacity flex items-center bg-background border-border shrink-0"
+                            >
+                                <Command className="h-2.5 w-2.5 mr-0.5" />
+                                K
+                            </Badge>
+                        </div>
+                    </div>
+
+                    {/* Right: Actions */}
+                    <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
                         <ThemeToggle />
                         <NotificationBell />
-                        <div className="h-8 w-[1px] bg-muted mx-1" />
+                        <Separator orientation="vertical" className="h-5 mx-1 bg-border/40 hidden md:block" />
                         <UserNav />
                     </div>
-                </div>
-
-                {/* Breadcrumbs Row */}
-                <div className="px-6 h-10 border-t bg-muted/30 flex items-center justify-between gap-4">
-                    <Breadcrumbs />
                 </div>
             </header>
         </TooltipProvider>

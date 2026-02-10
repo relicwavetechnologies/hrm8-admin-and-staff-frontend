@@ -39,6 +39,14 @@ export interface ConsultantForAssignment {
   languages?: string[];
 }
 
+export interface ConsultantsForAssignmentResponse {
+  consultants: ConsultantForAssignment[];
+  total?: number;
+  hasMore?: boolean;
+  limit?: number;
+  offset?: number;
+}
+
 export interface JobAssignmentInfo {
   job: {
     id: string;
@@ -58,10 +66,15 @@ export interface JobAssignmentInfo {
 }
 
 class JobAllocationService {
-  async assignConsultant(jobId: string, consultantId: string, assignmentSource?: string) {
+  async getStats() {
+    return apiClient.get<{ total: number; unassigned: number; assigned: number }>('/api/hrm8/job-allocation/stats');
+  }
+
+  async assignConsultant(jobId: string, consultantId: string, assignmentSource?: string, reason?: string) {
     return apiClient.post(`/api/hrm8/jobs/${jobId}/assign-consultant`, {
       consultantId,
-      assignmentSource
+      assignmentSource,
+      reason,
     });
   }
 
@@ -82,6 +95,8 @@ class JobAllocationService {
   async getJobsForAllocation(filters?: {
     regionId?: string;
     companyId?: string;
+    company?: string;
+    companySearch?: string;
     assignmentStatus?: 'UNASSIGNED' | 'ASSIGNED' | 'ALL';
     consultantId?: string;
     search?: string;
@@ -89,6 +104,8 @@ class JobAllocationService {
     const queryParams = new URLSearchParams();
     if (filters?.regionId && filters.regionId !== 'all') queryParams.append('regionId', filters.regionId);
     if (filters?.companyId) queryParams.append('companyId', filters.companyId);
+    if (filters?.companySearch) queryParams.append('company', filters.companySearch);
+    else if (filters?.company) queryParams.append('company', filters.company);
     if (filters?.assignmentStatus) queryParams.append('assignmentStatus', filters.assignmentStatus);
     if (filters?.consultantId && filters.consultantId !== 'all') queryParams.append('consultantId', filters.consultantId);
     if (filters?.search) queryParams.append('search', filters.search);
@@ -108,9 +125,10 @@ class JobAllocationService {
     return apiClient.get<JobAssignmentInfo>(`/api/hrm8/jobs/${jobId}/assignment-info`);
   }
 
-  async autoAssign(jobId: string) {
+  async autoAssign(jobId: string, reason?: string) {
     return apiClient.post<{ consultantId?: string; job: any; consultants: any[] }>(
-      `/api/hrm8/jobs/${jobId}/auto-assign`
+      `/api/hrm8/jobs/${jobId}/auto-assign`,
+      reason ? { reason } : undefined
     );
   }
 
@@ -121,6 +139,8 @@ class JobAllocationService {
     industry?: string;
     language?: string;
     search?: string;
+    limit?: number;
+    offset?: number;
   }) {
     console.debug('[jobAllocationService] getConsultantsForAssignment', filters);
     const queryParams = new URLSearchParams();
@@ -130,10 +150,38 @@ class JobAllocationService {
     if (filters.industry) queryParams.append('industry', filters.industry);
     if (filters.language) queryParams.append('language', filters.language);
     if (filters.search) queryParams.append('search', filters.search);
+    if (typeof filters.limit === 'number') queryParams.append('limit', String(filters.limit));
+    if (typeof filters.offset === 'number') queryParams.append('offset', String(filters.offset));
 
-    return apiClient.get<{ consultants: ConsultantForAssignment[] }>(
+    const response = await apiClient.get<ConsultantsForAssignmentResponse>(
       `/api/hrm8/consultants/for-assignment?${queryParams.toString()}`
     );
+
+    if (!response.success) return response;
+
+    const payload = response.data as unknown;
+    const consultants = Array.isArray(payload)
+      ? payload
+      : Array.isArray((payload as { consultants?: ConsultantForAssignment[] })?.consultants)
+        ? (payload as { consultants: ConsultantForAssignment[] }).consultants
+        : [];
+    const total = typeof (payload as { total?: number })?.total === 'number'
+      ? (payload as { total: number }).total
+      : consultants.length;
+    const hasMore = typeof (payload as { hasMore?: boolean })?.hasMore === 'boolean'
+      ? (payload as { hasMore: boolean }).hasMore
+      : false;
+    const limit = typeof (payload as { limit?: number })?.limit === 'number'
+      ? (payload as { limit: number }).limit
+      : undefined;
+    const offset = typeof (payload as { offset?: number })?.offset === 'number'
+      ? (payload as { offset: number }).offset
+      : undefined;
+
+    return {
+      ...response,
+      data: { consultants, total, hasMore, limit, offset },
+    };
   }
 }
 

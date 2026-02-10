@@ -3,8 +3,8 @@
  * HRM8 Admin page for managing sales agent attribution on companies
  */
 
-import { useState } from 'react';
-import { billingApiService, AttributionData, AttributionHistoryEntry } from '@/shared/services/hrm8/billingApiService';
+import { useEffect, useState } from 'react';
+import { billingApiService, AttributionData, AttributionCompanySearchResult, AttributionHistoryEntry } from '@/shared/services/hrm8/billingApiService';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/components/ui/card';
 import { Input } from '@/shared/components/ui/input';
@@ -47,7 +47,10 @@ const safeFormatDate = (dateStr: string | null | undefined, formatStr: string = 
 };
 
 export default function AttributionPage() {
-  const [companyId, setCompanyId] = useState('');
+  const [companyQuery, setCompanyQuery] = useState('');
+  const [selectedCompany, setSelectedCompany] = useState<AttributionCompanySearchResult | null>(null);
+  const [companyResults, setCompanyResults] = useState<AttributionCompanySearchResult[]>([]);
+  const [searchingCompanies, setSearchingCompanies] = useState(false);
   const [attribution, setAttribution] = useState<AttributionData | null>(null);
   const [history, setHistory] = useState<AttributionHistoryEntry[]>([]);
   const [loading, setLoading] = useState(false);
@@ -58,20 +61,44 @@ export default function AttributionPage() {
   const [newConsultantId, setNewConsultantId] = useState('');
   const [overrideReason, setOverrideReason] = useState('');
 
-  const handleSearch = async () => {
-    if (!companyId.trim()) {
-      toast.error('Please enter a Company ID');
+  useEffect(() => {
+    const query = companyQuery.trim();
+    if (selectedCompany && query === selectedCompany.name) {
+      return;
+    }
+    if (query.length < 2) {
+      setCompanyResults([]);
       return;
     }
 
+    const timeoutId = window.setTimeout(async () => {
+      setSearchingCompanies(true);
+      try {
+        const response = await billingApiService.searchAttributionCompanies(query, 10);
+        setCompanyResults(response.success ? (response.data?.companies || []) : []);
+      } catch {
+        setCompanyResults([]);
+      } finally {
+        setSearchingCompanies(false);
+      }
+    }, 250);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [companyQuery, selectedCompany]);
+
+  const activeCompanyId = selectedCompany?.company_id || attribution?.company_id || null;
+
+  const loadAttributionForCompany = async (company: AttributionCompanySearchResult) => {
+    setSelectedCompany(company);
+    setCompanyQuery(company.name);
     setLoading(true);
     try {
-      const response = await billingApiService.getAttribution(companyId);
+      const response = await billingApiService.getAttribution(company.company_id);
       if (response.success && response.data?.attribution) {
         setAttribution(response.data.attribution);
         toast.success('Attribution data loaded');
         // Load history too
-        loadHistory();
+        loadHistory(company.company_id);
       } else {
         toast.error(response.error || 'Company not found');
         setAttribution(null);
@@ -84,12 +111,21 @@ export default function AttributionPage() {
     }
   };
 
-  const loadHistory = async () => {
-    if (!companyId) return;
+  const handleSearch = async () => {
+    if (!selectedCompany) {
+      toast.error('Please select a company');
+      return;
+    }
+    await loadAttributionForCompany(selectedCompany);
+  };
+
+  const loadHistory = async (companyId?: string) => {
+    const targetCompanyId = companyId || activeCompanyId;
+    if (!targetCompanyId) return;
     
     setHistoryLoading(true);
     try {
-      const response = await billingApiService.getAttributionHistory(companyId);
+      const response = await billingApiService.getAttributionHistory(targetCompanyId);
       if (response.success && response.data?.history) {
         setHistory(response.data.history);
       }
@@ -101,10 +137,10 @@ export default function AttributionPage() {
   };
 
   const handleLock = async () => {
-    if (!companyId) return;
+    if (!activeCompanyId) return;
     
     try {
-      const response = await billingApiService.lockAttribution(companyId);
+      const response = await billingApiService.lockAttribution(activeCompanyId);
       if (response.success) {
         toast.success('Attribution locked successfully');
         handleSearch(); // Refresh data
@@ -117,6 +153,10 @@ export default function AttributionPage() {
   };
 
   const handleOverride = async () => {
+    if (!activeCompanyId) {
+      toast.error('Please select a company');
+      return;
+    }
     if (!newConsultantId.trim()) {
       toast.error('Please enter a Consultant ID');
       return;
@@ -128,7 +168,7 @@ export default function AttributionPage() {
 
     try {
       const response = await billingApiService.overrideAttribution(
-        companyId,
+        activeCompanyId,
         newConsultantId,
         overrideReason
       );
@@ -149,7 +189,7 @@ export default function AttributionPage() {
   return (
     <Hrm8PageLayout
       title="Attribution Management"
-      subtitle="Manage sales agent attribution for companies"
+      subtitle="Manage sales agent attribution for leads companies"
     >
       <div className="p-6 space-y-6">
         {/* Search Section */}
@@ -160,20 +200,61 @@ export default function AttributionPage() {
               Lookup Company Attribution
             </CardTitle>
             <CardDescription>
-              Enter a Company ID to view and manage its sales attribution
+              Search by company name to view and manage its sales attribution
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-4">
+            <div className="flex gap-4 items-start">
               <div className="flex-1">
                 <Input
-                  placeholder="Enter Company ID..."
-                  value={companyId}
-                  onChange={(e) => setCompanyId(e.target.value)}
+                  placeholder="Search company name..."
+                  value={companyQuery}
+                  onChange={(e) => {
+                    setCompanyQuery(e.target.value);
+                    setSelectedCompany(null);
+                    setAttribution(null);
+                    setHistory([]);
+                  }}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 />
+                <div className="mt-2 rounded-md border bg-background">
+                  {selectedCompany ? (
+                    <button
+                      type="button"
+                      className="w-full text-left px-3 py-2 hover:bg-accent"
+                      onClick={() => {
+                        setSelectedCompany(null);
+                        setAttribution(null);
+                        setHistory([]);
+                      }}
+                    >
+                      <div className="font-medium">{selectedCompany.name}</div>
+                      <div className="text-xs text-muted-foreground">{selectedCompany.domain}</div>
+                    </button>
+                  ) : companyQuery.trim().length < 2 ? (
+                    <div className="px-3 py-2 text-sm text-muted-foreground">Type at least 2 characters</div>
+                  ) : searchingCompanies ? (
+                    <div className="px-3 py-2 text-sm text-muted-foreground">Searching companies...</div>
+                  ) : companyResults.length === 0 ? (
+                    <div className="px-3 py-2 text-sm text-muted-foreground">No matching company found</div>
+                  ) : (
+                    companyResults.map((company) => (
+                      <button
+                        key={company.company_id}
+                        type="button"
+                        className="w-full text-left px-3 py-2 hover:bg-accent border-b last:border-b-0"
+                        onClick={() => {
+                          loadAttributionForCompany(company);
+                        }}
+                      >
+                        <div className="font-medium">{company.name}</div>
+                        <div className="text-xs text-muted-foreground">{company.domain}</div>
+                      </button>
+                    ))
+                  )}
+                </div>
               </div>
-              <Button onClick={handleSearch} disabled={loading}>
+              <Button onClick={handleSearch} disabled={loading || !selectedCompany}>
                 <Search className="h-4 w-4 mr-2" />
                 {loading ? 'Searching...' : 'Search'}
               </Button>
@@ -210,6 +291,10 @@ export default function AttributionPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-muted-foreground">Company</Label>
+                  <p className="text-sm">{attribution.company_name || selectedCompany?.name || '-'}</p>
+                </div>
                 <div>
                   <Label className="text-muted-foreground">Company ID</Label>
                   <p className="font-mono text-sm">{attribution.company_id}</p>

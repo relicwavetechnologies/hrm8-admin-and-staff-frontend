@@ -4,9 +4,52 @@ import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
+import { Skeleton } from "@/shared/components/ui/skeleton";
 import { Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { SystemSettingsService } from "@/shared/lib/hrm8/systemSettingsService";
+
+function EmailSettingsSkeleton() {
+    return (
+        <div className="space-y-6">
+            <Card>
+                <CardHeader>
+                    <Skeleton className="h-6 w-52" />
+                    <Skeleton className="h-4 w-80" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                        <Skeleton className="h-4 w-28" />
+                        <Skeleton className="h-10 w-full" />
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                    </div>
+                    <div className="flex justify-end pt-4">
+                        <Skeleton className="h-10 w-40" />
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    );
+}
 
 export function EmailSettingsTab() {
     const [loading, setLoading] = useState(false);
@@ -67,9 +110,7 @@ export function EmailSettingsTab() {
         }
     };
 
-    if (loading) {
-        return <div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
-    }
+    if (loading) return <EmailSettingsSkeleton />;
 
     return (
         <div className="space-y-6">

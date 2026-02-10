@@ -1,0 +1,114 @@
+// Copied from Mosaic Next - line-chart-01
+import { useRef, useState, useEffect } from 'react'
+import { useTheme } from '@/shared/hooks/useTheme'
+
+import { chartColors } from '@/shared/components/ui/charts/chartjs-config'
+import {
+  Chart, LineController, LineElement, Filler, PointElement, LinearScale, TimeScale, Tooltip,
+} from 'chart.js'
+import type { ChartData } from 'chart.js'
+import 'chartjs-adapter-moment'
+
+// Import utilities
+import { formatValue } from '@/shared/lib/chart-utils'
+
+Chart.register(LineController, LineElement, Filler, PointElement, LinearScale, TimeScale, Tooltip)
+
+interface LineChart01Props {
+  data: ChartData
+  width: number
+  height: number
+}
+
+export default function LineChart01({
+  data,
+  width,
+  height
+}: LineChart01Props) {
+
+  const [chart, setChart] = useState<Chart | null>(null)
+  const canvas = useRef<HTMLCanvasElement>(null)
+  const { theme } = useTheme()
+  const darkMode = theme === 'dark'
+  const { tooltipBodyColor, tooltipBgColor, tooltipBorderColor } = chartColors
+
+  useEffect(() => {
+    const ctx = canvas.current
+    if (!ctx) return
+
+    // Destroy any existing chart instance on this canvas (React Strict Mode safety)
+    const existingChart = Chart.getChart(ctx)
+    if (existingChart) {
+      existingChart.destroy()
+    }
+
+    const newChart = new Chart(ctx, {
+      type: 'line',
+      data: data,
+      options: {
+        layout: {
+          padding: 0,
+        },
+        scales: {
+          y: {
+            display: false,
+            beginAtZero: true,
+          },
+          x: {
+            type: 'time',
+            time: {
+              parser: 'MM-DD-YYYY',
+              unit: 'month',
+            },
+            display: false,
+          },
+        },
+        plugins: {
+          tooltip: {
+            callbacks: {
+              title: () => '', // Disable tooltip title
+              label: (context) => formatValue(context.parsed.y ?? 0),
+            },
+            bodyColor: darkMode ? tooltipBodyColor.dark : tooltipBodyColor.light,
+            backgroundColor: darkMode ? tooltipBgColor.dark : tooltipBgColor.light,
+            borderColor: darkMode ? tooltipBorderColor.dark : tooltipBorderColor.light,
+          },
+          legend: {
+            display: false,
+          },
+        },
+        interaction: {
+          intersect: false,
+          mode: 'nearest',
+        },
+        maintainAspectRatio: false,
+        resizeDelay: 200,
+      },
+    })
+    setChart(newChart)
+    return () => {
+      newChart.destroy()
+      setChart(null)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (!chart) return
+
+    if (darkMode) {
+      chart.options.plugins!.tooltip!.bodyColor = tooltipBodyColor.dark
+      chart.options.plugins!.tooltip!.backgroundColor = tooltipBgColor.dark
+      chart.options.plugins!.tooltip!.borderColor = tooltipBorderColor.dark
+    } else {
+      chart.options.plugins!.tooltip!.bodyColor = tooltipBodyColor.light
+      chart.options.plugins!.tooltip!.backgroundColor = tooltipBgColor.light
+      chart.options.plugins!.tooltip!.borderColor = tooltipBorderColor.light
+    }
+    chart.update('none')
+  }, [theme])
+
+  return (
+    <canvas ref={canvas} width={width} height={height}></canvas>
+  )
+}

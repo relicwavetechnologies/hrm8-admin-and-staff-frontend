@@ -82,15 +82,16 @@ export function CurrencyFormatProvider({ children }: { children: React.ReactNode
   };
 
   const formatCurrency = (value: number, sourceCurrency: string = 'USD'): string => {
+    const normalizedValue = Number(value);
+    let convertedValue = Number.isFinite(normalizedValue) ? normalizedValue : 0;
+
     // Convert value to selected currency
-    let convertedValue = value;
-    
     // First convert to USD if source is different
     if (sourceCurrency !== 'USD') {
       if (sourceCurrency === 'EUR') {
-        convertedValue = value / exchangeRates.EUR;
+        convertedValue = convertedValue / exchangeRates.EUR;
       } else if (sourceCurrency === 'GBP') {
-        convertedValue = value / exchangeRates.GBP;
+        convertedValue = convertedValue / exchangeRates.GBP;
       }
     }
 

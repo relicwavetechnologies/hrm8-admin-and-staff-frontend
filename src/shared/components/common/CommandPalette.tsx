@@ -10,19 +10,13 @@ import {
   CommandSeparator,
 } from '@/shared/components/ui/command';
 import {
-  LayoutDashboard,
-  Users,
-  Briefcase,
-  FileText,
-  BarChart3,
-  Calendar,
-  Settings,
-  HelpCircle,
+  Clock,
   Plus,
   UserPlus,
-  Clock,
-  Target,
+  Calendar,
 } from 'lucide-react';
+import { getRoutesForUser } from '@/shared/lib/routeRegistry';
+import { useAuthStore } from '@/shared/stores/authStore';
 
 interface CommandItem {
   id: string;
@@ -39,6 +33,8 @@ export function CommandPalette() {
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
+  const auth = useAuthStore();
+  const userType = auth.user?.type as 'ADMIN' | 'CONSULTANT' | 'SALES_AGENT' | 'CONSULTANT360' | 'CANDIDATE' | undefined;
 
   // Recent items from localStorage
   const [recentItems, setRecentItems] = useState<string[]>(() => {
@@ -76,91 +72,26 @@ export function CommandPalette() {
       setRecentItems(updated);
       localStorage.setItem('recent_pages', JSON.stringify(updated));
     }
-  }, [location.pathname]);
+  }, [location.pathname, recentItems]);
 
-  const navigationItems: CommandItem[] = [
-    {
-      id: 'dashboard',
-      title: 'Dashboard',
-      description: 'Overview and analytics',
-      icon: LayoutDashboard,
-      action: () => navigate('/dashboard'),
-      category: 'navigation',
-      keywords: ['home', 'overview'],
-    },
-    {
-      id: 'candidates',
-      title: 'Candidates',
-      description: 'Manage candidates',
-      icon: Users,
-      action: () => navigate('/candidates'),
-      category: 'navigation',
-      keywords: ['people', 'applicants'],
-    },
-    {
-      id: 'jobs',
-      title: 'Jobs',
-      description: 'View and manage job postings',
-      icon: Briefcase,
-      action: () => navigate('/ats/jobs'),
-      category: 'navigation',
-      keywords: ['positions', 'openings', 'vacancies'],
-    },
-    {
-      id: 'applications',
-      title: 'Applications',
-      description: 'Track applications',
-      icon: FileText,
-      action: () => navigate('/applications'),
-      category: 'navigation',
-      keywords: ['submissions'],
-    },
-    {
-      id: 'analytics',
-      title: 'Analytics',
-      description: 'View reports and insights',
-      icon: BarChart3,
-      action: () => navigate('/analytics'),
-      category: 'navigation',
-      keywords: ['reports', 'metrics', 'stats'],
-    },
-    {
-      id: 'calendar',
-      title: 'Calendar',
-      description: 'Schedule and events',
-      icon: Calendar,
-      action: () => navigate('/calendar'),
-      category: 'navigation',
-      keywords: ['schedule', 'events'],
-    },
-    {
-      id: 'recruitment-services',
-      title: 'Recruitment Services',
-      description: 'Manage recruitment service projects',
-      icon: Target,
-      action: () => navigate('/recruitment-services'),
-      category: 'navigation',
-      keywords: ['services', 'projects', 'clients'],
-    },
-    {
-      id: 'settings',
-      title: 'Settings',
-      description: 'Configure preferences',
-      icon: Settings,
-      action: () => navigate('/settings'),
-      category: 'navigation',
-      keywords: ['preferences', 'config'],
-    },
-    {
-      id: 'help',
-      title: 'Help Center',
-      description: 'Get support',
-      icon: HelpCircle,
-      action: () => navigate('/help'),
-      category: 'navigation',
-      keywords: ['support', 'documentation'],
-    },
-  ];
+  // Get dynamic routes based on user type and role
+  const dynamicRoutes = useMemo(() => {
+    if (!userType) return [];
+    return getRoutesForUser(userType, auth.user);
+  }, [userType, auth.user]);
+
+  // Convert dynamic routes to CommandItems for navigation
+  const navigationItems: CommandItem[] = useMemo(() => {
+    return dynamicRoutes.map((route) => ({
+      id: route.id,
+      title: route.title,
+      description: route.description,
+      icon: route.icon,
+      action: () => navigate(route.path),
+      category: 'navigation' as const,
+      keywords: route.keywords,
+    }));
+  }, [dynamicRoutes, navigate]);
 
   const actionItems: CommandItem[] = [
     {
@@ -201,16 +132,18 @@ export function CommandPalette() {
     },
   ];
 
-  const recentPageItems: CommandItem[] = recentItems
-    .map((path) => {
-      const navItem = navigationItems.find((item) => item.action.toString().includes(path));
-      if (!navItem) return null;
-      return {
-        ...navItem,
-        category: 'recent' as const,
-      };
-    })
-    .filter(Boolean) as CommandItem[];
+  const recentPageItems: CommandItem[] = useMemo(() => {
+    return recentItems
+      .map((path) => {
+        const navItem = navigationItems.find((item) => item.action.toString().includes(path));
+        if (!navItem) return null;
+        return {
+          ...navItem,
+          category: 'recent' as const,
+        };
+      })
+      .filter(Boolean) as CommandItem[];
+  }, [recentItems, navigationItems]);
 
   const allItems = [...navigationItems, ...actionItems];
 

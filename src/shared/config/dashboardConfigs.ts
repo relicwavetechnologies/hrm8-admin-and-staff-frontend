@@ -18,12 +18,10 @@ import {
   MapPin,
   Users,
   UserCog,
-  TrendingUp,
   BookOpen,
   BarChart3,
   Target,
   UserCheck,
-  Plug,
 } from "lucide-react";
 // // import { ConsultantProfileCompletionDialog } from "@/components/consultants/ConsultantProfileCompletionDialog";
 import type { DashboardConfig, MenuItem } from "@/shared/types/dashboard";
@@ -292,14 +290,8 @@ export const hrm8DashboardConfig: DashboardConfig = {
         icon: UserCog,
       },
       {
-        id: "job-allocation",
-        path: "/hrm8/allocations",
-        label: "Job Allocation",
-        icon: Briefcase,
-      },
-      {
-        id: "job-board",
-        path: "/hrm8/job-board",
+        id: "jobs",
+        path: "/hrm8/jobs",
         label: "Jobs",
         icon: Briefcase,
         adminOnly: true,
@@ -311,60 +303,10 @@ export const hrm8DashboardConfig: DashboardConfig = {
         icon: Target,
       },
       {
-        id: "pipeline",
-        path: "/hrm8/sales-pipeline",
-        label: "Pipeline",
-        icon: BarChart3,
-      },
-      {
-        id: "commissions",
-        path: "/hrm8/commissions",
-        label: "Commissions",
+        id: "finance",
+        path: "/hrm8/finance",
+        label: "Revenue & Finance",
         icon: DollarSign,
-      },
-      {
-        id: "withdrawals",
-        path: "/hrm8/withdrawals",
-        label: "Withdrawals",
-        icon: DollarSign,
-      },
-      {
-        id: "refund-requests",
-        path: "/hrm8/billing/refund-requests",
-        label: "Refund Requests",
-        icon: DollarSign,
-      },
-      {
-        id: "conversion-requests",
-        path: "/hrm8/conversion-requests",
-        label: "Conversion Requests",
-        icon: UserCheck,
-      },
-      {
-        id: "settlements",
-        path: "/hrm8/settlements",
-        label: "Settlements",
-        icon: DollarSign,
-        adminOnly: true,
-      },
-      {
-        id: "revenue",
-        path: "/hrm8/revenue",
-        label: "Revenue",
-        icon: TrendingUp,
-      },
-      {
-        id: "revenue-analytics",
-        path: "/hrm8/revenue-analytics",
-        label: "Revenue Analytics",
-        icon: BarChart3,
-      },
-      {
-        id: "attribution",
-        path: "/hrm8/attribution",
-        label: "Attribution",
-        icon: UserCheck,
-        adminOnly: true,
       },
       {
         id: "pricing",
@@ -384,13 +326,6 @@ export const hrm8DashboardConfig: DashboardConfig = {
         path: "/hrm8/reports",
         label: "Reports",
         icon: FileText,
-      },
-      {
-        id: "integrations",
-        path: "/hrm8/integrations",
-        label: "Integrations",
-        icon: Plug,
-        adminOnly: true,
       },
       {
         id: "careers-requests",

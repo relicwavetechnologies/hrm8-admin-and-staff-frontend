@@ -68,10 +68,10 @@ export function NotificationBell({ className }: NotificationBellProps) {
                 variant="ghost"
                 size="icon"
                 onClick={handleToggle}
-                className="relative"
+                className="relative h-9 w-9 rounded-lg hover:bg-accent/50 hover:scale-105 transition-all duration-200"
                 aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
             >
-                <Bell className="h-5 w-5" />
+                <Bell className="h-[18px] w-[18px]" />
                 {unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-medium text-white">
                         {unreadCount > 99 ? '99+' : unreadCount}

@@ -12,6 +12,7 @@ import { Badge } from "@/shared/components/ui/badge";
 import { DataTable, Column } from "@/shared/components/tables/DataTable";
 import { useToast } from "@/shared/hooks/use-toast";
 import { Database, Plus, RefreshCw, Settings2 } from "lucide-react";
+import { Skeleton } from "@/shared/components/ui/skeleton";
 import {
   CompanyIntegration,
   GlobalIntegration,
@@ -377,6 +378,68 @@ export default function Hrm8IntegrationsPage() {
   ];
 
   // Auth check is handled by RoleGuard at route level (allowedRoles: ['GLOBAL_ADMIN'])
+  if (loading) {
+    return (
+      <div className="p-6 space-y-6">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-4 w-80" />
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-3">
+          <Card className="lg:col-span-2">
+            <CardHeader className="space-y-2">
+              <Skeleton className="h-6 w-56" />
+              <Skeleton className="h-4 w-72" />
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="space-y-2">
+              <Skeleton className="h-6 w-44" />
+              <Skeleton className="h-4 w-56" />
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <Skeleton key={i} className="h-9 w-full" />
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Card>
+            <CardHeader className="space-y-2">
+              <Skeleton className="h-6 w-36" />
+              <Skeleton className="h-4 w-56" />
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-8 w-full" />
+              ))}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="space-y-2">
+              <Skeleton className="h-6 w-32" />
+              <Skeleton className="h-4 w-64" />
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-4 w-full" />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex flex-col gap-2">

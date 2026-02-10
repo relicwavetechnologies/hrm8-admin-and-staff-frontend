@@ -15,11 +15,14 @@ import {
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
+import { Textarea } from '@/shared/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
 import { Badge } from '@/shared/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/shared/components/ui/alert';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { Separator } from '@/shared/components/ui/separator';
-import { Loader2, Search, Users, CheckCircle, Briefcase } from 'lucide-react';
+import { Skeleton } from '@/shared/components/ui/skeleton';
+import { Loader2, Search, Users, CheckCircle, Briefcase, AlertTriangle } from 'lucide-react';
 import { jobAllocationService, ConsultantForAssignment, JobAssignmentInfo } from '@/shared/services/hrm8/jobAllocationService';
 import { toast } from 'sonner';
 import { AutoAssignmentOverrideModal } from './AutoAssignmentOverrideModal';
@@ -37,13 +40,19 @@ export function AssignConsultantDrawer({
   jobId,
   onSuccess,
 }: AssignConsultantDrawerProps) {
+  const CONSULTANTS_PAGE_SIZE = 10;
   const [loading, setLoading] = useState(true);
   const [loadingConsultants, setLoadingConsultants] = useState(false);
   const [assigning, setAssigning] = useState(false);
   const [jobInfo, setJobInfo] = useState<JobAssignmentInfo | null>(null);
   const jobInfoRef = useRef<JobAssignmentInfo | null>(null);
   const [consultants, setConsultants] = useState<ConsultantForAssignment[]>([]);
+  const [consultantsTotal, setConsultantsTotal] = useState(0);
+  const [consultantsOffset, setConsultantsOffset] = useState(0);
+  const [hasMoreConsultants, setHasMoreConsultants] = useState(false);
   const [selectedConsultantId, setSelectedConsultantId] = useState<string>('');
+  const [reassignmentReason, setReassignmentReason] = useState('');
+  const [autoReassignReason, setAutoReassignReason] = useState('');
   const [showOverrideModal, setShowOverrideModal] = useState(false);
   const [pendingConsultantId, setPendingConsultantId] = useState<string>('');
 
@@ -60,9 +69,13 @@ export function AssignConsultantDrawer({
     try {
       setLoading(true);
       const jobInfoRes = await jobAllocationService.getAssignmentInfo(jobId);
-      if (jobInfoRes.success && jobInfoRes.data) {
+      if (jobInfoRes.success && jobInfoRes.data?.job) {
         setJobInfo(jobInfoRes.data);
         jobInfoRef.current = jobInfoRes.data;
+      } else {
+        setJobInfo(null);
+        jobInfoRef.current = null;
+        toast.error(jobInfoRes.error || 'Failed to load job info');
       }
     } catch (error) {
       toast.error('Failed to load job info');
@@ -72,11 +85,12 @@ export function AssignConsultantDrawer({
   }, [jobId]);
 
   const loadConsultants = useCallback(
-    async () => {
+    async (append = false, nextOffset?: number) => {
       try {
         const regionId = jobInfoRef.current?.job.regionId;
         if (!regionId) return;
         setLoadingConsultants(true);
+        const offset = append ? (nextOffset ?? consultantsOffset) : 0;
         const consultantsRes = await jobAllocationService.getConsultantsForAssignment({
           regionId,
           role: roleFilter && roleFilter !== 'all' ? roleFilter : undefined,
@@ -84,11 +98,20 @@ export function AssignConsultantDrawer({
           industry: industryFilter || undefined,
           language: languageFilter || undefined,
           search: debouncedSearch?.trim() ? debouncedSearch.trim() : undefined,
+          limit: CONSULTANTS_PAGE_SIZE,
+          offset,
         });
-        if (consultantsRes.success && consultantsRes.data) {
-          setConsultants(consultantsRes.data.consultants);
+        if (consultantsRes.success) {
+          const nextConsultants = consultantsRes.data?.consultants ?? [];
+          setConsultants((prev) => (append ? [...prev, ...nextConsultants] : nextConsultants));
+          setConsultantsTotal(consultantsRes.data?.total ?? nextConsultants.length);
+          setHasMoreConsultants(Boolean(consultantsRes.data?.hasMore));
+          setConsultantsOffset(offset + nextConsultants.length);
         } else {
           setConsultants([]);
+          setConsultantsTotal(0);
+          setHasMoreConsultants(false);
+          setConsultantsOffset(0);
         }
       } catch (error) {
         toast.error('Failed to load consultants');
@@ -111,6 +134,11 @@ export function AssignConsultantDrawer({
       setIndustryFilter('');
       setLanguageFilter('');
       setConsultants([]);
+      setConsultantsTotal(0);
+      setConsultantsOffset(0);
+      setHasMoreConsultants(false);
+      setReassignmentReason('');
+      setAutoReassignReason('');
       setJobInfo(null);
       jobInfoRef.current = null;
     }
@@ -119,12 +147,28 @@ export function AssignConsultantDrawer({
   // Reload consultants when filters or search change
   useEffect(() => {
     if (open && jobInfoRef.current) {
-      loadConsultants();
+      setConsultants([]);
+      setConsultantsTotal(0);
+      setConsultantsOffset(0);
+      setHasMoreConsultants(false);
+      loadConsultants(false);
     }
   }, [open, jobInfo?.job.id, roleFilter, availabilityFilter, industryFilter, languageFilter, loadConsultants, debouncedSearch]);
 
+  const handleLoadMoreConsultants = async () => {
+    await loadConsultants(true, consultantsOffset);
+  };
+
   const handleAssign = async (consultantId: string) => {
     if (!jobInfo) return;
+    const isReassignment = Boolean(
+      jobInfo.job.assignedConsultantId && jobInfo.job.assignedConsultantId !== consultantId
+    );
+
+    if (isReassignment && !reassignmentReason.trim()) {
+      toast.error('Reason is required for reassignment');
+      return;
+    }
 
     // Check if job is auto-assigned
     if (jobInfo.job.assignmentSource === 'AUTO_RULES' && jobInfo.job.assignedConsultantId) {
@@ -139,7 +183,12 @@ export function AssignConsultantDrawer({
   const performAssignment = async (consultantId: string) => {
     try {
       setAssigning(true);
-      const response = await jobAllocationService.assignConsultant(jobId, consultantId);
+      const response = await jobAllocationService.assignConsultant(
+        jobId,
+        consultantId,
+        undefined,
+        reassignmentReason.trim() || undefined
+      );
 
       if (response.success) {
         toast.success('Consultant assigned successfully');
@@ -164,15 +213,22 @@ export function AssignConsultantDrawer({
   };
 
   const handleAutoAssign = async () => {
+    if (isAutoReassignmentFlow && !autoReassignReason.trim()) {
+      toast.error('Reason is required for auto-reassignment');
+      return;
+    }
     try {
       setAssigning(true);
-      const response = await jobAllocationService.autoAssign(jobId);
+      const response = await jobAllocationService.autoAssign(
+        jobId,
+        isAutoReassignmentFlow ? autoReassignReason.trim() : undefined
+      );
 
       if (response.success) {
         if (response.data?.consultantId) {
-          toast.success('Job auto-assigned successfully');
+          toast.success(isAutoReassignmentFlow ? 'Job auto-reassigned successfully' : 'Job auto-assigned successfully');
         } else {
-          toast.warning('No suitable consultant found for auto-assignment');
+          toast.warning(isAutoReassignmentFlow ? 'No suitable consultant found for auto-reassignment' : 'No suitable consultant found for auto-assignment');
         }
         onSuccess?.();
         onOpenChange(false);
@@ -187,7 +243,17 @@ export function AssignConsultantDrawer({
   };
 
   // Client-side filtering removed as backend handles it
-  const filteredConsultants = consultants;
+  const filteredConsultants = consultants ?? [];
+  const isAutoReassignmentFlow = Boolean(jobInfo?.job.assignedConsultantId);
+  const isReassignmentFlow = Boolean(
+    jobInfo?.job.assignedConsultantId &&
+    selectedConsultantId &&
+    selectedConsultantId !== jobInfo.job.assignedConsultantId
+  );
+  const currentConsultant = jobInfo?.consultants.find(c => c.id === jobInfo?.job.assignedConsultantId);
+  const nextConsultant = filteredConsultants.find(c => c.id === selectedConsultantId);
+  const requiresReason = isReassignmentFlow;
+  const canSubmitAssign = Boolean(selectedConsultantId) && !assigning && (!requiresReason || Boolean(reassignmentReason.trim()));
 
 
   return (
@@ -202,8 +268,25 @@ export function AssignConsultantDrawer({
           </SheetHeader>
 
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <div className="space-y-6 mt-6">
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-48" />
+                <Skeleton className="h-4 w-80" />
+              </div>
+              <Skeleton className="h-10 w-full rounded-lg" />
+              <div className="space-y-3">
+                <Skeleton className="h-10 w-full rounded-lg" />
+                <div className="grid grid-cols-2 gap-4">
+                  <Skeleton className="h-10 w-full rounded-lg" />
+                  <Skeleton className="h-10 w-full rounded-lg" />
+                </div>
+              </div>
+              <div className="space-y-3">
+                <Skeleton className="h-5 w-40" />
+                <Skeleton className="h-20 w-full rounded-lg" />
+                <Skeleton className="h-20 w-full rounded-lg" />
+                <Skeleton className="h-20 w-full rounded-lg" />
+              </div>
             </div>
           ) : (
             <div className="space-y-6 mt-6">
@@ -232,6 +315,30 @@ export function AssignConsultantDrawer({
               )}
 
               {/* Auto-assign Button */}
+              {isAutoReassignmentFlow && (
+                <Alert variant="destructive" className="border-amber-300 text-amber-900 dark:text-amber-100 dark:border-amber-700">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>Auto reassignment warning</AlertTitle>
+                  <AlertDescription>
+                    <p>
+                      This job is currently assigned to <strong>{currentConsultant ? `${currentConsultant.firstName} ${currentConsultant.lastName}` : 'a consultant'}</strong>.
+                    </p>
+                    <p className="mt-2">
+                      If you continue, auto rules will auto-reassign ownership to the best-fit consultant and keep pipeline progress unchanged.
+                    </p>
+                    <div className="mt-3 space-y-2">
+                      <Label className="text-amber-900 dark:text-amber-100">Reason for auto-reassignment</Label>
+                      <Textarea
+                        placeholder="Mention why auto-reassignment is needed..."
+                        value={autoReassignReason}
+                        onChange={(e) => setAutoReassignReason(e.target.value)}
+                        rows={3}
+                        className="bg-background text-foreground"
+                      />
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
               <Button
                 variant="outline"
                 onClick={handleAutoAssign}
@@ -243,7 +350,7 @@ export function AssignConsultantDrawer({
                 ) : (
                   <CheckCircle className="mr-2 h-4 w-4" />
                 )}
-                Try Auto-Assignment
+                {isAutoReassignmentFlow ? 'Try Auto-Reassign' : 'Try Auto-Assignment'}
               </Button>
 
               <Separator />
@@ -295,6 +402,33 @@ export function AssignConsultantDrawer({
                     </Select>
                   </div>
                 </div>
+
+                {isReassignmentFlow && (
+                  <Alert variant="destructive" className="border-amber-300 text-amber-900 dark:text-amber-100 dark:border-amber-700">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Reassignment warning</AlertTitle>
+                    <AlertDescription>
+                      <p>
+                        You are reassigning this job from <strong>{currentConsultant ? `${currentConsultant.firstName} ${currentConsultant.lastName}` : 'current consultant'}</strong> to <strong>{nextConsultant ? `${nextConsultant.firstName} ${nextConsultant.lastName}` : 'selected consultant'}</strong>.
+                      </p>
+                      <p className="mt-2">
+                        Outcome: pipeline stage/progress will continue, ownership will move, workload will be shifted, and both consultants will be notified with your reason.
+                      </p>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {isReassignmentFlow && (
+                  <div className="space-y-2">
+                    <Label>Reason for reassignment</Label>
+                    <Textarea
+                      placeholder="Mention why this job is being reassigned..."
+                      value={reassignmentReason}
+                      onChange={(e) => setReassignmentReason(e.target.value)}
+                      rows={3}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Consultants List */}
@@ -304,7 +438,7 @@ export function AssignConsultantDrawer({
                     Select Consultant
                     {searchQuery && (
                       <span className="text-sm text-muted-foreground ml-2">
-                        ({filteredConsultants.length} of {consultants.length})
+                        ({filteredConsultants.length} of {consultantsTotal || consultants.length})
                       </span>
                     )}
                   </Label>
@@ -314,9 +448,10 @@ export function AssignConsultantDrawer({
                 </div>
                 <div className="space-y-2 max-h-[400px] overflow-y-auto">
                   {loadingConsultants ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
-                      Loading consultants...
+                    <div className="space-y-3 py-2">
+                      <Skeleton className="h-20 w-full rounded-lg" />
+                      <Skeleton className="h-20 w-full rounded-lg" />
+                      <Skeleton className="h-20 w-full rounded-lg" />
                     </div>
                   ) : filteredConsultants.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
@@ -351,9 +486,9 @@ export function AssignConsultantDrawer({
                                   {consultant.email}
                                 </p>
                                 <div className="flex flex-wrap gap-2 mt-2">
-                                  <Badge variant="secondary">{consultant.role}</Badge>
+                                  <Badge variant="secondary">{consultant.role || 'CONSULTANT'}</Badge>
                                   <Badge variant={consultant.availability === 'AVAILABLE' ? 'default' : 'destructive'}>
-                                    {consultant.availability}
+                                    {consultant.availability || 'AVAILABLE'}
                                   </Badge>
                                 </div>
                                 <div className="mt-2 text-sm">
@@ -380,6 +515,17 @@ export function AssignConsultantDrawer({
                     })
                   )}
                 </div>
+                {!loadingConsultants && hasMoreConsultants && filteredConsultants.length > 0 && (
+                  <div className="pt-2">
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={handleLoadMoreConsultants}
+                    >
+                      Load more consultants
+                    </Button>
+                  </div>
+                )}
               </div>
 
               {/* Actions */}
@@ -393,7 +539,7 @@ export function AssignConsultantDrawer({
                 </Button>
                 <Button
                   onClick={() => selectedConsultantId && handleAssign(selectedConsultantId)}
-                  disabled={!selectedConsultantId || assigning}
+                  disabled={!canSubmitAssign}
                   className="flex-1"
                 >
                   {assigning ? (
@@ -428,7 +574,3 @@ export function AssignConsultantDrawer({
     </>
   );
 }
-
-
-
-

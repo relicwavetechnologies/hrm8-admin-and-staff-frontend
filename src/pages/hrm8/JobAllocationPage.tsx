@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { jobAllocationService, JobForAllocation } from '@/shared/lib/hrm8/jobAllocationService';
 import { DataTable } from '@/shared/components/tables/DataTable';
 import { Button } from '@/shared/components/ui/button';
@@ -15,6 +16,12 @@ import { useDebounce } from '@/shared/hooks/use-debounce';
 import { useRegionStore } from '@/shared/stores/useRegionStore';
 
 export default function JobAllocationPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const getAssignmentStatusFromParams = (): 'UNASSIGNED' | 'ASSIGNED' | 'ALL' => {
+    const value = searchParams.get('assignmentStatus');
+    if (value === 'UNASSIGNED' || value === 'ASSIGNED' || value === 'ALL') return value;
+    return 'ALL';
+  };
   const [jobs, setJobs] = useState<JobForAllocation[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
@@ -26,13 +33,20 @@ export default function JobAllocationPage() {
   // Filters
   const [companyFilter, setCompanyFilter] = useState<string>('');
   const [industryFilter, setIndustryFilter] = useState<string>('');
-  const [assignmentStatusFilter, setAssignmentStatusFilter] = useState<'UNASSIGNED' | 'ASSIGNED' | 'ALL'>('ALL');
+  const [assignmentStatusFilter, setAssignmentStatusFilter] = useState<'UNASSIGNED' | 'ASSIGNED' | 'ALL'>(() => getAssignmentStatusFromParams());
   const [searchTerm, setSearchTerm] = useState<string>('');
 
   const debouncedSearch = useDebounce(searchTerm, 500);
   const debouncedCompany = useDebounce(companyFilter, 500);
   const debouncedIndustry = useDebounce(industryFilter, 500);
   const { selectedRegionId, regions } = useRegionStore();
+
+  useEffect(() => {
+    const paramValue = getAssignmentStatusFromParams();
+    if (paramValue !== assignmentStatusFilter) {
+      setAssignmentStatusFilter(paramValue);
+    }
+  }, [searchParams, assignmentStatusFilter]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -62,7 +76,7 @@ export default function JobAllocationPage() {
       if (debouncedIndustry) {
         filters.industry = debouncedIndustry;
       }
-      filters.assignmentStatus = assignmentStatusFilter;
+      filters.assignmentStatus = getAssignmentStatusFromParams();
       if (debouncedSearch) filters.search = debouncedSearch;
       filters.limit = pageSize;
       filters.offset = (currentPage - 1) * pageSize;
@@ -84,6 +98,24 @@ export default function JobAllocationPage() {
     setIndustryFilter('');
     setAssignmentStatusFilter('ALL');
     setSearchTerm('');
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev);
+      params.delete('assignmentStatus');
+      return params;
+    });
+  };
+
+  const handleAssignmentStatusChange = (val: 'UNASSIGNED' | 'ASSIGNED' | 'ALL') => {
+    setAssignmentStatusFilter(val);
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev);
+      if (val === 'ALL') {
+        params.delete('assignmentStatus');
+      } else {
+        params.set('assignmentStatus', val);
+      }
+      return params;
+    });
   };
 
   const handleAssignClick = (jobId: string) => {
@@ -198,7 +230,7 @@ export default function JobAllocationPage() {
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="space-y-2">
               <Label>Assignment Status</Label>
-              <Select value={assignmentStatusFilter} onValueChange={(val: any) => setAssignmentStatusFilter(val)}>
+              <Select value={assignmentStatusFilter} onValueChange={(val: 'UNASSIGNED' | 'ASSIGNED' | 'ALL') => handleAssignmentStatusChange(val)}>
                 <SelectTrigger>
                   <SelectValue placeholder="All Status" />
                 </SelectTrigger>

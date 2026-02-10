@@ -5,7 +5,7 @@ import { staffService, StaffMember } from '@/shared/lib/hrm8/staffService';
 import { DataTable, Column } from '@/shared/components/tables/DataTable';
 import { Button } from '@/shared/components/ui/button';
 import { Plus } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import { Card, CardContent } from '@/shared/components/ui/card';
 import { toast } from 'sonner';
 import { FormDrawer } from '@/shared/components/ui/form-drawer';
 import { StaffForm } from '@/shared/components/hrm8/StaffForm';
@@ -154,11 +154,11 @@ export default function StaffPage() {
 
   return (
     
-      <div className="p-6 space-y-6">
-        <div className="flex justify-between items-center">
+      <div className="px-2 py-1 md:px-3 space-y-4">
+        <div className="flex justify-between items-start md:items-center gap-3">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Staff Management</h1>
-            <p className="text-muted-foreground">Manage Consultants and Sales Agents</p>
+            <h1 className="text-2xl font-bold tracking-tight">Staff Members</h1>
+            <p className="text-muted-foreground">Manage consultants and sales agents.</p>
           </div>
           {canCreate && (
             <Button onClick={handleCreate}>
@@ -169,10 +169,7 @@ export default function StaffPage() {
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Staff Members</CardTitle>
-          </CardHeader>
-          <CardContent className="overflow-visible">
+          <CardContent className="overflow-visible p-3 sm:p-4">
             {loading ? (
               <TableSkeleton columns={5} />
             ) : (

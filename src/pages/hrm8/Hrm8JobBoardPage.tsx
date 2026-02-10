@@ -94,10 +94,10 @@ export default function Hrm8JobBoardPage() {
     // Calculate stats only from current page companies
     const totalStats = filteredCompanies.reduce(
         (acc, company) => ({
-            totalJobs: acc.totalJobs + company.total_jobs,
-            activeJobs: acc.activeJobs + company.active_jobs,
-            totalViews: acc.totalViews + company.total_views,
-            totalClicks: acc.totalClicks + company.total_clicks,
+            totalJobs: acc.totalJobs + (company.total_jobs || 0),
+            activeJobs: acc.activeJobs + (company.active_jobs || 0),
+            totalViews: acc.totalViews + (company.total_views || 0),
+            totalClicks: acc.totalClicks + (company.total_clicks || 0),
         }),
         { totalJobs: 0, activeJobs: 0, totalViews: 0, totalClicks: 0 }
     );
@@ -248,11 +248,11 @@ export default function Hrm8JobBoardPage() {
                                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                                         <div className="flex items-center gap-1">
                                             <Eye className="h-3.5 w-3.5" />
-                                            <span>{company.total_views.toLocaleString()}</span>
+                                            <span>{(company.total_views || 0).toLocaleString()}</span>
                                         </div>
                                         <div className="flex items-center gap-1">
                                             <MousePointerClick className="h-3.5 w-3.5" />
-                                            <span>{company.total_clicks.toLocaleString()}</span>
+                                            <span>{(company.total_clicks || 0).toLocaleString()}</span>
                                         </div>
                                         {company.on_hold_jobs > 0 && (
                                             <Badge variant="secondary" className="text-xs">

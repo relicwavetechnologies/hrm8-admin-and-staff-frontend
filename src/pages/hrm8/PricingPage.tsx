@@ -38,7 +38,7 @@ export default function PricingPage() {
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingBooks, setLoadingBooks] = useState(true);
   const [loadingPromos, setLoadingPromos] = useState(true);
-  const { selectedRegionId, regions } = useRegionStore();
+  const { selectedRegionId } = useRegionStore();
   const effectiveRegionFilter = selectedRegionId === 'all' || !selectedRegionId ? 'all' : selectedRegionId;
 
   const [productDialogOpen, setProductDialogOpen] = useState(false);

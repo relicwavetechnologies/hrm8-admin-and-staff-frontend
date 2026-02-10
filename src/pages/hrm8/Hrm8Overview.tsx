@@ -343,7 +343,7 @@ function LegacyOverview() {
           subtitle="Operational"
           colorClass="text-chart-1"
           bgClass="bg-chart-1/10"
-          onClick={() => navigate('/hrm8/allocations')}
+          onClick={() => navigate('/hrm8/jobs/allocation')}
         />
         <ModernStatCard
           title="Active Consultants"
@@ -430,7 +430,7 @@ function OverviewV2() {
         setSummaryLoading(true);
         setSummaryError(null);
         const response = await apiClient.get<OverviewSummary>(
-          `/api/hrm8/overview?regionId=${encodeURIComponent(regionId)}&period=${period}`
+          `/api/hrm8/overview?regionId=${encodeURIComponent(regionId)}&period=${period}&summaryOnly=1`
         );
         setSummary(response.data || null);
       } catch (error: any) {
@@ -542,8 +542,14 @@ function OverviewV2() {
   }, [activeTab]);
 
   const operationsTrend = useMemo(() => {
-    const jobs = summary?.charts?.jobsTrend || operationsData?.stats?.trends?.open_jobs || [];
-    const placements = summary?.charts?.placementsTrend || operationsData?.stats?.trends?.placements || [];
+    const summaryJobs = summary?.charts?.jobsTrend;
+    const summaryPlacements = summary?.charts?.placementsTrend;
+    const jobs = Array.isArray(summaryJobs) && summaryJobs.length > 0
+      ? summaryJobs
+      : (operationsData?.stats?.trends?.open_jobs || []);
+    const placements = Array.isArray(summaryPlacements) && summaryPlacements.length > 0
+      ? summaryPlacements
+      : (operationsData?.stats?.trends?.placements || []);
     const placementsMap = new Map(placements.map((p: TrendPoint) => [p.name, p.value]));
     return jobs.map((j: TrendPoint) => ({ name: j.name, openJobs: j.value, placements: placementsMap.get(j.name) || 0 }));
   }, [summary, operationsData]);
@@ -609,7 +615,7 @@ function OverviewV2() {
           subtitle={`${summary?.kpis?.unassignedJobs ?? 0} unassigned`}
           colorClass="text-chart-1"
           bgClass="bg-chart-1/10"
-          onClick={() => navigate('/hrm8/allocations')}
+          onClick={() => navigate('/hrm8/jobs/allocation')}
           loading={summaryLoading}
         />
         <ModernStatCard

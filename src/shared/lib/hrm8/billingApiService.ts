@@ -68,11 +68,19 @@ export interface SettlementStats {
 
 export interface AttributionData {
     company_id: string;
+    company_name?: string;
     sales_agent_id: string | null;
     referred_by: string | null;
     attribution_locked: boolean;
     attribution_locked_at: string | null;
     created_by: string | null;
+}
+
+export interface AttributionCompanySearchResult {
+    company_id: string;
+    name: string;
+    domain: string;
+    region_id: string | null;
 }
 
 export interface AttributionHistoryEntry {
@@ -236,25 +244,34 @@ class BillingApiService {
 
     async getAttribution(companyId: string) {
         return apiClient.get<{ attribution: AttributionData }>(
-            `/api/admin/billing/attribution/${companyId}`
+            `/api/hrm8/attribution/${companyId}`
+        );
+    }
+
+    async searchAttributionCompanies(query: string, limit: number = 10) {
+        const params = new URLSearchParams();
+        params.append('q', query);
+        params.append('limit', String(limit));
+        return apiClient.get<{ companies: AttributionCompanySearchResult[] }>(
+            `/api/hrm8/attribution/companies/search?${params.toString()}`
         );
     }
 
     async getAttributionHistory(companyId: string) {
         return apiClient.get<{ history: AttributionHistoryEntry[] }>(
-            `/api/admin/billing/attribution/${companyId}/history`
+            `/api/hrm8/attribution/${companyId}/history`
         );
     }
 
     async lockAttribution(companyId: string) {
         return apiClient.post<{ message: string }>(
-            `/api/admin/billing/attribution/${companyId}/lock`
+            `/api/hrm8/attribution/${companyId}/lock`
         );
     }
 
     async overrideAttribution(companyId: string, newConsultantId: string, reason: string) {
         return apiClient.post<{ message: string }>(
-            `/api/admin/billing/attribution/${companyId}/override`,
+            `/api/hrm8/attribution/${companyId}/override`,
             { new_consultant_id: newConsultantId, reason }
         );
     }

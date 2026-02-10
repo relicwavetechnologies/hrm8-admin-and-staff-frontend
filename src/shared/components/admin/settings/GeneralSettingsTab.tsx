@@ -3,9 +3,36 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { Skeleton } from "@/shared/components/ui/skeleton";
 import { Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { SystemSettingsService } from "@/shared/lib/hrm8/systemSettingsService";
+
+function GeneralSettingsSkeleton() {
+    return (
+        <div className="space-y-6">
+            <Card>
+                <CardHeader>
+                    <Skeleton className="h-6 w-48" />
+                    <Skeleton className="h-4 w-80" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="grid gap-4 md:grid-cols-2">
+                        {Array.from({ length: 4 }).map((_, index) => (
+                            <div className="space-y-2" key={index}>
+                                <Skeleton className="h-4 w-32" />
+                                <Skeleton className="h-10 w-full" />
+                            </div>
+                        ))}
+                    </div>
+                    <div className="flex justify-end pt-4">
+                        <Skeleton className="h-10 w-36" />
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    );
+}
 
 export function GeneralSettingsTab() {
     const [loading, setLoading] = useState(false);
@@ -57,9 +84,7 @@ export function GeneralSettingsTab() {
         }
     };
 
-    if (loading) {
-        return <div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
-    }
+    if (loading) return <GeneralSettingsSkeleton />;
 
     return (
         <div className="space-y-6">

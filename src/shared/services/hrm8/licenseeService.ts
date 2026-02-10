@@ -50,6 +50,46 @@ export interface CreateLicenseeData {
   password?: string;
 }
 
+export interface LicenseeOverviewItem {
+  licenseeId: string;
+  name: string;
+  status: 'ACTIVE' | 'SUSPENDED' | 'TERMINATED';
+  revenueSharePercent: number;
+  regionsCount: number;
+  activeJobs: number;
+  activeConsultants: number;
+  totalRevenue: number;
+  licenseeShare: number;
+  hrm8Share: number;
+  settlementsCount: number;
+  lastSettlementDate: string | null;
+}
+
+export interface LicenseeOverviewData {
+  summary: {
+    totalLicensees: number;
+    activeLicensees: number;
+    suspendedLicensees: number;
+    terminatedLicensees: number;
+    totalRegions: number;
+    totalActiveJobs: number;
+    totalActiveConsultants: number;
+    totalRevenue: number;
+    totalLicenseeShare: number;
+    totalHrm8Share: number;
+    avgRevenueSharePercent: number;
+  };
+  performance: LicenseeOverviewItem[];
+  revenueShareBreakdown: Array<{
+    licenseeId: string;
+    licenseeName: string;
+    totalRevenue: number;
+    licenseeShare: number;
+    hrm8Share: number;
+  }>;
+  topPerformers: LicenseeOverviewItem[];
+}
+
 class LicenseeService {
   async getAll(filters?: { status?: string }) {
     const queryParams = new URLSearchParams();
@@ -57,6 +97,10 @@ class LicenseeService {
 
     const query = queryParams.toString();
     return apiClient.get<{ licensees: RegionalLicensee[] }>(`/api/hrm8/licensees${query ? `?${query}` : ''}`);
+  }
+
+  async getOverview() {
+    return apiClient.get<LicenseeOverviewData>('/api/hrm8/licensees/overview');
   }
 
   async getById(id: string) {
@@ -94,6 +138,5 @@ class LicenseeService {
 }
 
 export const licenseeService = new LicenseeService();
-
 
 

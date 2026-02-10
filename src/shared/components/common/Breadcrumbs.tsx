@@ -7,7 +7,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/shared/components/ui/breadcrumb';
-import { Home } from 'lucide-react';
+import { Home, ChevronRight } from 'lucide-react';
 
 interface RouteInfo {
   title: string;
@@ -64,25 +64,26 @@ export function Breadcrumbs() {
 
   return (
     <Breadcrumb>
-      <BreadcrumbList>
+      <BreadcrumbList className="text-xs gap-1 flex-nowrap">
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
-            <Link to={homePath} className="flex items-center gap-1.5">
-              <Home className="h-3.5 w-3.5" />
-              <span>Home</span>
+            <Link to={homePath} className="flex items-center gap-1 text-muted-foreground/70 hover:text-foreground transition-colors">
+              <Home className="h-3 w-3" />
             </Link>
           </BreadcrumbLink>
         </BreadcrumbItem>
 
         {breadcrumbs.map((crumb, index) => (
-          <span key={crumb.path} className="flex items-center gap-1.5">
-            <BreadcrumbSeparator />
+          <span key={crumb.path} className="flex items-center gap-1">
+            <BreadcrumbSeparator className="[&>svg]:h-3 [&>svg]:w-3">
+              <ChevronRight className="h-3 w-3 text-muted-foreground/40" />
+            </BreadcrumbSeparator>
             <BreadcrumbItem>
               {index === breadcrumbs.length - 1 ? (
-                <BreadcrumbPage>{crumb.title}</BreadcrumbPage>
+                <BreadcrumbPage className="font-medium text-foreground/90 truncate max-w-[150px]">{crumb.title}</BreadcrumbPage>
               ) : (
                 <BreadcrumbLink asChild>
-                  <Link to={crumb.path}>{crumb.title}</Link>
+                  <Link to={crumb.path} className="text-muted-foreground/60 hover:text-foreground transition-colors truncate max-w-[120px]">{crumb.title}</Link>
                 </BreadcrumbLink>
               )}
             </BreadcrumbItem>

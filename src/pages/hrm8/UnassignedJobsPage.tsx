@@ -22,7 +22,7 @@ export default function UnassignedJobsPage() {
     const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
     const [drawerOpen, setDrawerOpen] = useState(false);
 
-    const { selectedRegionId } = useRegionStore();
+    const { selectedRegionId, regions } = useRegionStore();
     const effectiveRegionId = selectedRegionId === 'all' || !selectedRegionId ? undefined : selectedRegionId;
 
     // Filters (region comes from global toggler)
@@ -104,7 +104,7 @@ export default function UnassignedJobsPage() {
             label: 'Region',
             render: (job: UnassignedJob) => {
                 if (!job.regionId) return <span className="text-muted-foreground">Unassigned</span>;
-                const region = regions.find(r => r.id === job.regionId);
+                const region = regions.find((r: { id: string; name: string }) => r.id === job.regionId);
                 return region ? region.name : 'Unknown';
             },
         },

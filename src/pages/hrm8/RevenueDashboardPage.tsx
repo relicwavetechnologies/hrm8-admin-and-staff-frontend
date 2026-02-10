@@ -71,7 +71,10 @@ export default function RevenueDashboardPage() {
         }).format(amount);
     };
 
-    const formatPercentage = (value: number) => {
+    const formatPercentage = (value?: number) => {
+        if (value === undefined || value === null || isNaN(value)) {
+            return '0.0%';
+        }
         return `${value.toFixed(1)}%`;
     };
 
@@ -97,7 +100,18 @@ export default function RevenueDashboardPage() {
         );
     }
 
-    const { summary, by_region, by_commission_type, top_consultants, timeline } = data;
+    const summary = data.summary || {
+        total_revenue: 0,
+        bill_count: 0,
+        total_commissions: 0,
+        commission_rate: 0,
+        net_revenue: 0,
+        paid_commission_count: 0
+    };
+    const by_region = data.by_region || [];
+    const by_commission_type = data.by_commission_type || [];
+    const top_consultants = data.top_consultants || [];
+    const timeline = data.timeline || [];
 
     return (
 
@@ -239,7 +253,7 @@ export default function RevenueDashboardPage() {
                         <CardDescription>Breakdown by commission type</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        {by_commission_type.length > 0 ? (
+                        {by_commission_type && by_commission_type.length > 0 ? (
                             <ResponsiveContainer width="100%" height={300}>
                                 <PieChart>
                                     <Pie
@@ -296,7 +310,7 @@ export default function RevenueDashboardPage() {
                     <CardDescription>Highest commission earners</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {top_consultants.length > 0 ? (
+                    {top_consultants && top_consultants.length > 0 ? (
                         <div className="space-y-4">
                             {top_consultants.map((consultant, index) => (
                                 <div key={consultant.consultant_id} className="flex items-center justify-between">

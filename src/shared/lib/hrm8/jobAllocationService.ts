@@ -58,10 +58,15 @@ export interface JobAssignmentInfo {
 }
 
 class JobAllocationService {
-  async assignConsultant(jobId: string, consultantId: string, assignmentSource?: string) {
+  async getStats() {
+    return apiClient.get<{ total: number; unassigned: number; assigned: number }>('/api/hrm8/job-allocation/stats');
+  }
+
+  async assignConsultant(jobId: string, consultantId: string, assignmentSource?: string, reason?: string) {
     return apiClient.post(`/api/hrm8/jobs/${jobId}/assign-consultant`, {
       consultantId,
-      assignmentSource
+      assignmentSource,
+      reason,
     });
   }
 
@@ -82,6 +87,7 @@ class JobAllocationService {
   async getJobsForAllocation(filters?: {
     regionId?: string;
     companyId?: string;
+    company?: string;
     companySearch?: string;
     industry?: string;
     assignmentStatus?: 'UNASSIGNED' | 'ASSIGNED' | 'ALL';
@@ -94,6 +100,7 @@ class JobAllocationService {
     if (filters?.regionId && filters.regionId !== 'all') queryParams.append('regionId', filters.regionId);
     if (filters?.companyId) queryParams.append('companyId', filters.companyId);
     if (filters?.companySearch) queryParams.append('company', filters.companySearch);
+    else if (filters?.company) queryParams.append('company', filters.company);
     if (filters?.industry) queryParams.append('industry', filters.industry);
     if (filters?.assignmentStatus) queryParams.append('assignmentStatus', filters.assignmentStatus);
     if (filters?.consultantId && filters.consultantId !== 'all') queryParams.append('consultantId', filters.consultantId);
@@ -116,9 +123,10 @@ class JobAllocationService {
     return apiClient.get<JobAssignmentInfo>(`/api/hrm8/jobs/${jobId}/assignment-info`);
   }
 
-  async autoAssign(jobId: string) {
+  async autoAssign(jobId: string, reason?: string) {
     return apiClient.post<{ consultantId?: string; job: any; consultants: any[] }>(
-      `/api/hrm8/jobs/${jobId}/auto-assign`
+      `/api/hrm8/jobs/${jobId}/auto-assign`,
+      reason ? { reason } : undefined
     );
   }
 

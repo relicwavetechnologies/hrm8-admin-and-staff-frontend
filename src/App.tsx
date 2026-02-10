@@ -25,6 +25,8 @@ import AnalyticsDashboard from './pages/hrm8/AnalyticsDashboard'
 import RevenueDashboardPage from './pages/hrm8/RevenueDashboardPage'
 import CommissionsPage from './pages/hrm8/CommissionsPage'
 import LicenseesPage from './pages/hrm8/LicenseesPage'
+import LicenseesWorkspacePage from './pages/hrm8/licensees/LicenseesWorkspacePage'
+import LicenseesOverviewPage from './pages/hrm8/licensees/LicenseesOverviewPage'
 import ConsultantDashboard from './pages/consultant/ConsultantDashboard'
 import RegionalCompaniesPage from './pages/hrm8/RegionalCompaniesPage'
 import JobAllocationPage from './pages/hrm8/JobAllocationPage'
@@ -53,6 +55,12 @@ import SettlementsPage from './pages/hrm8/SettlementsPage'
 import CareersRequestsPage from './pages/hrm8/CareersRequestsPage'
 import AdminEmailTemplatesPage from './pages/admin/AdminEmailTemplatesPage'
 import StaffPage from './pages/hrm8/StaffPage'
+import StaffOverviewPage from './pages/hrm8/staff/StaffOverviewPage'
+import StaffWorkspacePage from './pages/hrm8/staff/StaffWorkspacePage'
+import StaffSettlementsPage from './pages/hrm8/staff/StaffSettlementsPage'
+import StaffSettingsPage from './pages/hrm8/staff/StaffSettingsPage'
+import JobsWorkspacePage from './pages/hrm8/jobs/JobsWorkspacePage'
+import JobsOverviewPage from './pages/hrm8/jobs/JobsOverviewPage'
 import Hrm8ConsultantDetailPage from './pages/hrm8/Hrm8ConsultantDetailPage'
 import UnassignedJobsPage from './pages/hrm8/UnassignedJobsPage'
 import Hrm8JobBoardPage from './pages/hrm8/Hrm8JobBoardPage'
@@ -64,6 +72,8 @@ import RegionalLeadsPage from './pages/hrm8/RegionalLeadsPage'
 import ReportsPage from './pages/hrm8/ReportsPage'
 import Hrm8SettingsPage from './pages/hrm8/Hrm8SettingsPage'
 import Hrm8IntegrationsPage from './pages/hrm8/Hrm8IntegrationsPage'
+import SystemWorkspacePage from './pages/hrm8/settings/SystemWorkspacePage'
+import SystemOverviewPage from './pages/hrm8/settings/SystemOverviewPage'
 import Hrm8ProfilePage from './pages/hrm8/Hrm8ProfilePage'
 import UtilsNotificationsPage from './pages/hrm8/NotificationsPage'
 import StaffProfilePage from './pages/hrm8/StaffProfilePage'
@@ -77,6 +87,10 @@ import ConsultantWalletPage from './pages/consultant/ConsultantWalletPage'
 import SalesOpportunityDetailPage from './pages/sales/SalesOpportunityDetailPage'
 import SalesOpportunityNewPage from './pages/sales/SalesOpportunityNewPage'
 import StripeMockOnboarding from './pages/dev/StripeMockOnboarding'
+import LeadsWorkspacePage from './pages/hrm8/leads/LeadsWorkspacePage'
+import LeadsOverviewPage from './pages/hrm8/leads/LeadsOverviewPage'
+import FinanceWorkspacePage from './pages/hrm8/finance/FinanceWorkspacePage'
+import FinanceOverviewPage from './pages/hrm8/finance/FinanceOverviewPage'
 
 function App() {
     const { checkAuth } = useAuthStore();
@@ -99,42 +113,83 @@ function App() {
                     <Route path="/hrm8/analytics" element={<AnalyticsDashboard />} />
 
                     <Route path="/hrm8/commissions" element={<CommissionsPage />} />
-                    <Route path="/hrm8/staff" element={<StaffPage />} />
+                    <Route path="/hrm8/staff" element={<StaffWorkspacePage />}>
+                        <Route index element={<Navigate to="overview" replace />} />
+                        <Route path="overview" element={<StaffOverviewPage />} />
+                        <Route path="members" element={<StaffPage />} />
+                        <Route path="settlements" element={<StaffSettlementsPage />} />
+                        <Route path="settings" element={<StaffSettingsPage />} />
+                    </Route>
+                    <Route path="/hrm8/jobs" element={<JobsWorkspacePage />}>
+                        <Route index element={<Navigate to="overview" replace />} />
+                        <Route path="overview" element={<JobsOverviewPage />} />
+                        <Route path="companies" element={<Hrm8JobBoardPage />} />
+                        <Route path="allocation" element={<JobAllocationPage />} />
+                    </Route>
                     <Route path="/hrm8/staff/:id" element={<StaffProfilePage />} />
                     <Route path="/hrm8/consultants/:id" element={<Hrm8ConsultantDetailPage />} />
                     <Route path="/hrm8/companies" element={<RegionalCompaniesPage />} />
-                    <Route path="/hrm8/allocations" element={<JobAllocationPage />} />
+                    <Route path="/hrm8/allocations" element={<Navigate to="/hrm8/jobs/allocation" replace />} />
                     <Route path="/hrm8/jobs/unassigned" element={<UnassignedJobsPage />} />
-                    <Route path="/hrm8/job-board" element={<Hrm8JobBoardPage />} />
+                    <Route path="/hrm8/job-board" element={<Navigate to="/hrm8/jobs/companies" replace />} />
                     <Route path="/hrm8/job-board/:companyId" element={<Hrm8CompanyJobsPage />} />
                     <Route path="/hrm8/job-board/job/:jobId" element={<Hrm8JobDetailPage />} />
-                    <Route path="/hrm8/withdrawals" element={<WithdrawalsPage />} />
-                    <Route path="/hrm8/billing/refund-requests" element={<RefundRequestsPage />} />
                     <Route path="/hrm8/notifications" element={<UtilsNotificationsPage />} />
                     <Route path="/hrm8/email-templates" element={<AdminEmailTemplatesPage />} />
-                    <Route path="/hrm8/leads" element={<RegionalLeadsPage />} />
-                    <Route path="/hrm8/reports" element={<ReportsPage />} />
+                    <Route path="/hrm8/leads" element={<LeadsWorkspacePage />}>
+                        <Route index element={<Navigate to="overview" replace />} />
+                        <Route path="overview" element={<LeadsOverviewPage />} />
+                        <Route path="list" element={<RegionalLeadsPage />} />
+                        <Route path="conversion" element={<ConversionRequestsPage />} />
+                        <Route path="attribution" element={<AttributionPage />} />
+                    </Route>
+                    <Route path="/hrm8/licensees" element={<LicenseesWorkspacePage />}>
+                        <Route index element={<Navigate to="overview" replace />} />
+                        <Route path="overview" element={<LicenseesOverviewPage />} />
+                        <Route path="list" element={<LicenseesPage />} />
+                    </Route>
+                    <Route path="/hrm8/finance" element={<FinanceWorkspacePage />}>
+                        <Route index element={<Navigate to="overview" replace />} />
+                        <Route path="overview" element={<FinanceOverviewPage />} />
+                        <Route path="revenue" element={<RevenuePage />} />
+                        <Route path="revenue-analytics" element={<RevenueDashboardPage />} />
+                        <Route path="commissions" element={<CommissionsPage />} />
+                        <Route path="withdrawals" element={<WithdrawalsPage />} />
+                        <Route path="refunds" element={<RefundRequestsPage />} />
+                        <Route path="settlements" element={<SettlementsPage />} />
+                        <Route path="pricing" element={<PricingPage />} />
+                    </Route>
                     <Route path="/hrm8/sales-pipeline" element={<SalesPipelinePage />} />
+                    <Route path="/hrm8/reports" element={<ReportsPage />} />
                     <Route path="/hrm8/profile" element={<Hrm8ProfilePage />} />
-                    <Route path="/hrm8/attribution" element={<AttributionPage />} />
-                    <Route path="/hrm8/pricing" element={<PricingPage />} />
+                    <Route path="/hrm8/attribution" element={<Navigate to="/hrm8/leads/attribution" replace />} />
                     <Route path="/hrm8/billing" element={<BillingPage />} />
                     <Route path="/hrm8/regional-sales" element={<RegionalSalesDashboard />} />
-                    <Route path="/hrm8/revenue" element={<RevenuePage />} />
-                    <Route path="/hrm8/revenue-analytics" element={<RevenueDashboardPage />} />
-                    <Route path="/hrm8/conversion-requests" element={<ConversionRequestsPage />} />
                     <Route path="/hrm8/careers-requests" element={<CareersRequestsPage />} />
                 </Route>
 
                 {/* HRM8 Admin Routes (All Admins) */}
                 <Route element={<RoleGuard allowedTypes={['ADMIN']}><DashboardWrapper /></RoleGuard>}>
+
+                    {/* System Settings Workspace */}
+                    <Route path="/hrm8/settings" element={<SystemWorkspacePage />}>
+                        <Route index element={<Navigate to="overview" replace />} />
+                        <Route path="overview" element={<SystemOverviewPage />} />
+                        <Route path="general" element={<Hrm8SettingsPage />} />
+                        <Route path="integrations" element={<Hrm8IntegrationsPage />} />
+                        <Route path="email-templates" element={<AdminEmailTemplatesPage />} />
+                        <Route path="audit-logs" element={<AuditLogsPage />} />
+                    </Route>
+
+                    {/* Redirects for old routes */}
+                    <Route path="/hrm8/system-settings" element={<Navigate to="/hrm8/settings/general" replace />} />
+                    <Route path="/hrm8/integrations" element={<Navigate to="/hrm8/settings/integrations" replace />} />
+                    <Route path="/hrm8/email-templates" element={<Navigate to="/hrm8/settings/email-templates" replace />} />
+                    <Route path="/hrm8/audit-logs" element={<Navigate to="/hrm8/settings/audit-logs" replace />} />
+
                     <Route path="/hrm8/settlements" element={<SettlementsPage />} />
-                    <Route path="/hrm8/system-settings" element={<Hrm8SettingsPage />} />
-                    <Route path="/hrm8/settings" element={<Hrm8SettingsPage />} />
-                    <Route path="/hrm8/audit-logs" element={<AuditLogsPage />} />
-                    <Route path="/hrm8/integrations" element={<Hrm8IntegrationsPage />} />
                     <Route path="/hrm8/regions" element={<RegionsPage />} />
-                    <Route path="/hrm8/licensees" element={<LicenseesPage />} />
+                    <Route path="/hrm8/licensees-list" element={<Navigate to="/hrm8/licensees/list" replace />} />
                 </Route>
 
                 <Route element={<RoleGuard allowedTypes={['CONSULTANT']}><DashboardWrapper /></RoleGuard>}>

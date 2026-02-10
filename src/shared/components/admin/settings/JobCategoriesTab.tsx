@@ -24,6 +24,27 @@ import { Input } from '@/shared/components/ui/input';
 import { Textarea } from '@/shared/components/ui/textarea';
 import { Label } from '@/shared/components/ui/label';
 import { Switch } from '@/shared/components/ui/switch';
+import { Skeleton } from '@/shared/components/ui/skeleton';
+
+function JobCategoriesSkeleton() {
+    return (
+        <div className="space-y-4">
+            <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                    <Skeleton className="h-8 w-48" />
+                    <Skeleton className="h-4 w-72" />
+                </div>
+                <Skeleton className="h-10 w-36" />
+            </div>
+            <div className="border rounded-lg p-4 space-y-4">
+                <Skeleton className="h-12 w-full" />
+                {Array.from({ length: 5 }).map((_, index) => (
+                    <Skeleton key={index} className="h-14 w-full" />
+                ))}
+            </div>
+        </div>
+    );
+}
 
 interface Category {
     id: string;
@@ -105,7 +126,7 @@ export function JobCategoriesTab() {
         }
     });
 
-    if (isLoading) return <div className="p-6">Loading categories...</div>;
+    if (isLoading) return <JobCategoriesSkeleton />;
 
     return (
         <div className="space-y-4">

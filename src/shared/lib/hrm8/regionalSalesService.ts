@@ -82,8 +82,10 @@ export const regionalSalesService = {
    */
   getLeads: async (regionId: string) => {
     const params = new URLSearchParams({ regionId });
-    const response = await apiClient.get<LeadsResponse>(`/api/hrm8/leads/regional?${params.toString()}`);
-    return response.data?.leads || [];
+    const response = await apiClient.get<LeadsResponse | RegionalLead[]>(`/api/hrm8/leads/regional?${params.toString()}`);
+    const payload = response.data as LeadsResponse | RegionalLead[] | undefined;
+    if (Array.isArray(payload)) return payload;
+    return payload?.leads || [];
   },
 
   /**
@@ -101,15 +103,19 @@ export const regionalSalesService = {
     console.log('[regionalSalesService] 📤 Fetching opportunities for region:', regionId, 'filters:', filters);
     // Construct query string manually for GET params
     const params = new URLSearchParams({ regionId, ...filters });
-    const response = await apiClient.get<OpportunitiesResponse>(`/api/hrm8/sales/regional/opportunities?${params.toString()}`);
+    const response = await apiClient.get<OpportunitiesResponse | RegionalOpportunity[]>(`/api/hrm8/sales/regional/opportunities?${params.toString()}`);
 
     console.log('[regionalSalesService] 📦 Response structure:', {
       success: response.success,
       dataKeys: response.data ? Object.keys(response.data) : [],
-      opportunities: response.data?.opportunities,
+      opportunities: Array.isArray(response.data)
+        ? response.data
+        : response.data?.opportunities,
     });
 
-    const opportunities = response.data?.opportunities || [];
+    const opportunities = Array.isArray(response.data)
+      ? response.data
+      : response.data?.opportunities || [];
     console.log('[regionalSalesService] ✅ Returning opportunities:', opportunities.length);
 
     return opportunities;
@@ -137,13 +143,17 @@ export const regionalSalesService = {
   getActivities: async (regionId: string) => {
     console.log('[regionalSalesService] 📤 Fetching activities for region:', regionId);
     const params = new URLSearchParams({ regionId });
-    const response = await apiClient.get<ActivitiesResponse>(`/api/hrm8/sales/regional/activities?${params.toString()}`);
+    const response = await apiClient.get<ActivitiesResponse | Record<string, unknown>[]>(`/api/hrm8/sales/regional/activities?${params.toString()}`);
 
     console.log('[regionalSalesService] 📋 Activities response:', {
       success: response.success,
-      activities: response.data?.activities,
+      activities: Array.isArray(response.data)
+        ? response.data
+        : response.data?.activities,
     });
 
-    return response.data?.activities || [];
+    return Array.isArray(response.data)
+      ? response.data
+      : response.data?.activities || [];
   }
 };

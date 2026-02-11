@@ -177,6 +177,10 @@ export const consultantDashboardConfig: DashboardConfig = {
     commandPalette: true,
     keyboardShortcuts: true,
     profileCompletionDialog: null, // ConsultantProfileCompletionDialog,
+    aiAssistant: {
+      enabled: true,
+      streamEndpoint: "/api/assistant/chat/stream",
+    },
   },
 };
 
@@ -320,12 +324,6 @@ export const hrm8DashboardConfig: DashboardConfig = {
         label: "Billing",
         icon: DollarSign,
         adminOnly: true,
-      },
-      {
-        id: "reports",
-        path: "/hrm8/reports",
-        label: "Reports",
-        icon: FileText,
       },
       {
         id: "careers-requests",

@@ -108,6 +108,14 @@ export interface SidebarConfig {
 }
 
 /**
+ * AI Assistant configuration
+ */
+export interface AiAssistantConfig {
+  enabled: boolean;
+  streamEndpoint?: string;
+}
+
+/**
  * Layout features that can be enabled/disabled per dashboard
  */
 export interface LayoutFeatures {
@@ -115,6 +123,7 @@ export interface LayoutFeatures {
   commandPalette?: boolean;
   keyboardShortcuts?: boolean;
   profileCompletionDialog?: ComponentType | null;
+  aiAssistant?: AiAssistantConfig;
 }
 
 /**

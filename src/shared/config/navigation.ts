@@ -5,7 +5,6 @@ import {
     UserCog,
     Briefcase,
     DollarSign,
-    FileText,
     BarChart3,
     Target,
     Settings,
@@ -31,7 +30,6 @@ const adminMenuItems: MenuItem[] = [
     { id: "jobs", path: "/hrm8/jobs", label: "Jobs", icon: Briefcase, adminOnly: true },
     { id: "leads", path: "/hrm8/leads", label: "Leads", icon: Target },
     { id: "finance", path: "/hrm8/finance", label: "Revenue & Finance", icon: DollarSign },
-    { id: "reports", path: "/hrm8/reports", label: "Reports", icon: FileText },
     { id: "careers-requests", path: "/hrm8/careers-requests", label: "Careers Requests", icon: UserCheck, adminOnly: true },
     { id: "system", path: "/hrm8/system-settings", label: "System Settings", icon: Settings, adminOnly: true },
 ];

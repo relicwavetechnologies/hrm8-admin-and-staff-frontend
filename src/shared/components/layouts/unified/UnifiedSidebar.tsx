@@ -7,11 +7,12 @@
  * - Sectioned Mode: Grouped collapsible sections (AppSidebar/Main dashboard) - TODO
  */
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import logoDark from "@/assets/logo-dark.png";
 import logoLight from "@/assets/logo-light.png";
 import iconMark from "@/assets/icon-mark.png";
+import { ChevronRight } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -24,17 +25,26 @@ import {
   SidebarFooter,
   useSidebar,
 } from "@/shared/components/ui/sidebar";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/shared/components/ui/hover-card";
 import { cn } from "@/shared/lib/utils";
 import { UnifiedSidebarFooter } from "./UnifiedSidebarFooter";
 import { RegionToggler } from "@/shared/components/hrm8/RegionToggler";
 import type { SidebarConfig, AuthAdapter, MenuItem } from "@/shared/types/dashboard";
+import { getNestedRoutes } from "@/shared/config/nestedRoutes";
 
 interface UnifiedSidebarProps {
   config: SidebarConfig;
   auth: AuthAdapter;
+  showAiToggle?: boolean;
+  isAiOpen?: boolean;
+  onToggleAi?: () => void;
 }
 
-export function UnifiedSidebar({ config, auth }: UnifiedSidebarProps) {
+export function UnifiedSidebar({ config, auth, showAiToggle, isAiOpen, onToggleAi }: UnifiedSidebarProps) {
   const location = useLocation();
   const { open } = useSidebar();
   const [isHovering, setIsHovering] = useState(false);
@@ -46,7 +56,22 @@ export function UnifiedSidebar({ config, auth }: UnifiedSidebarProps) {
     ? config.filterMenuItems
       ? config.filterMenuItems(config.menuItems, auth.user)
       : config.menuItems
-    : [];
+      : [];
+
+  const nestedRouteMap = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof getNestedRoutes>>();
+    if (config.dashboardType !== "hrm8") {
+      return map;
+    }
+
+    const nestedRoutes = getNestedRoutes("ADMIN");
+    for (const route of nestedRoutes) {
+      if (!route.parentPath) continue;
+      const existing = map.get(route.parentPath) || [];
+      map.set(route.parentPath, [...existing, route]);
+    }
+    return map;
+  }, [config.dashboardType]);
 
   // Check if a path is active
   const isActive = (path: string) => {
@@ -97,9 +122,11 @@ export function UnifiedSidebar({ config, auth }: UnifiedSidebarProps) {
             {userSubtitle || userName}
           </p>
         )}
-        <div className="px-2">
-          <RegionToggler isExpanded={isExpanded} />
-        </div>
+        {config.dashboardType === "hrm8" && (
+          <div className="px-2">
+            <RegionToggler isExpanded={isExpanded} />
+          </div>
+        )}
       </SidebarHeader>
 
       {/* Content - Simple Menu Items */}
@@ -110,44 +137,91 @@ export function UnifiedSidebar({ config, auth }: UnifiedSidebarProps) {
               {menuItems.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.path);
+                const nestedRoutes = nestedRouteMap.get(item.path) || [];
+                const hasNestedRoutes = nestedRoutes.length > 0;
+
+                const menuButton = (
+                  <SidebarMenuButton
+                    asChild
+                    isActive={active}
+                    className={cn(
+                      "relative transition-all duration-200",
+                      "hover:bg-sidebar-accent/50",
+                      active && [
+                        "bg-primary/10",
+                        "text-primary",
+                        "font-medium",
+                        isExpanded && "border-l-4 border-primary",
+                      ]
+                    )}
+                  >
+                    <NavLink
+                      to={item.path}
+                      className="flex items-center gap-3 w-full"
+                    >
+                      <Icon
+                        className={cn(
+                          "h-5 w-5 transition-all",
+                          !isExpanded && "mx-auto"
+                        )}
+                      />
+                      {isExpanded && (
+                        <span className="transition-opacity duration-200">
+                          {item.label}
+                        </span>
+                      )}
+                      {isExpanded && item.badge && (
+                        <div className="ml-auto">
+                          <item.badge />
+                        </div>
+                      )}
+                    </NavLink>
+                  </SidebarMenuButton>
+                );
+
                 return (
                   <SidebarMenuItem key={item.id}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={active}
-                      className={cn(
-                        "relative transition-all duration-200",
-                        "hover:bg-sidebar-accent/50",
-                        active && [
-                          "bg-primary/10",
-                          "text-primary",
-                          "font-medium",
-                          isExpanded && "border-l-4 border-primary",
-                        ]
-                      )}
-                    >
-                      <NavLink
-                        to={item.path}
-                        className="flex items-center gap-3 w-full"
-                      >
-                        <Icon
-                          className={cn(
-                            "h-5 w-5 transition-all",
-                            !isExpanded && "mx-auto"
-                          )}
-                        />
-                        {isExpanded && (
-                          <span className="transition-opacity duration-200">
+                    {hasNestedRoutes ? (
+                      <HoverCard openDelay={120} closeDelay={120}>
+                        <HoverCardTrigger asChild>
+                          <div>{menuButton}</div>
+                        </HoverCardTrigger>
+                        <HoverCardContent
+                          side="right"
+                          align="start"
+                          className="w-64 rounded-xl border border-border bg-popover p-2 shadow-xl"
+                          sideOffset={14}
+                        >
+                          <div className="px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                             {item.label}
-                          </span>
-                        )}
-                        {isExpanded && item.badge && (
-                          <div className="ml-auto">
-                            <item.badge />
                           </div>
-                        )}
-                      </NavLink>
-                    </SidebarMenuButton>
+                          <div className="space-y-1">
+                            {nestedRoutes.map((route) => {
+                              const NestedIcon = route.icon;
+                              const nestedActive = isActive(route.path);
+                              return (
+                                <NavLink
+                                  key={route.id}
+                                  to={route.path}
+                                  className={cn(
+                                    "flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors",
+                                    nestedActive
+                                      ? "bg-primary/10 text-primary"
+                                      : "text-foreground hover:bg-muted"
+                                  )}
+                                >
+                                  <NestedIcon className="h-4 w-4 shrink-0" />
+                                  <span className="flex-1 truncate">{route.label}</span>
+                                  <ChevronRight className="h-3.5 w-3.5 opacity-60" />
+                                </NavLink>
+                              );
+                            })}
+                          </div>
+                        </HoverCardContent>
+                      </HoverCard>
+                    ) : (
+                      menuButton
+                    )}
                   </SidebarMenuItem>
                 );
               })}
@@ -162,6 +236,9 @@ export function UnifiedSidebar({ config, auth }: UnifiedSidebarProps) {
           actions={config.footerActions}
           showLogout={config.showLogoutButton}
           onLogout={auth.logout}
+          showAiToggle={showAiToggle}
+          isAiOpen={isAiOpen}
+          onToggleAi={onToggleAi}
         />
       </SidebarFooter>
     </Sidebar>

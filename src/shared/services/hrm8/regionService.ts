@@ -26,6 +26,47 @@ export interface Region {
   } | null;
 }
 
+export interface RegionsOverviewData {
+  summary: {
+    total_regions: number;
+    active_regions: number;
+    inactive_regions: number;
+    hrm8_owned_regions: number;
+    licensee_owned_regions: number;
+    assigned_licensees: number;
+    total_companies: number;
+    open_jobs: number;
+    active_consultants: number;
+    total_revenue: number;
+    total_licensee_share: number;
+    total_hrm8_share: number;
+  };
+  ownership_distribution: Array<{
+    owner_type: 'HRM8' | 'LICENSEE';
+    count: number;
+  }>;
+  country_distribution: Array<{
+    country: string;
+    count: number;
+  }>;
+  top_regions: Array<{
+    id: string;
+    code: string;
+    name: string;
+    country: string;
+    owner_type: 'HRM8' | 'LICENSEE';
+    is_active: boolean;
+    licensee_id: string | null;
+    licensee_name: string | null;
+    companies: number;
+    open_jobs: number;
+    active_consultants: number;
+    total_revenue: number;
+    licensee_share: number;
+    hrm8_share: number;
+  }>;
+}
+
 class RegionService {
   async getAll(filters?: {
     ownerType?: string;
@@ -45,6 +86,10 @@ class RegionService {
 
   async getById(id: string) {
     return apiClient.get<{ region: Region }>(`/api/hrm8/regions/${id}`);
+  }
+
+  async getOverview() {
+    return apiClient.get<RegionsOverviewData>('/api/hrm8/regions/overview');
   }
 
   async create(data: {
@@ -104,6 +149,5 @@ class RegionService {
 }
 
 export const regionService = new RegionService();
-
 
 

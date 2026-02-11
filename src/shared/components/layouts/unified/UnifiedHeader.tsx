@@ -1,14 +1,21 @@
 import { SidebarTrigger } from "@/shared/components/ui/sidebar";
 import { Separator } from "@/shared/components/ui/separator";
-import { Search, Command } from "lucide-react";
+import { Search, Command, MessageSquare, PanelRightOpen, PanelRightClose } from "lucide-react";
 import { UserNav } from "@/shared/components/layouts/UserNav";
 import { NotificationBell } from "@/shared/components/notifications/NotificationBell";
 import { Breadcrumbs } from "@/shared/components/common/Breadcrumbs";
 import { Badge } from "@/shared/components/ui/badge";
 import { ThemeToggle } from "@/shared/components/common/ThemeToggle";
 import { TooltipProvider } from "@/shared/components/ui/tooltip";
+import { Button } from "@/shared/components/ui/button";
 
-export function UnifiedHeader() {
+interface UnifiedHeaderProps {
+    showAiToggle?: boolean;
+    isAiOpen?: boolean;
+    onToggleAi?: () => void;
+}
+
+export function UnifiedHeader({ showAiToggle = false, isAiOpen = false, onToggleAi }: UnifiedHeaderProps) {
     const handleSearchClick = () => {
         const event = new CustomEvent("open-command-palette");
         window.dispatchEvent(event);
@@ -54,6 +61,20 @@ export function UnifiedHeader() {
 
                     {/* Right: Actions */}
                     <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
+                        {showAiToggle && (
+                            <Button
+                                type="button"
+                                variant={isAiOpen ? "default" : "outline"}
+                                size="sm"
+                                className="h-8 px-2.5"
+                                onClick={onToggleAi}
+                                title="Toggle AI Assistant (Cmd/Ctrl + K)"
+                            >
+                                {isAiOpen ? <PanelRightClose className="h-4 w-4 mr-1.5" /> : <PanelRightOpen className="h-4 w-4 mr-1.5" />}
+                                <MessageSquare className="h-3.5 w-3.5 mr-1" />
+                                <span className="text-xs">AI</span>
+                            </Button>
+                        )}
                         <ThemeToggle />
                         <NotificationBell />
                         <Separator orientation="vertical" className="h-5 mx-1 bg-border/40 hidden md:block" />

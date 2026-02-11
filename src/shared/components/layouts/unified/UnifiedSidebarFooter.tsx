@@ -10,7 +10,7 @@ import {
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
 import { useSidebar } from "@/shared/components/ui/sidebar";
-import { LogOut } from "lucide-react";
+import { LogOut, Sparkles } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/shared/lib/utils";
 import type { FooterAction } from "@/shared/types/dashboard";
@@ -19,12 +19,18 @@ interface UnifiedSidebarFooterProps {
   actions: FooterAction[];
   showLogout: boolean;
   onLogout: () => void | Promise<void>;
+  showAiToggle?: boolean;
+  isAiOpen?: boolean;
+  onToggleAi?: () => void;
 }
 
 export function UnifiedSidebarFooter({
   actions,
   showLogout,
   onLogout,
+  showAiToggle = false,
+  isAiOpen = false,
+  onToggleAi,
 }: UnifiedSidebarFooterProps) {
   const { open } = useSidebar();
 
@@ -34,6 +40,31 @@ export function UnifiedSidebarFooter({
 
   return (
     <div className={cn("flex gap-2", !open && "flex-col items-center")}>
+      {/* AI Assistant Toggle */}
+      {showAiToggle && onToggleAi && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant={isAiOpen ? "default" : "ghost"}
+              size="icon"
+              onClick={onToggleAi}
+              className={cn(open && "flex-1", isAiOpen && "bg-primary text-primary-foreground")}
+            >
+              <div
+                className={cn(
+                  "flex items-center",
+                  open && "justify-start gap-2"
+                )}
+              >
+                <Sparkles className="h-4 w-4" />
+                {open && <span>AI Assistant</span>}
+              </div>
+            </Button>
+          </TooltipTrigger>
+          {!open && <TooltipContent side="right">AI Assistant (Cmd+K)</TooltipContent>}
+        </Tooltip>
+      )}
+
       {actions.map((action) => (
         <Tooltip key={action.id}>
           <TooltipTrigger asChild>

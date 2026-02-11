@@ -131,6 +131,26 @@ export const licenseesNestedRoutes: NestedRoute[] = [
 ];
 
 /**
+ * Regions workspace nested routes
+ */
+export const regionsNestedRoutes: NestedRoute[] = [
+    {
+        id: 'regions-overview',
+        label: 'Regions Overview',
+        path: '/hrm8/regions/overview',
+        icon: LayoutDashboard,
+        parentPath: '/hrm8/regions',
+    },
+    {
+        id: 'regions-list',
+        label: 'Region List',
+        path: '/hrm8/regions/list',
+        icon: Building2,
+        parentPath: '/hrm8/regions',
+    },
+];
+
+/**
  * Finance workspace nested routes
  */
 export const financeNestedRoutes: NestedRoute[] = [
@@ -238,7 +258,7 @@ export const settingsNestedRoutes: NestedRoute[] = [
  */
 export function getNestedRoutes(userType: 'ADMIN' | 'CONSULTANT' | 'SALES_AGENT' | 'CONSULTANT360' | 'CANDIDATE'): NestedRoute[] {
     if (userType === 'ADMIN') {
-        return [...jobsNestedRoutes, ...staffNestedRoutes, ...leadsNestedRoutes, ...licenseesNestedRoutes, ...financeNestedRoutes, ...settingsNestedRoutes];
+        return [...jobsNestedRoutes, ...staffNestedRoutes, ...leadsNestedRoutes, ...licenseesNestedRoutes, ...regionsNestedRoutes, ...financeNestedRoutes, ...settingsNestedRoutes];
     }
     return [];
 }

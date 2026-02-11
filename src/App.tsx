@@ -68,6 +68,8 @@ import Hrm8CompanyJobsPage from './pages/hrm8/Hrm8CompanyJobsPage'
 import Hrm8JobDetailPage from './pages/hrm8/Hrm8JobDetailPage'
 import AuditLogsPage from './pages/hrm8/AuditLogsPage'
 import RegionsPage from './pages/hrm8/RegionsPage'
+import RegionsWorkspacePage from './pages/hrm8/regions/RegionsWorkspacePage'
+import RegionsOverviewPage from './pages/hrm8/regions/RegionsOverviewPage'
 import RegionalLeadsPage from './pages/hrm8/RegionalLeadsPage'
 import ReportsPage from './pages/hrm8/ReportsPage'
 import Hrm8SettingsPage from './pages/hrm8/Hrm8SettingsPage'
@@ -91,6 +93,7 @@ import LeadsWorkspacePage from './pages/hrm8/leads/LeadsWorkspacePage'
 import LeadsOverviewPage from './pages/hrm8/leads/LeadsOverviewPage'
 import FinanceWorkspacePage from './pages/hrm8/finance/FinanceWorkspacePage'
 import FinanceOverviewPage from './pages/hrm8/finance/FinanceOverviewPage'
+import Hrm8ChatPage from './pages/hrm8/Hrm8ChatPage'
 
 function App() {
     const { checkAuth } = useAuthStore();
@@ -161,6 +164,7 @@ function App() {
                     </Route>
                     <Route path="/hrm8/sales-pipeline" element={<SalesPipelinePage />} />
                     <Route path="/hrm8/reports" element={<ReportsPage />} />
+                    <Route path="/hrm8/chat" element={<Hrm8ChatPage />} />
                     <Route path="/hrm8/profile" element={<Hrm8ProfilePage />} />
                     <Route path="/hrm8/attribution" element={<Navigate to="/hrm8/leads/attribution" replace />} />
                     <Route path="/hrm8/billing" element={<BillingPage />} />
@@ -188,7 +192,11 @@ function App() {
                     <Route path="/hrm8/audit-logs" element={<Navigate to="/hrm8/settings/audit-logs" replace />} />
 
                     <Route path="/hrm8/settlements" element={<SettlementsPage />} />
-                    <Route path="/hrm8/regions" element={<RegionsPage />} />
+                    <Route path="/hrm8/regions" element={<RegionsWorkspacePage />}>
+                        <Route index element={<Navigate to="overview" replace />} />
+                        <Route path="overview" element={<RegionsOverviewPage />} />
+                        <Route path="list" element={<RegionsPage />} />
+                    </Route>
                     <Route path="/hrm8/licensees-list" element={<Navigate to="/hrm8/licensees/list" replace />} />
                 </Route>
 

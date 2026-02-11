@@ -239,8 +239,8 @@ export default function RegionsPage() {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Regions Management</h1>
-          <p className="text-muted-foreground">Manage geographic regions</p>
+          <h1 className="text-2xl font-bold tracking-tight">Region List</h1>
+          <p className="text-muted-foreground">Manage and maintain all configured regions</p>
         </div>
         <Button onClick={handleCreate}>
           <Plus className="mr-2 h-4 w-4" />

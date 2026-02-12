@@ -20,7 +20,7 @@ import { Input } from '@/shared/components/ui/input';
 import { Textarea } from '@/shared/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
 import { Checkbox } from '@/shared/components/ui/checkbox';
-import { DollarSign, Clock, CheckCircle, Wallet, Download, XCircle, ArrowDownToLine } from 'lucide-react';
+import { DollarSign, Clock, CheckCircle, Wallet, Download, XCircle, ArrowDownToLine, PlusCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { WithdrawalBalance, CommissionWithdrawal } from '@/shared/types/withdrawal';
 import { Skeleton } from '@/shared/components/ui/skeleton';
@@ -38,6 +38,13 @@ export default function ConsultantCommissionsPage() {
   const [paymentMethod, setPaymentMethod] = useState('STRIPE');
   const [withdrawalNotes, setWithdrawalNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  const [requestCommissionDialogOpen, setRequestCommissionDialogOpen] = useState(false);
+  const [requestType, setRequestType] = useState<'PLACEMENT' | 'SUBSCRIPTION_SALE' | 'RECRUITMENT_SERVICE' | 'CUSTOM'>('RECRUITMENT_SERVICE');
+  const [requestAmount, setRequestAmount] = useState('');
+  const [requestJobId, setRequestJobId] = useState('');
+  const [requestDescription, setRequestDescription] = useState('');
+  const [requestSubmitting, setRequestSubmitting] = useState(false);
 
   // Use consultant data for future features
   void consultant;
@@ -109,6 +116,34 @@ export default function ConsultantCommissionsPage() {
       return;
     }
     setWithdrawalDialogOpen(true);
+  };
+
+  const handleRequestCommission = async () => {
+    const amount = requestAmount ? parseFloat(requestAmount) : undefined;
+    const useJobId = !!requestJobId?.trim();
+    if (!useJobId && (amount === undefined || isNaN(amount) || amount <= 0)) {
+      toast.error('Enter a positive amount, or a Job ID to calculate from job payment');
+      return;
+    }
+    setRequestSubmitting(true);
+    const response = await consultantService.requestCommission({
+      type: requestType,
+      amount: useJobId ? undefined : amount,
+      jobId: useJobId ? requestJobId.trim() : undefined,
+      description: requestDescription || undefined,
+      calculateFromJob: useJobId,
+    });
+    if (response.success) {
+      toast.success('Commission request submitted. Amount will appear in your wallet once approved.');
+      setRequestCommissionDialogOpen(false);
+      setRequestAmount('');
+      setRequestJobId('');
+      setRequestDescription('');
+      loadCommissions();
+    } else {
+      toast.error((response as any).error || 'Failed to submit commission request');
+    }
+    setRequestSubmitting(false);
   };
 
   const toggleCommissionSelection = (commissionId: string) => {
@@ -304,14 +339,58 @@ export default function ConsultantCommissionsPage() {
           <h1 className="text-2xl font-bold tracking-tight">Commissions & Withdrawals</h1>
           <p className="text-muted-foreground">Manage your earnings and withdraw funds</p>
         </div>
-        <Button
-          onClick={handleOpenWithdrawalDialog}
-          disabled={!balance || balance.availableBalance <= 0}
-          size="lg"
-        >
-          <ArrowDownToLine className="h-4 w-4 mr-2" />
-          Request Withdrawal
-        </Button>
+        <div className="flex gap-2">
+          <Dialog open={requestCommissionDialogOpen} onOpenChange={setRequestCommissionDialogOpen}>
+            <Button variant="outline" size="lg" onClick={() => setRequestCommissionDialogOpen(true)}>
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Request Commission
+            </Button>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Request Commission</DialogTitle>
+                <DialogDescription>
+                  Submit a commission request. When approved by admin, the amount will reflect in your wallet.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label>Type</Label>
+                  <Select value={requestType} onValueChange={(v: any) => setRequestType(v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="RECRUITMENT_SERVICE">Recruitment Service</SelectItem>
+                      <SelectItem value="PLACEMENT">Placement</SelectItem>
+                      <SelectItem value="SUBSCRIPTION_SALE">Subscription Sale</SelectItem>
+                      <SelectItem value="CUSTOM">Custom</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Amount (USD) *</Label>
+                  <Input type="number" min="0" step="0.01" placeholder="e.g. 500" value={requestAmount} onChange={(e) => setRequestAmount(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Job ID (optional – to calculate from job payment)</Label>
+                  <Input placeholder="Leave empty to use amount above" value={requestJobId} onChange={(e) => setRequestJobId(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Description (optional)</Label>
+                  <Input placeholder="e.g. Commission for job placement" value={requestDescription} onChange={(e) => setRequestDescription(e.target.value)} />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setRequestCommissionDialogOpen(false)}>Cancel</Button>
+                <Button onClick={handleRequestCommission} disabled={requestSubmitting}>
+                  {requestSubmitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Submitting...</> : 'Submit Request'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <Button onClick={handleOpenWithdrawalDialog} disabled={!balance || balance.availableBalance <= 0} size="lg">
+            <ArrowDownToLine className="h-4 w-4 mr-2" />
+            Request Withdrawal
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

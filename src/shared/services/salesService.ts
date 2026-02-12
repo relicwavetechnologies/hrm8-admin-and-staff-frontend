@@ -58,7 +58,6 @@ export interface Commission {
 export interface CreateLeadData {
   companyName: string;
   email: string;
-  country: string;
   website?: string;
   phone?: string;
   budget?: string;
@@ -206,7 +205,16 @@ export const salesService = {
   },
 
   createLead: async (data: CreateLeadData) => {
-    return await apiClient.post<{ lead: Lead; qualification?: Record<string, unknown> }>('/api/sales/leads', data);
+    const payload = {
+      company_name: data.companyName,
+      email: data.email,
+      website: data.website,
+      phone: data.phone,
+      budget: data.budget,
+      timeline: data.timeline,
+      message: data.message,
+    };
+    return await apiClient.post<{ lead: Lead; qualification?: Record<string, unknown> }>('/api/sales/leads', payload);
   },
 
   convertLead: async (leadId: string, data: ConvertLeadData) => {

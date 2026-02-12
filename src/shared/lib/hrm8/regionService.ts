@@ -85,7 +85,19 @@ class RegionService {
   }
 
   async getById(id: string) {
-    return apiClient.get<{ region: Region }>(`/api/hrm8/regions/${id}`);
+    const response = await apiClient.get<{ region: Region } | Region>(`/api/hrm8/regions/${id}`);
+    if (
+      response.success &&
+      response.data &&
+      typeof response.data === 'object' &&
+      !('region' in (response.data as Record<string, unknown>))
+    ) {
+      return {
+        ...response,
+        data: { region: response.data as Region },
+      };
+    }
+    return response as any;
   }
 
   async getOverview() {
@@ -172,4 +184,3 @@ class RegionService {
 }
 
 export const regionService = new RegionService();
-

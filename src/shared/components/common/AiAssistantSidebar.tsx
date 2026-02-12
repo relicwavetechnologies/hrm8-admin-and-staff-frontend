@@ -4,11 +4,11 @@
  * Works for all user types (HRM8, Consultant, Company)
  */
 
-import { FormEvent, useMemo } from "react";
+import { FormEvent, useMemo, useState, useEffect } from "react";
 import { useChat } from "@ai-sdk/react";
 import { Button } from "@/shared/components/ui/button";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
-import { Loader2, Send, Sparkles, Settings2, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { Loader2, ArrowUp, Plus, Mic, Info, Settings2, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { MarkdownRenderer } from "@/shared/components/common/MarkdownRenderer";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "";
@@ -50,6 +50,67 @@ function formatToolName(toolName: string): string {
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
+}
+
+/**
+ * Count words in a text string
+ */
+function countWords(text: string): number {
+  return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+}
+
+/**
+ * Truncate text to specified word count
+ */
+function truncateToWords(text: string, wordCount: number): string {
+  const words = text.trim().split(/\s+/);
+  if (words.length <= wordCount) return text;
+  return words.slice(0, wordCount).join(" ");
+}
+
+/**
+ * Component to display user messages with optional truncation
+ */
+function UserMessage({ text }: { text: string }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const wordCount = countWords(text);
+  const shouldTruncate = wordCount > 50;
+
+  if (!shouldTruncate) {
+    return <p className="whitespace-pre-wrap text-sm leading-6">{text}</p>;
+  }
+
+  const displayText = isExpanded ? text : truncateToWords(text, 50);
+
+  return (
+    <div>
+      <p className="whitespace-pre-wrap text-sm leading-6">
+        {displayText}
+        {!isExpanded && "..."}
+      </p>
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="mt-2 text-xs font-medium text-primary hover:underline"
+      >
+        {isExpanded ? "Show less" : "Read more"}
+      </button>
+    </div>
+  );
+}
+
+/**
+ * Thinking loader animation
+ */
+function ThinkingLoader() {
+  return (
+    <div className="rounded-xl p-3 w-fit max-w-[70%] mr-auto bg-muted/50 border border-border">
+      <div className="flex items-center gap-1">
+        <div className="h-2 w-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: "0ms" }} />
+        <div className="h-2 w-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: "150ms" }} />
+        <div className="h-2 w-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: "300ms" }} />
+      </div>
+    </div>
+  );
 }
 
 /**
@@ -112,7 +173,7 @@ interface AiAssistantSidebarProps {
 export function AiAssistantSidebar({
   streamEndpoint = "/api/assistant/chat/stream"
 }: AiAssistantSidebarProps) {
-  const { messages, input, handleInputChange, handleSubmit, status, stop, error } = useChat({
+  const { messages, input, handleInputChange, handleSubmit, status, stop, error, setInput } = useChat({
     api: `${API_BASE_URL}${streamEndpoint}`,
     fetch: (url: RequestInfo | URL, init?: RequestInit) =>
       fetch(url, { ...init, credentials: "include" }),
@@ -120,6 +181,115 @@ export function AiAssistantSidebar({
 
   const chatMessages = useMemo(() => messages as unknown as ChatMessage[], [messages]);
   const isStreaming = status === "submitted" || status === "streaming";
+  const [isRecording, setIsRecording] = useState(false);
+  const [recognition, setRecognition] = useState<any>(null);
+
+  // Initialize speech recognition
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const recognitionInstance = new SpeechRecognition();
+        recognitionInstance.continuous = true;
+        recognitionInstance.interimResults = true;
+        recognitionInstance.lang = "en-US";
+
+        let shouldRestart = false;
+
+        recognitionInstance.onstart = () => {
+          console.log("Speech recognition started");
+        };
+
+        recognitionInstance.onresult = (event: any) => {
+          let finalTranscript = "";
+
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              finalTranscript += transcript + " ";
+            }
+          }
+
+          if (finalTranscript) {
+            setInput((prev: string) => prev + finalTranscript);
+          }
+        };
+
+        recognitionInstance.onerror = (event: any) => {
+          console.error("Speech recognition error:", event.error);
+          if (event.error === "no-speech" || event.error === "audio-capture") {
+            // Don't stop on these errors, just continue
+            return;
+          }
+          setIsRecording(false);
+        };
+
+        recognitionInstance.onend = () => {
+          // Only restart if we're still supposed to be recording
+          if (shouldRestart) {
+            try {
+              recognitionInstance.start();
+            } catch (e) {
+              console.error("Failed to restart recognition:", e);
+              setIsRecording(false);
+            }
+          }
+        };
+
+        // Store the restart flag in the recognition instance
+        (recognitionInstance as any).setRestartFlag = (value: boolean) => {
+          shouldRestart = value;
+        };
+
+        setRecognition(recognitionInstance);
+      }
+    }
+
+    // Cleanup: stop recording when component unmounts
+    return () => {
+      if (recognition) {
+        try {
+          recognition.setRestartFlag?.(false);
+          recognition.stop();
+        } catch (e) {
+          console.error("Cleanup error:", e);
+        }
+      }
+    };
+  }, [setInput]);
+
+  // Stop recording when streaming starts
+  useEffect(() => {
+    if (isStreaming && isRecording && recognition) {
+      recognition.setRestartFlag?.(false);
+      recognition.stop();
+      setIsRecording(false);
+    }
+  }, [isStreaming, isRecording, recognition]);
+
+  const toggleRecording = () => {
+    if (!recognition) {
+      alert("Speech recognition is not supported in your browser. Please use Chrome or Edge.");
+      return;
+    }
+
+    if (isRecording) {
+      // Stop recording
+      recognition.setRestartFlag?.(false);
+      recognition.stop();
+      setIsRecording(false);
+    } else {
+      // Start recording
+      try {
+        recognition.setRestartFlag?.(true);
+        recognition.start();
+        setIsRecording(true);
+      } catch (e) {
+        console.error("Failed to start recognition:", e);
+        alert("Failed to start speech recognition. Please try again.");
+      }
+    }
+  };
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -128,15 +298,8 @@ export function AiAssistantSidebar({
   };
 
   return (
-    <aside className="flex h-full min-h-0 flex-col bg-background p-3">
-      <div className="flex h-full min-h-0 flex-col rounded-2xl border bg-card">
-        {/* Header */}
-        <div className="flex items-center gap-2 border-b px-4 py-3">
-          <Sparkles className="h-5 w-5 text-primary" />
-          <h3 className="font-semibold">AI Assistant</h3>
-          <span className="ml-auto text-xs text-muted-foreground">Cmd+K</span>
-        </div>
-
+    <aside className="flex h-full min-h-0 flex-col bg-background p-3 overflow-hidden">
+      <div className="flex h-full min-h-0 flex-col rounded-2xl border bg-card overflow-hidden">
         {/* Messages */}
         <ScrollArea className="min-h-0 flex-1 p-4">
           {chatMessages.length === 0 ? (
@@ -166,7 +329,11 @@ export function AiAssistantSidebar({
                 return (
                   <div
                     key={message.id}
-                    className={`rounded-xl border bg-background p-3 ${isUser ? "ml-8" : "mr-8"}`}
+                    className={`rounded-xl p-3 w-fit max-w-[70%] ${
+                      isUser
+                        ? "ml-auto bg-primary text-primary-foreground border-primary"
+                        : "mr-auto bg-muted/50 border border-border"
+                    }`}
                   >
                     {/* Tool Invocations */}
                     {hasToolInvocations && !isUser && (
@@ -184,7 +351,7 @@ export function AiAssistantSidebar({
                     {text && (
                       <>
                         {isUser ? (
-                          <p className="whitespace-pre-wrap text-sm leading-6">{text}</p>
+                          <UserMessage text={text} />
                         ) : (
                           <MarkdownRenderer content={text} className="text-sm leading-6" />
                         )}
@@ -193,6 +360,9 @@ export function AiAssistantSidebar({
                   </div>
                 );
               })}
+
+              {/* Thinking Loader */}
+              {isStreaming && <ThinkingLoader />}
             </div>
           )}
         </ScrollArea>
@@ -205,48 +375,90 @@ export function AiAssistantSidebar({
         )}
 
         {/* Input */}
-        <div className="border-t p-3">
-          <form onSubmit={onSubmit} className="space-y-2">
-            <div className="relative">
-              <textarea
-                value={input}
-                onChange={handleInputChange}
-                placeholder="Ask anything..."
-                disabled={isStreaming}
-                className="min-h-[120px] w-full resize-none rounded-xl border bg-background px-3 py-2 pr-12 text-sm outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    if (!isStreaming && input.trim()) {
-                      handleSubmit(e as any);
-                    }
-                  }
-                }}
-              />
-              {isStreaming ? (
+        <div className="p-3">
+          <form onSubmit={onSubmit}>
+            <div className="relative rounded-2xl border bg-background/50 backdrop-blur-sm shadow-sm transition-all focus-within:border-primary/50 focus-within:shadow-md">
+              {/* Add Context Button */}
+              <div className="flex items-center gap-2 px-3 pt-2 pb-1">
                 <Button
                   type="button"
-                  size="icon"
                   variant="outline"
-                  onClick={() => stop()}
-                  className="absolute bottom-2 right-2 h-8 w-8"
+                  size="sm"
+                  className="h-7 gap-1.5 rounded-full border text-xs font-medium px-3"
                 >
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Plus className="h-3 w-3" />
+                  Add Context
                 </Button>
-              ) : (
                 <Button
-                  type="submit"
+                  type="button"
+                  variant="ghost"
                   size="icon"
-                  disabled={!input.trim()}
-                  className="absolute bottom-2 right-2 h-8 w-8"
+                  className="h-7 w-7 ml-auto"
                 >
-                  <Send className="h-4 w-4" />
+                  <Info className="h-3.5 w-3.5 text-muted-foreground" />
                 </Button>
-              )}
+              </div>
+
+              {/* Textarea */}
+              <div className="relative">
+                <textarea
+                  value={input}
+                  onChange={handleInputChange}
+                  placeholder="Start a conversation..."
+                  disabled={isStreaming}
+                  rows={3}
+                  className="w-full resize-none bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground disabled:opacity-50"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      if (!isStreaming && input.trim()) {
+                        handleSubmit(e as any);
+                      }
+                    }
+                  }}
+                />
+              </div>
+
+              {/* Bottom Actions */}
+              <div className="flex items-center justify-between px-2 pb-2">
+                <Button
+                  type="button"
+                  variant={isRecording ? "default" : "ghost"}
+                  size="icon"
+                  onClick={toggleRecording}
+                  className={`h-8 w-8 ${isRecording ? "animate-pulse" : ""}`}
+                  disabled={isStreaming}
+                >
+                  <Mic className={`h-4 w-4 ${isRecording ? "text-primary-foreground" : "text-muted-foreground"}`} />
+                </Button>
+
+                <div className="flex items-center gap-2">
+                  <p className="text-xs text-muted-foreground">
+                    {isRecording ? "Listening..." : isStreaming ? "Generating..." : "Press Enter to send"}
+                  </p>
+                  {isStreaming ? (
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="outline"
+                      onClick={() => stop()}
+                      className="h-9 w-9 rounded-full"
+                    >
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    </Button>
+                  ) : (
+                    <Button
+                      type="submit"
+                      size="icon"
+                      disabled={!input.trim()}
+                      className="h-9 w-9 rounded-full shadow-sm"
+                    >
+                      <ArrowUp className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Press Enter to send, Shift+Enter for new line
-            </p>
           </form>
         </div>
       </div>

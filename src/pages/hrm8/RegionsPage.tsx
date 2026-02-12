@@ -14,13 +14,15 @@ import { TransferRegionDialog } from '@/shared/components/hrm8/TransferRegionDia
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/shared/components/ui/dropdown-menu';
 import { Badge } from '@/shared/components/ui/badge';
 import { TableSkeleton } from '@/shared/components/tables/TableSkeleton';
+import { useHrm8Auth } from '@/contexts/Hrm8AuthContext';
 
 const createColumns = (
   onEdit: (region: Region) => void,
   onDelete: (region: Region) => void,
   onAssignLicensee: (region: Region) => void,
   onTransfer: (region: Region) => void,
-  onViewHistory: (region: Region) => void
+  onViewHistory: (region: Region) => void,
+  canManageRegions: boolean
 ) => [
     {
       key: 'code',
@@ -86,52 +88,56 @@ const createColumns = (
           >
             <History className="h-4 w-4" />
           </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onEdit(region)}>
-                <Edit className="h-4 w-4 mr-2" />
-                Edit Region
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onAssignLicensee(region)}>
-                {region.licensee ? (
-                  <>
-                    <Link2 className="h-4 w-4 mr-2" />
-                    Change Licensee
-                  </>
-                ) : (
-                  <>
-                    <Link2 className="h-4 w-4 mr-2" />
-                    Assign Licensee
-                  </>
-                )}
-              </DropdownMenuItem>
-              {region.licensee && (
-                <DropdownMenuItem onClick={() => onTransfer(region)}>
-                  <ArrowRightLeft className="h-4 w-4 mr-2" />
-                  Transfer Ownership
+          {canManageRegions && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => onEdit(region)}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Region
                 </DropdownMenuItem>
-              )}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive"
-                onClick={() => onDelete(region)}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <DropdownMenuItem onClick={() => onAssignLicensee(region)}>
+                  {region.licensee ? (
+                    <>
+                      <Link2 className="h-4 w-4 mr-2" />
+                      Change Licensee
+                    </>
+                  ) : (
+                    <>
+                      <Link2 className="h-4 w-4 mr-2" />
+                      Assign Licensee
+                    </>
+                  )}
+                </DropdownMenuItem>
+                {region.licensee && (
+                  <DropdownMenuItem onClick={() => onTransfer(region)}>
+                    <ArrowRightLeft className="h-4 w-4 mr-2" />
+                    Transfer Ownership
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-destructive"
+                  onClick={() => onDelete(region)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       ),
     },
   ];
 
 export default function RegionsPage() {
+  const { hrm8User } = useHrm8Auth();
+  const canManageRegions = hrm8User?.role === 'GLOBAL_ADMIN';
 
   const [regions, setRegions] = useState<Region[]>([]);
   const [loading, setLoading] = useState(true);
@@ -230,7 +236,8 @@ export default function RegionsPage() {
     (region) => {
       setHistoryRegion(region);
       setHistoryDrawerOpen(true);
-    }
+    },
+    canManageRegions
   );
 
   // Auth check is handled by RoleGuard at route level (allowedRoles: ['GLOBAL_ADMIN'])
@@ -242,10 +249,12 @@ export default function RegionsPage() {
           <h1 className="text-2xl font-bold tracking-tight">Region List</h1>
           <p className="text-muted-foreground">Manage and maintain all configured regions</p>
         </div>
-        <Button onClick={handleCreate}>
-          <Plus className="mr-2 h-4 w-4" />
-          Create Region
-        </Button>
+        {canManageRegions && (
+          <Button onClick={handleCreate}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create Region
+          </Button>
+        )}
       </div>
 
       <Card>

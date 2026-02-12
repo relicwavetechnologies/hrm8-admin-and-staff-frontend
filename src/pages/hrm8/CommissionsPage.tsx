@@ -6,14 +6,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui
 import { EnhancedStatCard } from '@/shared/components/dashboard/EnhancedStatCard';
 import { Badge } from '@/shared/components/ui/badge';
 import { toast } from 'sonner';
-import { DollarSign, CheckCircle, Clock, XCircle, CreditCard } from 'lucide-react';
+import { DollarSign, CheckCircle, Clock, XCircle, CreditCard, ThumbsUp } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
 import { Label } from '@/shared/components/ui/label';
 import { CommissionPaymentDialog } from '@/shared/components/hrm8/CommissionPaymentDialog';
 import { Hrm8PageLayout } from '@/shared/components/layouts/Hrm8PageLayout';
 import { TableSkeleton } from '@/shared/components/tables/TableSkeleton';
 
-const columns = [
+const getColumns = (
+  onApprove: (id: string) => void,
+  approvingId: string | null
+): { key: string; label: string; render?: (c: Commission) => React.ReactNode }[] => [
   {
     key: 'consultant_id',
     label: 'Consultant',
@@ -64,6 +67,29 @@ const columns = [
       return d && !isNaN(d.getTime()) ? d.toLocaleDateString() : '—';
     },
   },
+  {
+    key: 'actions',
+    label: 'Actions',
+    render: (commission: Commission) =>
+      commission.status === 'PENDING' ? (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={(e) => {
+            e.stopPropagation();
+            onApprove(commission.id);
+          }}
+          disabled={!!approvingId}
+        >
+          {approvingId === commission.id ? 'Approving...' : (
+            <>
+              <ThumbsUp className="h-3 w-3 mr-1" />
+              Approve
+            </>
+          )}
+        </Button>
+      ) : null,
+  },
 ];
 
 export default function CommissionsPage() {
@@ -72,6 +98,7 @@ export default function CommissionsPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [selectedCommissions, setSelectedCommissions] = useState<Commission[]>([]);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadCommissions();
@@ -110,6 +137,23 @@ export default function CommissionsPage() {
     setPaymentDialogOpen(false);
     setSelectedCommissions([]);
     loadCommissions();
+  };
+
+  const handleApproveCommission = async (id: string) => {
+    try {
+      setApprovingId(id);
+      const response = await commissionService.confirm(id);
+      if (response.success) {
+        toast.success('Commission approved – amount credited to consultant wallet');
+        loadCommissions();
+      } else {
+        toast.error(response.error || 'Failed to approve');
+      }
+    } catch (error) {
+      toast.error('Failed to approve commission');
+    } finally {
+      setApprovingId(null);
+    }
   };
 
   const totalPending = commissions.filter(c => c.status === 'PENDING').reduce((sum, c) => sum + c.amount, 0);
@@ -184,7 +228,7 @@ export default function CommissionsPage() {
           ) : (
             <DataTable
               data={commissions}
-              columns={columns}
+              columns={getColumns(handleApproveCommission, approvingId)}
               searchable
               searchKeys={['consultant_id', 'type']}
               emptyMessage="No commissions found"

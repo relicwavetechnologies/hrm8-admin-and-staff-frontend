@@ -83,6 +83,18 @@ class ConsultantService {
     return apiClient.post(`/api/consultant/jobs/${jobId}/log`, { activityType, notes });
   }
 
+  async requestCommission(data: {
+    type: 'PLACEMENT' | 'SUBSCRIPTION_SALE' | 'RECRUITMENT_SERVICE' | 'CUSTOM';
+    amount?: number;
+    jobId?: string;
+    subscriptionId?: string;
+    description?: string;
+    calculateFromJob?: boolean;
+    rate?: number;
+  }) {
+    return apiClient.post<{ commission: any }>('/api/consultant/commissions/request', data);
+  }
+
   async getCommissions(filters?: { status?: string; commissionType?: string }) {
     const queryParams = new URLSearchParams();
     if (filters?.status) queryParams.append('status', filters.status);

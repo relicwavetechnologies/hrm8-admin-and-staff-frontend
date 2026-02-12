@@ -71,13 +71,12 @@ export default function OpportunitiesPage() {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [processing, setProcessing] = useState(false);
 
-  // Forms State
+  // Forms State (region is pre-selected from consultant's assigned region – sales agents can only create leads in their region)
   const [createForm, setCreateForm] = useState({
     companyName: "",
     email: "",
     phone: "",
     website: "",
-    country: "United States",
     budget: "",
     timeline: "",
     message: ""
@@ -172,7 +171,7 @@ export default function OpportunitiesPage() {
         }
 
         setCreateDialogOpen(false);
-        setCreateForm({ companyName: "", email: "", phone: "", website: "", country: "United States", budget: "", timeline: "", message: "" });
+        setCreateForm({ companyName: "", email: "", phone: "", website: "", budget: "", timeline: "", message: "" });
         fetchLeads();
       } else {
         setIsQualifying(false);
@@ -347,6 +346,7 @@ export default function OpportunitiesPage() {
             <DialogDescription>Enter the company details to create a new lead.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            <p className="text-sm text-muted-foreground">Leads will be created in your assigned region.</p>
             <div className="space-y-2">
               <Label>Company Name</Label>
               <Input
@@ -363,22 +363,13 @@ export default function OpportunitiesPage() {
                 placeholder="admin@acme.com"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Phone</Label>
-                <Input
-                  value={createForm.phone}
-                  onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })}
-                  placeholder="+1..."
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Country</Label>
-                <Input
-                  value={createForm.country}
-                  onChange={(e) => setCreateForm({ ...createForm, country: e.target.value })}
-                />
-              </div>
+            <div className="space-y-2">
+              <Label>Phone</Label>
+              <Input
+                value={createForm.phone}
+                onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })}
+                placeholder="+1..."
+              />
             </div>
             <div className="space-y-2">
               <Label>Website</Label>

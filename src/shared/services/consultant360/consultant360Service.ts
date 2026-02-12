@@ -198,7 +198,16 @@ export const consultant360Service = {
      * Create Lead
      */
     async createLead(data: any): Promise<{ success: boolean; data?: { lead: Lead; qualification?: any }; error?: string }> {
-        const response = await apiClient.post<{ lead: Lead; qualification?: any }>('/api/consultant360/leads', data);
+        const payload = {
+            company_name: data.companyName ?? data.company_name,
+            email: data.email,
+            website: data.website,
+            phone: data.phone,
+            budget: data.budget,
+            timeline: data.timeline,
+            message: data.message,
+        };
+        const response = await apiClient.post<{ lead: Lead; qualification?: any }>('/api/consultant360/leads', payload);
         return response;
     },
 
@@ -218,6 +227,25 @@ export const consultant360Service = {
      */
     async getEarnings(): Promise<{ success: boolean; data?: UnifiedEarnings; error?: string }> {
         const response = await apiClient.get<UnifiedEarnings>('/api/consultant360/earnings');
+        return response;
+    },
+
+    /**
+     * Request a new commission (creates PENDING - admin must approve to credit wallet)
+     */
+    async requestCommission(data: {
+        type: 'PLACEMENT' | 'SUBSCRIPTION_SALE' | 'RECRUITMENT_SERVICE' | 'CUSTOM';
+        amount?: number;
+        jobId?: string;
+        subscriptionId?: string;
+        description?: string;
+        calculateFromJob?: boolean;
+        rate?: number;
+    }): Promise<{ success: boolean; data?: { commission: Commission }; error?: string }> {
+        const response = await apiClient.post<{ commission: Commission }>(
+            '/api/consultant360/commissions/request',
+            data
+        );
         return response;
     },
 

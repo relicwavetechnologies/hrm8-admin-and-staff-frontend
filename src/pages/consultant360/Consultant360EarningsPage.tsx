@@ -21,7 +21,15 @@ import {
 } from "@/shared/components/ui/dialog";
 
 import { Label } from "@/shared/components/ui/label";
+import { Input } from "@/shared/components/ui/input";
 import { Textarea } from "@/shared/components/ui/textarea";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/shared/components/ui/select";
 import {
     DollarSign,
     Briefcase,
@@ -34,6 +42,7 @@ import {
     Loader2,
     ArrowDownToLine,
     ExternalLink,
+    PlusCircle,
 } from "lucide-react";
 import {
     consultant360Service,
@@ -60,6 +69,14 @@ export default function Consultant360EarningsPage() {
     const [selectedCommissions, setSelectedCommissions] = useState<string[]>([]);
     const [withdrawalNotes, setWithdrawalNotes] = useState("");
     const [submitting, setSubmitting] = useState(false);
+
+    // Request commission dialog state
+    const [requestCommissionDialogOpen, setRequestCommissionDialogOpen] = useState(false);
+    const [requestType, setRequestType] = useState<'PLACEMENT' | 'SUBSCRIPTION_SALE' | 'RECRUITMENT_SERVICE' | 'CUSTOM'>('RECRUITMENT_SERVICE');
+    const [requestAmount, setRequestAmount] = useState("");
+    const [requestJobId, setRequestJobId] = useState("");
+    const [requestDescription, setRequestDescription] = useState("");
+    const [requestSubmitting, setRequestSubmitting] = useState(false);
 
     const [searchParams] = useSearchParams();
 
@@ -186,6 +203,38 @@ export default function Consultant360EarningsPage() {
         }
     }
 
+    async function handleRequestCommission() {
+        const amount = requestAmount ? parseFloat(requestAmount) : undefined;
+        const useJobId = !!requestJobId?.trim();
+        if (!useJobId && (amount === undefined || isNaN(amount) || amount <= 0)) {
+            toast.error("Enter a positive amount, or a Job ID to calculate from job payment");
+            return;
+        }
+        if (!useJobId && !amount) {
+            toast.error("Amount is required when not using Job ID");
+            return;
+        }
+        setRequestSubmitting(true);
+        const response = await consultant360Service.requestCommission({
+            type: requestType,
+            amount: useJobId ? undefined : amount,
+            jobId: useJobId ? requestJobId.trim() : undefined,
+            description: requestDescription || undefined,
+            calculateFromJob: useJobId,
+        });
+        if (response.success) {
+            toast.success("Commission request submitted. Amount will appear in your wallet once approved.");
+            setRequestCommissionDialogOpen(false);
+            setRequestAmount("");
+            setRequestJobId("");
+            setRequestDescription("");
+            loadData();
+        } else {
+            toast.error(response.error || "Failed to submit commission request");
+        }
+        setRequestSubmitting(false);
+    }
+
     if (loading) {
         return <EarningsSkeleton />;
     }
@@ -217,14 +266,89 @@ export default function Consultant360EarningsPage() {
                     </p>
                 </div>
 
-                {/* Withdraw Button */}
-                <Dialog open={withdrawDialogOpen} onOpenChange={setWithdrawDialogOpen}>
-                    <DialogTrigger asChild>
-                        <Button disabled={(combined?.availableBalance || 0) <= 0}>
-                            <ArrowDownToLine className="h-4 w-4 mr-2" />
-                            Request Withdrawal
-                        </Button>
-                    </DialogTrigger>
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                    <Dialog open={requestCommissionDialogOpen} onOpenChange={setRequestCommissionDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button variant="outline">
+                                <PlusCircle className="h-4 w-4 mr-2" />
+                                Request Commission
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-md">
+                            <DialogHeader>
+                                <DialogTitle>Request Commission</DialogTitle>
+                                <DialogDescription>
+                                    Submit a commission request. When approved by admin, the amount will reflect in your virtual wallet.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4 py-4">
+                                <div className="space-y-2">
+                                    <Label>Type</Label>
+                                    <Select value={requestType} onValueChange={(v: any) => setRequestType(v)}>
+                                        <SelectTrigger>
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="RECRUITMENT_SERVICE">Recruitment Service</SelectItem>
+                                            <SelectItem value="PLACEMENT">Placement</SelectItem>
+                                            <SelectItem value="SUBSCRIPTION_SALE">Subscription Sale</SelectItem>
+                                            <SelectItem value="CUSTOM">Custom</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Amount (USD) *</Label>
+                                    <Input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        placeholder="e.g. 500"
+                                        value={requestAmount}
+                                        onChange={(e) => setRequestAmount(e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Job ID (optional – to calculate from job payment)</Label>
+                                    <Input
+                                        placeholder="Leave empty to use amount above"
+                                        value={requestJobId}
+                                        onChange={(e) => setRequestJobId(e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Description (optional)</Label>
+                                    <Input
+                                        placeholder="e.g. Commission for job placement"
+                                        value={requestDescription}
+                                        onChange={(e) => setRequestDescription(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                            <DialogFooter>
+                                <Button variant="outline" onClick={() => setRequestCommissionDialogOpen(false)}>
+                                    Cancel
+                                </Button>
+                                <Button onClick={handleRequestCommission} disabled={requestSubmitting}>
+                                    {requestSubmitting ? (
+                                        <>
+                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                            Submitting...
+                                        </>
+                                    ) : (
+                                        "Submit Request"
+                                    )}
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                    <Dialog open={withdrawDialogOpen} onOpenChange={setWithdrawDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button disabled={(combined?.availableBalance || 0) <= 0}>
+                                <ArrowDownToLine className="h-4 w-4 mr-2" />
+                                Request Withdrawal
+                            </Button>
+                        </DialogTrigger>
                     <DialogContent className="max-w-2xl">
                         <DialogHeader>
                             <DialogTitle>Request Withdrawal</DialogTitle>
@@ -340,6 +464,7 @@ export default function Consultant360EarningsPage() {
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
+                </div>
             </div>
 
             {/* Balance Cards */}

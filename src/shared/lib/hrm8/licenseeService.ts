@@ -116,15 +116,21 @@ class LicenseeService {
   }
 
   async suspend(id: string, notes?: string) {
-    return apiClient.post<{ jobsPaused: number; regionsAffected: number }>(`/api/hrm8/licensees/${id}/suspend`, { notes });
+    return apiClient.post<{ licensee?: RegionalLicensee; jobsPaused: number; regionsAffected: number }>(`/api/hrm8/licensees/${id}/suspend`, { notes });
   }
 
   async reactivate(id: string, notes?: string) {
-    return apiClient.post<{ jobsResumed: number }>(`/api/hrm8/licensees/${id}/reactivate`, { notes });
+    return apiClient.post<{ licensee?: RegionalLicensee; jobsResumed: number }>(`/api/hrm8/licensees/${id}/reactivate`, { notes });
   }
 
   async terminate(id: string, notes?: string) {
-    return apiClient.post<{ regionsUnassigned: number; finalSettlement?: { amount: number } }>(`/api/hrm8/licensees/${id}/terminate`, { notes });
+    return apiClient.post<{
+      licensee?: RegionalLicensee;
+      regionsUnassigned: number;
+      jobsResumed?: number;
+      companiesReassigned?: number;
+      finalSettlement?: { amount: number };
+    }>(`/api/hrm8/licensees/${id}/terminate`, { notes });
   }
 
   async getImpactPreview(id: string) {
@@ -138,5 +144,4 @@ class LicenseeService {
 }
 
 export const licenseeService = new LicenseeService();
-
 

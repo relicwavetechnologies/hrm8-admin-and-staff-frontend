@@ -30,17 +30,36 @@ export interface AlertSummary {
 
 export interface AuditLogEntry {
     id: string;
-    entity_type: string;
-    entity_id: string;
+    entity_type?: string;
+    entityType?: string;
+    entity_id?: string;
+    entityId?: string;
     action: string;
     changes?: Record<string, unknown> | null;
-    performed_by: string;
-    performed_at: string;
-    ip_address: string | null;
+    performed_by?: string;
+    performedBy?: string;
+    performed_at?: string;
+    performedAt?: string;
+    ip_address?: string | null;
+    ipAddress?: string | null;
     description?: string | null;
 }
 
 class ComplianceService {
+    private normalizeAuditEntry(entry: any): AuditLogEntry {
+        return {
+            id: entry.id,
+            entity_type: entry.entity_type ?? entry.entityType,
+            entity_id: entry.entity_id ?? entry.entityId,
+            action: entry.action,
+            changes: entry.changes ?? null,
+            performed_by: entry.performed_by ?? entry.performedBy ?? 'System',
+            performed_at: entry.performed_at ?? entry.performedAt ?? null,
+            ip_address: entry.ip_address ?? entry.ipAddress ?? null,
+            description: entry.description ?? null,
+        };
+    }
+
     async getAlerts() {
         return apiClient.get<{ alerts: ComplianceAlert[] }>('/api/hrm8/compliance/alerts');
     }
@@ -50,15 +69,23 @@ class ComplianceService {
     }
 
     async getAuditHistory(entityType: string, entityId: string, limit: number = 50) {
-        return apiClient.get<{ history: AuditLogEntry[] }>(
+        const response = await apiClient.get<{ history: AuditLogEntry[] }>(
             `/api/hrm8/compliance/audit/${entityType}/${entityId}?limit=${limit}`
         );
+        if (response.success && response.data?.history) {
+            response.data.history = response.data.history.map((entry) => this.normalizeAuditEntry(entry));
+        }
+        return response;
     }
 
     async getRecentAudit(limit: number = 100) {
-        return apiClient.get<{ entries: AuditLogEntry[] }>(
+        const response = await apiClient.get<{ entries: AuditLogEntry[] }>(
             `/api/hrm8/compliance/audit/recent?limit=${limit}`
         );
+        if (response.success && response.data?.entries) {
+            response.data.entries = response.data.entries.map((entry) => this.normalizeAuditEntry(entry));
+        }
+        return response;
     }
 }
 

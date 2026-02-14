@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { licenseeService, RegionalLicensee } from '@/shared/lib/hrm8/licenseeService';
 import { DataTable } from '@/shared/components/tables/DataTable';
 import { Button } from '@/shared/components/ui/button';
-import { Plus, Edit, Trash2, Ban, ShieldAlert, CheckCircle, History, Loader2 } from 'lucide-react';
+import { Plus, Edit, Ban, ShieldAlert, CheckCircle, History, Loader2, ShieldX } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { toast } from 'sonner';
 import { FormDrawer } from '@/shared/components/ui/form-drawer';
@@ -10,6 +10,8 @@ import { LicenseeForm } from '@/shared/components/hrm8/LicenseeForm';
 import { Badge } from '@/shared/components/ui/badge';
 import { TableSkeleton } from '@/shared/components/tables/TableSkeleton';
 import { AuditHistoryDrawer } from '@/shared/components/hrm8/AuditHistoryDrawer';
+import { Input } from '@/shared/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,6 +54,7 @@ const columns = [
   {
     key: 'revenueSharePercent',
     label: 'Revenue Share %',
+    sortable: true,
     render: (licensee: RegionalLicensee) => `${ licensee.revenueSharePercent }% `,
   },
 ];
@@ -68,6 +71,8 @@ export default function LicenseesPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [historyDrawerOpen, setHistoryDrawerOpen] = useState(false);
   const [historyLicensee, setHistoryLicensee] = useState<RegionalLicensee | null>(null);
+  const [editBlockedOpen, setEditBlockedOpen] = useState(false);
+  const [blockedLicensee, setBlockedLicensee] = useState<RegionalLicensee | null>(null);
   const [impactData, setImpactData] = useState<{
     regions: number;
     activeJobs: number;
@@ -75,6 +80,10 @@ export default function LicenseesPage() {
     pendingRevenue: number;
   } | null>(null);
   const [loadingImpact, setLoadingImpact] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'ACTIVE' | 'SUSPENDED' | 'TERMINATED'>('all');
+  const [minRevenueShare, setMinRevenueShare] = useState('');
+  const [maxRevenueShare, setMaxRevenueShare] = useState('');
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
     loadLicensees();
@@ -100,6 +109,11 @@ export default function LicenseesPage() {
   };
 
   const handleEdit = (licensee: RegionalLicensee) => {
+    if (licensee.status === 'TERMINATED') {
+      setBlockedLicensee(licensee);
+      setEditBlockedOpen(true);
+      return;
+    }
     setEditingLicenseeId(licensee.id);
     setDrawerOpen(true);
   };
@@ -124,7 +138,7 @@ export default function LicenseesPage() {
     try {
       setActionLoading(true);
       const response = await (selectedLicensee.status === 'SUSPENDED'
-        ? licenseeService.update(selectedLicensee.id, { status: 'ACTIVE' })
+        ? licenseeService.reactivate(selectedLicensee.id)
         : licenseeService.suspend(selectedLicensee.id));
 
       if (response.success) {
@@ -163,6 +177,29 @@ export default function LicenseesPage() {
     setDrawerOpen(false);
     setEditingLicenseeId(null);
   };
+
+  const filteredLicensees = useMemo(() => {
+    const minValue = minRevenueShare === '' ? null : Number(minRevenueShare);
+    const maxValue = maxRevenueShare === '' ? null : Number(maxRevenueShare);
+    const normalizedQuery = query.trim().toLowerCase();
+
+    return licensees.filter((licensee) => {
+      if (statusFilter !== 'all' && licensee.status !== statusFilter) return false;
+
+      const revenue = Number(licensee.revenueSharePercent || 0);
+      if (minValue !== null && !Number.isNaN(minValue) && revenue < minValue) return false;
+      if (maxValue !== null && !Number.isNaN(maxValue) && revenue > maxValue) return false;
+
+      if (!normalizedQuery) return true;
+      const haystack = [
+        licensee.name,
+        licensee.email,
+        licensee.legalEntityName,
+        licensee.managerContact,
+      ].filter(Boolean).join(' ').toLowerCase();
+      return haystack.includes(normalizedQuery);
+    });
+  }, [licensees, statusFilter, minRevenueShare, maxRevenueShare, query]);
 
   const pageColumns = [
     ...columns,
@@ -206,13 +243,14 @@ export default function LicenseesPage() {
               <Button
                 variant="ghost"
                 size="sm"
+                title="Terminate licensee"
                 className="text-red-600"
                 onClick={() => {
                   setSelectedLicensee(licensee);
                   setConfirmTerminateOpen(true);
                 }}
               >
-                <Trash2 className="h-4 w-4" />
+                <ShieldX className="h-4 w-4" />
               </Button>
             </>
           )}
@@ -241,15 +279,51 @@ export default function LicenseesPage() {
           <CardTitle>Licensees</CardTitle>
         </CardHeader>
         <CardContent>
+          <div className="mb-4 grid gap-3 md:grid-cols-2 lg:grid-cols-5">
+            <div className="lg:col-span-2">
+              <Input
+                placeholder="Search name, email, legal entity, manager..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as 'all' | 'ACTIVE' | 'SUSPENDED' | 'TERMINATED')}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                <SelectItem value="ACTIVE">Active</SelectItem>
+                <SelectItem value="SUSPENDED">Suspended</SelectItem>
+                <SelectItem value="TERMINATED">Terminated</SelectItem>
+              </SelectContent>
+            </Select>
+            <Input
+              type="number"
+              min={0}
+              max={100}
+              placeholder="Min share %"
+              value={minRevenueShare}
+              onChange={(e) => setMinRevenueShare(e.target.value)}
+            />
+            <Input
+              type="number"
+              min={0}
+              max={100}
+              placeholder="Max share %"
+              value={maxRevenueShare}
+              onChange={(e) => setMaxRevenueShare(e.target.value)}
+            />
+          </div>
           {loading ? (
             <TableSkeleton columns={5} />
           ) : (
             <DataTable
-              data={licensees}
+              data={filteredLicensees}
               columns={pageColumns}
               searchable
               searchKeys={['name', 'email', 'legalEntityName']}
-              emptyMessage="No licensees found"
+              emptyMessage="No licensees found for the selected filters"
             />
           )}
         </CardContent>
@@ -329,6 +403,23 @@ export default function LicenseesPage() {
               className="bg-red-600 hover:bg-red-700"
             >
               {actionLoading ? 'Terminating...' : 'Terminate Licensee'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={editBlockedOpen} onOpenChange={setEditBlockedOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Update not allowed</AlertDialogTitle>
+            <AlertDialogDescription>
+              <strong>{blockedLicensee?.name}</strong> is in <strong>TERMINATED</strong> status, so profile updates are locked.
+              Please create a new licensee record if changes are required.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setEditBlockedOpen(false)}>
+              Understood
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

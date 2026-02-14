@@ -15,7 +15,7 @@ import { Badge } from '@/shared/components/ui/badge';
 import { ScrollArea } from '@/shared/components/ui/scroll-area';
 import { Loader2, History, User, Calendar, FileText, AlertCircle } from 'lucide-react';
 import { complianceService, AuditLogEntry } from '@/shared/services/hrm8/complianceService';
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 
 interface AuditHistoryDrawerProps {
     open: boolean;
@@ -93,6 +93,14 @@ export function AuditHistoryDrawer({
         return `${keys.length} fields changed`;
     };
 
+    const formatTimestamp = (entry: AuditLogEntry): string => {
+        const raw = entry.performed_at || entry.performedAt;
+        if (!raw) return 'Time unavailable';
+        const parsed = new Date(raw);
+        if (!isValid(parsed)) return 'Time unavailable';
+        return format(parsed, 'MMM d, yyyy h:mm a');
+    };
+
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetContent className="w-[500px] sm:w-[600px]">
@@ -142,14 +150,14 @@ export function AuditHistoryDrawer({
                                             </div>
                                             <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                                 <Calendar className="h-3 w-3" />
-                                        {format(new Date(entry.performed_at), 'MMM d, yyyy h:mm a')}
+                                        {formatTimestamp(entry)}
                                     </div>
                                 </div>
 
                                 {/* Performed by */}
                                 <div className="flex items-center gap-1 mt-2 text-sm text-muted-foreground">
                                     <User className="h-3 w-3" />
-                                    <span>{entry.performed_by || 'System'}</span>
+                                    <span>{entry.performed_by || entry.performedBy || 'System'}</span>
                                 </div>
 
                                 {/* Notes */}

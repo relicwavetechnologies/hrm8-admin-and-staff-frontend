@@ -6,9 +6,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useConsultantAuth } from '@/contexts/ConsultantAuthContext';
 import { consultantService } from '@/shared/lib/consultant/consultantService';
-import { EnhancedStatCard } from '@/shared/components/dashboard/EnhancedStatCard';
+import { DashboardStatCard } from "@/shared/components/dashboard/DashboardStatCard";
 import { ConsultantDashboardSkeleton } from '@/shared/components/skeletons/ConsultantDashboardSkeleton';
-import { StandardChartCard } from '@/shared/components/charts/StandardChartCard';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/shared/components/ui/card";
 import { Briefcase, Users, DollarSign, TrendingUp, BarChart3 } from 'lucide-react';
 import { ResponsiveContainer, LineChart, BarChart, XAxis, YAxis, Tooltip, Legend, Line, Bar } from 'recharts';
 import { useToast } from '@/shared/hooks/use-toast';
@@ -102,37 +102,37 @@ export default function ConsultantDashboard() {
 
       {/* Top Stats Row */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <EnhancedStatCard
+        <DashboardStatCard
           title="Active Jobs"
           value={activeJobsCount.toString()}
-          icon={<Briefcase className="h-5 w-5" />}
-          variant="neutral"
-          change="Current open roles"
+          icon={Briefcase}
+          description="Current open roles"
+          loading={loading}
         />
 
-        <EnhancedStatCard
-          title="Total Placements (YY)"
+        <DashboardStatCard
+          title="Total Placements"
           value={totalPlacements.toString()}
-          icon={<Users className="h-5 w-5" />}
-          variant="neutral"
-          change="Year to date"
+          icon={Users}
+          description="Year to date"
+          loading={loading}
         />
 
-        <EnhancedStatCard
+        <DashboardStatCard
           title="Monthly Revenue"
           value={`$${currentMonthRevenue.toLocaleString()}`}
-          icon={<DollarSign className="h-5 w-5" />}
-          variant={revenueProgress >= 100 ? "success" : "neutral"}
-          change={monthlyRevenueTarget > 0 ? `Target: $${monthlyRevenueTarget.toLocaleString()} (${revenueProgress.toFixed(0)}%)` : "No target set"}
+          icon={DollarSign}
+          description={monthlyRevenueTarget > 0 ? `Target: $${monthlyRevenueTarget.toLocaleString()} (${revenueProgress.toFixed(0)}%)` : "No target set"}
           trend={revenueProgress >= 100 ? "up" : undefined}
+          loading={loading}
         />
 
-        <EnhancedStatCard
+        <DashboardStatCard
           title="Success Rate"
           value={data?.successRate !== undefined ? `${data.successRate}%` : "--"}
-          icon={<TrendingUp className="h-5 w-5" />}
-          variant="neutral"
-          change="Placement / Assignment Ratio"
+          icon={TrendingUp}
+          description="Placement / Assignment Ratio"
+          loading={loading}
         />
       </div>
 
@@ -145,73 +145,73 @@ export default function ConsultantDashboard() {
 
       {/* Charts Section */}
       <div className="grid gap-4 md:grid-cols-2">
-        <StandardChartCard
-          title="Revenue Trend"
-          description="Monthly revenue performance (Last 12 Months)"
-          className="bg-transparent border-0 shadow-none"
-          onDownload={() => toast({ title: "Downloading revenue data..." })}
-          menuItems={[
-            { label: "View Report", icon: <BarChart3 className="h-4 w-4" />, onClick: () => { } }
-          ]}
-        >
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={revenueTrendData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-              <XAxis
-                dataKey="name"
-                axisLine={false}
-                tickLine={false}
-                tick={{ fontSize: 12 }}
-                dy={10}
-              />
-              <YAxis
-                axisLine={false}
-                tickLine={false}
-                tick={{ fontSize: 12 }}
-                tickFormatter={(value) => `$${(value / 1000).toFixed(0)}K`}
-                width={50}
-              />
-              <Tooltip cursor={false} formatter={(value: number) => `$${value.toLocaleString()}`} />
-              <Legend wrapperStyle={{ paddingTop: '20px' }} />
-              <Line
-                type="monotone"
-                dataKey="value"
-                stroke="#10b981"
-                strokeWidth={3}
-                name="Revenue"
-                dot={false}
-                activeDot={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </StandardChartCard>
+        <Card>
+          <CardHeader>
+            <CardTitle>Revenue Trend</CardTitle>
+            <CardDescription>Monthly revenue performance (Last 12 Months)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={revenueTrendData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                <XAxis
+                  dataKey="name"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 12 }}
+                  dy={10}
+                />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 12 }}
+                  tickFormatter={(value) => `$${(value / 1000).toFixed(0)}K`}
+                  width={50}
+                />
+                <Tooltip cursor={false} formatter={(value: number) => `$${value.toLocaleString()}`} />
+                <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#10b981"
+                  strokeWidth={3}
+                  name="Revenue"
+                  dot={false}
+                  activeDot={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
 
-        <StandardChartCard
-          title="Overview"
-          description="Commissions Breakdown"
-          className="bg-transparent border-0 shadow-none"
-        >
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={commissionsTrendData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-              <XAxis
-                dataKey="name"
-                axisLine={false}
-                tickLine={false}
-                tick={{ fontSize: 12 }}
-                dy={10}
-              />
-              <YAxis
-                axisLine={false}
-                tickLine={false}
-                tick={{ fontSize: 12 }}
-                width={50}
-              />
-              <Tooltip cursor={{ fill: 'transparent' }} formatter={(value: number) => `$${value.toLocaleString()}`} />
-              <Legend wrapperStyle={{ paddingTop: '20px' }} />
-              <Bar dataKey="paid" fill="#10b981" name="Paid" radius={[4, 4, 0, 0]} stackId="a" />
-              <Bar dataKey="pending" fill="#8b5cf6" name="Pending" radius={[4, 4, 0, 0]} stackId="a" />
-            </BarChart>
-          </ResponsiveContainer>
-        </StandardChartCard>
+        <Card>
+          <CardHeader>
+            <CardTitle>Overview</CardTitle>
+            <CardDescription>Commissions Breakdown</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={commissionsTrendData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                <XAxis
+                  dataKey="name"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 12 }}
+                  dy={10}
+                />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 12 }}
+                  width={50}
+                />
+                <Tooltip cursor={{ fill: 'transparent' }} formatter={(value: number) => `$${value.toLocaleString()}`} />
+                <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                <Bar dataKey="paid" fill="#10b981" name="Paid" radius={[4, 4, 0, 0]} stackId="a" />
+                <Bar dataKey="pending" fill="#8b5cf6" name="Pending" radius={[4, 4, 0, 0]} stackId="a" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Profile Completion Dialog */}

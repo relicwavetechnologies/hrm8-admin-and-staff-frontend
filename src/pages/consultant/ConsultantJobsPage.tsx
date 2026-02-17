@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 import { useConsultantAuth } from '@/contexts/ConsultantAuthContext';
 import { consultantService } from '@/shared/lib/consultant/consultantService';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { EnhancedStatCard } from '@/shared/components/dashboard/EnhancedStatCard';
+import { DashboardStatCard } from '@/shared/components/dashboard/DashboardStatCard';
 import { DataTable } from '@/shared/components/tables/DataTable';
 import { Badge } from '@/shared/components/ui/badge';
 import { Briefcase, Clock } from 'lucide-react';
@@ -219,31 +219,31 @@ export default function ConsultantJobsPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {loading ? (
           <>
-            <div className="rounded-lg border bg-card p-4">
+            <Card className="p-4">
               <Skeleton className="h-4 w-24" />
               <Skeleton className="mt-3 h-8 w-28" />
               <Skeleton className="mt-2 h-3 w-20" />
-            </div>
-            <div className="rounded-lg border bg-card p-4">
+            </Card>
+            <Card className="p-4">
               <Skeleton className="h-4 w-24" />
               <Skeleton className="mt-3 h-8 w-28" />
               <Skeleton className="mt-2 h-3 w-24" />
-            </div>
+            </Card>
           </>
         ) : (
           <>
-            <EnhancedStatCard
+            <DashboardStatCard
               title="Total Jobs"
               value={jobs.length.toString()}
-              change="All time"
+              description="All time"
               icon={<Briefcase className="h-5 w-5" />}
               variant="neutral"
             />
 
-            <EnhancedStatCard
+            <DashboardStatCard
               title="Active Jobs"
               value={jobs.filter(j => j.status === 'ACTIVE' || j.status === 'OPEN').length.toString()}
-              change="Currently active"
+              description="Currently active"
               icon={<Clock className="h-5 w-5" />}
               variant="neutral"
             />
@@ -305,15 +305,17 @@ export default function ConsultantJobsPage() {
                 <p className="text-sm">No jobs found for this filter</p>
               </div>
             ) : (
-              <DataTable
-                data={jobs}
-                columns={columns}
-                searchable
-                searchKeys={['title', 'location', 'department']}
-                emptyMessage="No jobs found"
-                onRowClick={(row) => navigate(`${row.id}`)}
-                resizable={false}
-              />
+              <Card className="p-1">
+                <DataTable
+                  columns={columns}
+                  data={jobs}
+                  searchable={true}
+                  searchKeys={['title', 'company', 'location']}
+                  emptyMessage="No jobs found"
+                  onRowClick={(row) => navigate(`${row.id}`)}
+                  resizable={false}
+                />
+              </Card>
             )}
           </CardContent>
         </Card>

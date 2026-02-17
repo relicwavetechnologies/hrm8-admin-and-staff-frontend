@@ -4,7 +4,7 @@ import { DataTable, Column } from '@/shared/components/tables/DataTable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
 import { toast } from 'sonner';
-import { EnhancedStatCard } from '@/shared/components/dashboard/EnhancedStatCard';
+import { DashboardStatCard } from '@/shared/components/dashboard/DashboardStatCard';
 import { TableSkeleton } from '@/shared/components/tables/TableSkeleton';
 import { Skeleton } from '@/shared/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
@@ -205,31 +205,31 @@ export default function AuditLogsPage() {
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <EnhancedStatCard
+            <DashboardStatCard
               title="Total Logs"
               value={stats?.total_logs?.toLocaleString() || '0'}
-              change="All time"
+              description="All time"
               icon={<FileText className="h-6 w-6" />}
               variant="neutral"
             />
-            <EnhancedStatCard
+            <DashboardStatCard
               title="Today's Activity"
               value={stats?.today_logs?.toLocaleString() || '0'}
-              change="Last 24 hours"
+              description="Last 24 hours"
               icon={<Activity className="h-6 w-6" />}
               variant="success"
             />
-            <EnhancedStatCard
+            <DashboardStatCard
               title="Showing"
               value={logs.length.toString()}
-              change={`of ${total} total`}
+              description={`of ${total} total`}
               icon={<Clock className="h-6 w-6" />}
               variant="neutral"
             />
-            <EnhancedStatCard
+            <DashboardStatCard
               title="Top Action"
               value={stats?.top_actions?.[0]?.action || '-'}
-              change={stats?.top_actions?.[0]?.count ? `${stats.top_actions[0].count} times` : ''}
+              description={stats?.top_actions?.[0]?.count ? `${stats.top_actions[0].count} times` : ''}
               icon={<User className="h-6 w-6" />}
               variant="neutral"
             />

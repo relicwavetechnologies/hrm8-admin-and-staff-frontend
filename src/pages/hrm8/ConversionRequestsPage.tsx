@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { DataTable, Column } from "@/shared/components/tables/DataTable";
+import { Card } from "@/shared/components/ui/card";
 
 export default function ConversionRequestsPage() {
     const { toast } = useToast();
@@ -200,7 +201,7 @@ export default function ConversionRequestsPage() {
                 <p className="text-muted-foreground">Review and approve conversion requests from sales agents</p>
             </div>
 
-            <div className="bg-card rounded-lg border shadow-sm p-4 space-y-4">
+            <Card className="p-4 space-y-4">
                  <div className="flex justify-end gap-2">
                     <Button
                         variant={statusFilter === '' || statusFilter === 'ALL' ? 'default' : 'outline'}
@@ -238,7 +239,7 @@ export default function ConversionRequestsPage() {
                     searchable={true} 
                     searchKeys={["company_name", "email"]}
                 />
-            </div>
+            </Card>
 
             {/* Action Dialog */}
             <Dialog open={!!selectedRequest} onOpenChange={(open) => !open && closeDialog()}>

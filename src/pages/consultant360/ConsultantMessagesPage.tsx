@@ -141,11 +141,13 @@ export default function ConsultantMessagesPage() {
                     ) : (
                         <div className="flex flex-col gap-1 p-2">
                             {conversations.map((conv) => (
-                                <button
+                                <div
                                     key={conv.id}
+                                    role="button"
+                                    tabIndex={0}
                                     onClick={() => setSelectedConversation(conv)}
                                     className={cn(
-                                        "flex items-start gap-3 p-3 rounded-lg text-left transition-colors",
+                                        "flex items-start gap-3 p-3 rounded-lg text-left transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                                         selectedConversation?.id === conv.id
                                             ? "bg-accent"
                                             : "hover:bg-muted/50"
@@ -176,7 +178,7 @@ export default function ConsultantMessagesPage() {
                                     {conv.unreadCount > 0 && (
                                         <div className="h-2.5 w-2.5 rounded-full bg-primary mt-2 shrink-0" />
                                     )}
-                                </button>
+                                </div>
                             ))}
                         </div>
                     )}

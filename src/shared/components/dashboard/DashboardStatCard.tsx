@@ -1,20 +1,35 @@
-import { useId, useMemo } from "react";
-import { Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { useId, useMemo, isValidElement } from "react";
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
-import { cn } from "@/shared/lib/utils";
-import { LucideIcon, TrendingUp, TrendingDown } from "lucide-react";
+import { Button } from "@/shared/components/ui/button";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/shared/components/ui/dropdown-menu";
+import { cn, formatCurrency } from "@/shared/lib/utils";
+import { LucideIcon, TrendingUp, TrendingDown, MoreVertical } from "lucide-react";
 
 export interface DashboardStatCardProps {
     title: string;
     value: string | number;
     description?: string;
-    icon: LucideIcon;
+    icon: LucideIcon | React.ReactNode;
     trend?: "up" | "down";
     trendValue?: string;
     onClick?: () => void;
     loading?: boolean;
     showBackgroundGraph?: boolean;
     graphData?: number[];
+    variant?: "default" | "primary" | "success" | "warning" | "destructive" | "neutral";
+    isCurrency?: boolean;
+    rawValue?: number;
+    menuItems?: Array<{
+        label: string;
+        icon?: React.ReactNode;
+        onClick: () => void;
+    }>;
 }
 
 function SkeletonCard() {
@@ -38,22 +53,36 @@ export function DashboardStatCard({
     title,
     value,
     description,
-    icon: Icon,
+    icon: IconOrNode,
     trend,
     trendValue,
     onClick,
     loading = false,
     showBackgroundGraph = false,
     graphData,
+    variant = "default",
+    isCurrency = false,
+    rawValue,
+    menuItems = [],
 }: DashboardStatCardProps) {
     if (loading) {
         return <SkeletonCard />;
     }
 
+    const displayValue = value || (rawValue !== undefined ? (isCurrency ? formatCurrency(rawValue) : rawValue) : "");
+
     const tone: "up" | "down" = trend === "down" ? "down" : "up";
     const graphId = useId().replace(/:/g, "");
     const shouldRenderGraph = Boolean(showBackgroundGraph && graphData && graphData.length > 1);
     const points = shouldRenderGraph ? (graphData as number[]) : [];
+
+    // Icon handling
+    const isElement = isValidElement(IconOrNode);
+    const IconComponent = !isElement ? (IconOrNode as React.ElementType) : null;
+    
+    const iconNode = isElement 
+        ? (IconOrNode as React.ReactNode)
+        : (IconComponent ? <IconComponent className="h-4 w-4" /> : null);
 
     const normalized = useMemo(() => {
         if (points.length < 2) return [];
@@ -76,10 +105,29 @@ export function DashboardStatCard({
         : "";
     const areaPath = `${linePath} L 100 100 L 0 100 Z`;
 
+    const variantStyles = {
+        default: "from-primary/5 to-card",
+        primary: "from-blue-500/10 to-card border-blue-200/20 dark:border-blue-800/20",
+        success: "from-emerald-500/10 to-card border-emerald-200/20 dark:border-emerald-800/20",
+        warning: "from-amber-500/10 to-card border-amber-200/20 dark:border-amber-800/20",
+        destructive: "from-red-500/10 to-card border-red-200/20 dark:border-red-800/20",
+        neutral: "from-slate-500/10 to-card border-slate-200/20 dark:border-slate-800/20",
+    };
+
+    const iconVariantStyles = {
+        default: "text-foreground",
+        primary: "text-blue-600 dark:text-blue-400",
+        success: "text-emerald-600 dark:text-emerald-400",
+        warning: "text-amber-600 dark:text-amber-400",
+        destructive: "text-red-600 dark:text-red-400",
+        neutral: "text-slate-600 dark:text-slate-400",
+    };
+
     return (
         <Card
             className={cn(
-                "@container/card relative overflow-hidden bg-gradient-to-t from-primary/5 to-card shadow-xs dark:bg-card transition-all",
+                "@container/card relative overflow-hidden bg-gradient-to-t shadow-xs dark:bg-card transition-all",
+                variantStyles[variant],
                 onClick && "cursor-pointer hover:shadow-md"
             )}
             onClick={onClick}
@@ -115,14 +163,57 @@ export function DashboardStatCard({
                     </svg>
                 </div>
             )}
-            <CardHeader className="relative">
-                <CardDescription>{title}</CardDescription>
-                <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-                    {value}
-                </CardTitle>
-                {trendValue && (
-                    <CardAction>
-                        <Badge variant="outline" className="gap-1">
+            <CardHeader className="relative flex flex-row items-center justify-between pb-2 space-y-0">
+                <div className="space-y-1">
+                    <CardDescription className="text-xs font-medium uppercase tracking-wider text-muted-foreground/90">
+                        {title}
+                    </CardDescription>
+                    <CardTitle className="text-2xl font-bold tabular-nums @[250px]/card:text-3xl">
+                        {displayValue}
+                    </CardTitle>
+                </div>
+                 {menuItems.length > 0 && (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 -mr-2 text-muted-foreground hover:text-foreground"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <MoreVertical className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            {menuItems.map((item, index) => (
+                                <DropdownMenuItem
+                                    key={index}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        item.onClick();
+                                    }}
+                                >
+                                    {item.icon && <span className="mr-2 flex items-center justify-center w-4">{item.icon}</span>}
+                                    {item.label}
+                                </DropdownMenuItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                )}
+            </CardHeader>
+            <CardFooter className="flex-col items-start gap-1.5 text-sm pt-0">
+                <div className="flex items-center justify-between w-full">
+                    {description && (
+                         <div className={cn("line-clamp-1 flex gap-2 font-medium items-center", iconVariantStyles[variant])}>
+                            {iconNode}
+                            <span className="text-muted-foreground font-normal">{description}</span>
+                        </div>
+                    )}
+                     {trendValue && (
+                        <Badge variant="outline" className={cn("gap-1 ml-auto font-normal", 
+                            trend === "up" ? "text-emerald-600 border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-800" : 
+                            trend === "down" ? "text-red-600 border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800" : ""
+                        )}>
                             {trend === "up" ? (
                                 <TrendingUp className="h-3 w-3" />
                             ) : trend === "down" ? (
@@ -130,23 +221,8 @@ export function DashboardStatCard({
                             ) : null}
                             {trendValue}
                         </Badge>
-                    </CardAction>
-                )}
-            </CardHeader>
-            <CardFooter className="flex-col items-start gap-1.5 text-sm">
-                {description && (
-                    <>
-                        <div className="line-clamp-1 flex gap-2 font-medium items-center">
-                            <Icon className="h-4 w-4" />
-                            {description}
-                        </div>
-                        {onClick && (
-                            <div className="text-muted-foreground text-xs">
-                                Click to view details
-                            </div>
-                        )}
-                    </>
-                )}
+                    )}
+                </div>
             </CardFooter>
         </Card>
     );

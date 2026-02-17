@@ -12,6 +12,7 @@ import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { ScrollArea } from '@/shared/components/ui/scroll-area';
 import { Badge } from '@/shared/components/ui/badge';
+import { Card } from '@/shared/components/ui/card';
 import { toast } from 'sonner';
 
 interface Conversation {
@@ -168,7 +169,7 @@ export default function ConsultantMessagesPage() {
         </div>
       </header>
 
-      <div className="h-[calc(100vh-180px)] flex rounded-lg border bg-card shadow-sm overflow-hidden">
+      <Card className="h-[calc(100vh-180px)] flex overflow-hidden">
         {/* Conversation List Sidebar */}
         <div className="w-full md:w-1/3 lg:w-1/4 border-r bg-muted/20 flex flex-col">
           {loading ? (
@@ -336,7 +337,7 @@ export default function ConsultantMessagesPage() {
             </div>
           )}
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

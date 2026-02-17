@@ -219,9 +219,10 @@ export default function AttributionPage() {
                 />
                 <div className="mt-2 rounded-md border bg-background">
                   {selectedCompany ? (
-                    <button
-                      type="button"
-                      className="w-full text-left px-3 py-2 hover:bg-accent"
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      className="w-full text-left px-3 py-2 hover:bg-accent cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       onClick={() => {
                         setSelectedCompany(null);
                         setAttribution(null);
@@ -230,7 +231,7 @@ export default function AttributionPage() {
                     >
                       <div className="font-medium">{selectedCompany.name}</div>
                       <div className="text-xs text-muted-foreground">{selectedCompany.domain}</div>
-                    </button>
+                    </div>
                   ) : companyQuery.trim().length < 2 ? (
                     <div className="px-3 py-2 text-sm text-muted-foreground">Type at least 2 characters</div>
                   ) : searchingCompanies ? (
@@ -239,17 +240,18 @@ export default function AttributionPage() {
                     <div className="px-3 py-2 text-sm text-muted-foreground">No matching company found</div>
                   ) : (
                     companyResults.map((company) => (
-                      <button
+                      <div
                         key={company.company_id}
-                        type="button"
-                        className="w-full text-left px-3 py-2 hover:bg-accent border-b last:border-b-0"
+                        role="button"
+                        tabIndex={0}
+                        className="w-full text-left px-3 py-2 hover:bg-accent border-b last:border-b-0 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         onClick={() => {
                           loadAttributionForCompany(company);
                         }}
                       >
                         <div className="font-medium">{company.name}</div>
                         <div className="text-xs text-muted-foreground">{company.domain}</div>
-                      </button>
+                      </div>
                     ))
                   )}
                 </div>

@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { EnhancedStatCard } from "@/shared/components/dashboard/EnhancedStatCard";
-import { StandardChartCard } from "@/shared/components/charts/StandardChartCard";
+import { DashboardStatCard } from "@/shared/components/dashboard/DashboardStatCard";
+import { Card, CardHeader, CardTitle, CardContent } from "@/shared/components/ui/card";
 import { DataTable } from "@/shared/components/tables/DataTable";
-import { DollarSign, Target, Users, Eye, Plus, Building2 } from "lucide-react";
+import { DollarSign, Target, Users, Eye, Plus, Building2, Briefcase } from "lucide-react";
 import { salesService, SalesDashboardStats } from "@/shared/services/salesService";
 import { useToast } from "@/shared/hooks/use-toast";
 import { useCurrencyFormat } from "@/shared/contexts/CurrencyFormatContext";
@@ -102,84 +102,62 @@ export default function SalesDashboardPage() {
 
       {/* Key Metrics */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <EnhancedStatCard
+        <DashboardStatCard
           title="Total Revenue"
-          value={stats ? Math.round(stats.commissions.total).toString() : "0"}
-          isCurrency={true}
-          rawValue={stats?.commissions.total || 0}
-          change={`${stats?.commissions.pending || 0} pending`}
+          value={stats ? formatCurrency(stats.commissions.total) : formatCurrency(0)}
+          icon={DollarSign}
+          description={`${stats?.commissions.pending || 0} pending`}
           trend="up"
-          icon={<DollarSign className="h-5 w-5" />}
-          variant="success"
-          showMenu={false}
+          loading={isLoading}
+          onClick={() => navigate('/sales-agent/commissions')}
         />
 
-        <EnhancedStatCard
+        <DashboardStatCard
           title="Active Leads"
           value={stats ? stats.leads.total.toString() : "0"}
-          change={`${stats?.leads.converted || 0} converted`}
+          icon={Users}
+          description={`${stats?.leads.converted || 0} converted`}
           trend="up"
-          icon={<Users className="h-5 w-5" />}
-          variant="primary"
-          showMenu={true}
-          menuItems={[
-            {
-              label: "View Leads",
-              icon: <Eye className="h-4 w-4" />,
-              onClick: () => navigate('/sales-agent/leads')
-            },
-            {
-              label: "Add Lead",
-              icon: <Plus className="h-4 w-4" />,
-              onClick: () => navigate('/sales-agent/leads?action=new')
-            }
-          ]}
+          loading={isLoading}
+          onClick={() => navigate('/sales-agent/leads')}
         />
 
-        <EnhancedStatCard
+        <DashboardStatCard
           title="Active Companies"
           value={stats ? stats.companies.total.toString() : "0"}
-          change={`${stats?.companies.activeSubscriptions || 0} subscribed`}
+          icon={Building2}
+          description={`${stats?.companies.activeSubscriptions || 0} subscribed`}
           trend="up"
-          icon={<Building2 className="h-5 w-5" />}
-          variant="neutral"
-          showMenu={true}
-          menuItems={[
-            {
-              label: "View All Clients",
-              icon: <Eye className="h-4 w-4" />,
-              onClick: () => navigate('/sales-agent/companies')
-            }
-          ]}
+          loading={isLoading}
+          onClick={() => navigate('/sales-agent/companies')}
         />
 
-        <EnhancedStatCard
+        <DashboardStatCard
           title="Conversion Rate"
           value={stats ? `${stats.leads.conversionRate}%` : "0%"}
-          change="Lead to Company"
+          icon={Target}
+          description="Lead to Company"
           trend={stats && stats.leads.conversionRate > 20 ? "up" : "down"}
-          icon={<Target className="h-5 w-5" />}
-          variant="warning"
-          showMenu={false}
+          loading={isLoading}
         />
       </div>
 
       {/* Recent Activity */}
       <div className="grid gap-4 md:grid-cols-1">
-        <StandardChartCard
-          title="Recent Activity"
-          menuItems={[
-            { label: "View All", onClick: () => { } }
-          ]}
-        >
-          <div className="overflow-x-auto -mx-1 px-1">
-            <DataTable
-              columns={activityColumns}
-              data={(stats?.recentActivity as ActivityItem[]) || []}
-              searchable={false}
-            />
-          </div>
-        </StandardChartCard>
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Activity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <DataTable
+                columns={activityColumns}
+                data={(stats?.recentActivity as ActivityItem[]) || []}
+                searchable={false}
+              />
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

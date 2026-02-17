@@ -1,4 +1,4 @@
-import { 
+import {
   Users, Briefcase, FileText, UserCheck, TrendingUp, BarChart3, PieChart, Target, Clock,
   UserCircle, Calendar, Percent, Building2, DollarSign, TrendingDown, Wallet, Receipt,
   FolderKanban, Building, Gauge, Timer, CheckCircle, Shield, AlertCircle, Activity, FileCheck, Video
@@ -6,7 +6,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import type { DashboardType } from "./dashboardTypes";
 
-export type WidgetType = 
+export type WidgetType =
   // Jobs widgets
   | 'stat-active-jobs'
   | 'stat-total-candidates'
@@ -108,7 +108,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     name: 'Active Jobs',
     description: 'Total number of active job postings',
     category: 'stat',
-    component: 'EnhancedStatCard',
+    component: 'DashboardStatCard',
     icon: Briefcase,
     defaultSize: { w: 3, h: 1 },
     minSize: { w: 2, h: 1 },
@@ -116,7 +116,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     defaultProps: {
       title: "Active Jobs",
       value: "24",
-      change: "+12%",
+      trendValue: "+12%",
       trend: "up",
       variant: "neutral"
     },
@@ -127,7 +127,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     name: 'Total Candidates',
     description: 'Total candidates in the pipeline',
     category: 'stat',
-    component: 'EnhancedStatCard',
+    component: 'DashboardStatCard',
     icon: Users,
     defaultSize: { w: 3, h: 1 },
     minSize: { w: 2, h: 1 },
@@ -135,7 +135,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     defaultProps: {
       title: "Total Candidates",
       value: "1,234",
-      change: "+8%",
+      trendValue: "+8%",
       trend: "up",
       variant: "success"
     },
@@ -146,7 +146,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     name: 'Applications',
     description: 'Pending applications to review',
     category: 'stat',
-    component: 'EnhancedStatCard',
+    component: 'DashboardStatCard',
     icon: FileText,
     defaultSize: { w: 3, h: 1 },
     minSize: { w: 2, h: 1 },
@@ -154,7 +154,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     defaultProps: {
       title: "Applications",
       value: "567",
-      change: "+23%",
+      trendValue: "+23%",
       trend: "up",
       variant: "primary"
     },
@@ -165,7 +165,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     name: 'Hired This Month',
     description: 'Candidates hired in the current month',
     category: 'stat',
-    component: 'EnhancedStatCard',
+    component: 'DashboardStatCard',
     icon: UserCheck,
     defaultSize: { w: 3, h: 1 },
     minSize: { w: 2, h: 1 },
@@ -173,7 +173,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     defaultProps: {
       title: "Hired This Month",
       value: "18",
-      change: "+5%",
+      trendValue: "+5%",
       trend: "up",
       variant: "warning"
     },
@@ -234,7 +234,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     name: 'Total Employees',
     description: 'Total active employees',
     category: 'stat',
-    component: 'EnhancedStatCard',
+    component: 'DashboardStatCard',
     icon: UserCircle,
     defaultSize: { w: 3, h: 1 },
     minSize: { w: 2, h: 1 },
@@ -242,7 +242,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     defaultProps: {
       title: "Total Employees",
       value: "342",
-      change: "+6%",
+      trendValue: "+6%",
       trend: "up",
       variant: "success"
     },
@@ -253,7 +253,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     name: 'Attendance Rate',
     description: 'Average employee attendance',
     category: 'stat',
-    component: 'EnhancedStatCard',
+    component: 'DashboardStatCard',
     icon: Calendar,
     defaultSize: { w: 3, h: 1 },
     minSize: { w: 2, h: 1 },
@@ -261,7 +261,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     defaultProps: {
       title: "Attendance Rate",
       value: "94.2%",
-      change: "+2.1%",
+      trendValue: "+2.1%",
       trend: "up",
       variant: "success"
     },
@@ -272,7 +272,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     name: 'Leave Requests',
     description: 'Pending leave requests',
     category: 'stat',
-    component: 'EnhancedStatCard',
+    component: 'DashboardStatCard',
     icon: FileText,
     defaultSize: { w: 3, h: 1 },
     minSize: { w: 2, h: 1 },
@@ -280,7 +280,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     defaultProps: {
       title: "Leave Requests",
       value: "23",
-      change: "-12%",
+      trendValue: "-12%",
       trend: "down",
       variant: "primary"
     },
@@ -291,7 +291,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     name: 'Departments',
     description: 'Active departments',
     category: 'stat',
-    component: 'EnhancedStatCard',
+    component: 'DashboardStatCard',
     icon: Building2,
     defaultSize: { w: 3, h: 1 },
     minSize: { w: 2, h: 1 },
@@ -299,7 +299,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     defaultProps: {
       title: "Departments",
       value: "12",
-      change: "0%",
+      trendValue: "0%",
       trend: "neutral",
       variant: "neutral"
     },
@@ -360,7 +360,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     name: 'Total Revenue',
     description: 'Revenue this period',
     category: 'stat',
-    component: 'EnhancedStatCard',
+    component: 'DashboardStatCard',
     icon: DollarSign,
     defaultSize: { w: 3, h: 1 },
     minSize: { w: 2, h: 1 },
@@ -369,7 +369,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
       title: "Total Revenue",
       isCurrency: true,
       rawValue: 2400000,
-      change: "+18%",
+      trendValue: "+18%",
       trend: "up",
       variant: "success"
     },
@@ -380,7 +380,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     name: 'Total Expenses',
     description: 'Expenses this period',
     category: 'stat',
-    component: 'EnhancedStatCard',
+    component: 'DashboardStatCard',
     icon: TrendingDown,
     defaultSize: { w: 3, h: 1 },
     minSize: { w: 2, h: 1 },
@@ -389,7 +389,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
       title: "Total Expenses",
       isCurrency: true,
       rawValue: 1800000,
-      change: "+5%",
+      trendValue: "+5%",
       trend: "up",
       variant: "warning"
     },
@@ -400,7 +400,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     name: 'Profit Margin',
     description: 'Net profit margin',
     category: 'stat',
-    component: 'EnhancedStatCard',
+    component: 'DashboardStatCard',
     icon: Percent,
     defaultSize: { w: 3, h: 1 },
     minSize: { w: 2, h: 1 },
@@ -408,7 +408,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     defaultProps: {
       title: "Profit Margin",
       value: "25%",
-      change: "+3%",
+      trendValue: "+3%",
       trend: "up",
       variant: "success"
     },
@@ -419,7 +419,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     name: 'Payroll Cost',
     description: 'Monthly payroll expenses',
     category: 'stat',
-    component: 'EnhancedStatCard',
+    component: 'DashboardStatCard',
     icon: Wallet,
     defaultSize: { w: 3, h: 1 },
     minSize: { w: 2, h: 1 },
@@ -428,7 +428,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
       title: "Payroll Cost",
       isCurrency: true,
       rawValue: 890000,
-      change: "+2%",
+      trendValue: "+2%",
       trend: "up",
       variant: "primary"
     },
@@ -489,7 +489,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     name: 'Active Projects',
     description: 'Currently active projects',
     category: 'stat',
-    component: 'EnhancedStatCard',
+    component: 'DashboardStatCard',
     icon: FolderKanban,
     defaultSize: { w: 3, h: 1 },
     minSize: { w: 2, h: 1 },
@@ -497,7 +497,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     defaultProps: {
       title: "Active Projects",
       value: "32",
-      change: "+15%",
+      trendValue: "+15%",
       trend: "up",
       variant: "primary"
     },
@@ -508,7 +508,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     name: 'Total Clients',
     description: 'Active client accounts',
     category: 'stat',
-    component: 'EnhancedStatCard',
+    component: 'DashboardStatCard',
     icon: Building,
     defaultSize: { w: 3, h: 1 },
     minSize: { w: 2, h: 1 },
@@ -516,7 +516,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     defaultProps: {
       title: "Total Clients",
       value: "18",
-      change: "+3",
+      trendValue: "+3",
       trend: "up",
       variant: "success"
     },
@@ -527,7 +527,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     name: 'Utilization Rate',
     description: 'Team utilization percentage',
     category: 'stat',
-    component: 'EnhancedStatCard',
+    component: 'DashboardStatCard',
     icon: Gauge,
     defaultSize: { w: 3, h: 1 },
     minSize: { w: 2, h: 1 },
@@ -535,7 +535,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     defaultProps: {
       title: "Utilization Rate",
       value: "78%",
-      change: "+5%",
+      trendValue: "+5%",
       trend: "up",
       variant: "success"
     },
@@ -546,7 +546,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     name: 'Billable Hours',
     description: 'Total billable hours this month',
     category: 'stat',
-    component: 'EnhancedStatCard',
+    component: 'DashboardStatCard',
     icon: Timer,
     defaultSize: { w: 3, h: 1 },
     minSize: { w: 2, h: 1 },
@@ -554,7 +554,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     defaultProps: {
       title: "Billable Hours",
       value: "2,840",
-      change: "+12%",
+      trendValue: "+12%",
       trend: "up",
       variant: "primary"
     },
@@ -615,7 +615,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     name: 'Active Service Projects',
     description: 'Currently active recruitment service projects',
     category: 'stat',
-    component: 'EnhancedStatCard',
+    component: 'DashboardStatCard',
     icon: FolderKanban,
     defaultSize: { w: 3, h: 1 },
     minSize: { w: 2, h: 1 },
@@ -623,7 +623,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     defaultProps: {
       title: "Active Projects",
       value: "28",
-      change: "+7",
+      trendValue: "+7",
       trend: "up",
       variant: "primary"
     },
@@ -634,7 +634,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     name: 'Shortlisting Projects',
     description: 'Active shortlisting service projects',
     category: 'stat',
-    component: 'EnhancedStatCard',
+    component: 'DashboardStatCard',
     icon: Users,
     defaultSize: { w: 3, h: 1 },
     minSize: { w: 2, h: 1 },
@@ -642,7 +642,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     defaultProps: {
       title: "Shortlisting",
       value: "12",
-      change: "+3",
+      trendValue: "+3",
       trend: "up",
       variant: "success"
     },
@@ -653,7 +653,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     name: 'Full-Service Projects',
     description: 'Active full-service recruitment projects',
     category: 'stat',
-    component: 'EnhancedStatCard',
+    component: 'DashboardStatCard',
     icon: Briefcase,
     defaultSize: { w: 3, h: 1 },
     minSize: { w: 2, h: 1 },
@@ -661,7 +661,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     defaultProps: {
       title: "Full-Service",
       value: "8",
-      change: "+2",
+      trendValue: "+2",
       trend: "up",
       variant: "primary"
     },
@@ -672,7 +672,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     name: 'Executive Search Projects',
     description: 'Active executive search projects',
     category: 'stat',
-    component: 'EnhancedStatCard',
+    component: 'DashboardStatCard',
     icon: Target,
     defaultSize: { w: 3, h: 1 },
     minSize: { w: 2, h: 1 },
@@ -680,7 +680,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     defaultProps: {
       title: "Executive Search",
       value: "5",
-      change: "+1",
+      trendValue: "+1",
       trend: "up",
       variant: "warning"
     },
@@ -691,7 +691,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     name: 'RPO Projects',
     description: 'Active RPO projects',
     category: 'stat',
-    component: 'EnhancedStatCard',
+    component: 'DashboardStatCard',
     icon: Building,
     defaultSize: { w: 3, h: 1 },
     minSize: { w: 2, h: 1 },
@@ -699,7 +699,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     defaultProps: {
       title: "RPO",
       value: "3",
-      change: "+1",
+      trendValue: "+1",
       trend: "up",
       variant: "neutral"
     },
@@ -710,7 +710,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     name: 'Service Revenue',
     description: 'Total revenue from recruitment services',
     category: 'stat',
-    component: 'EnhancedStatCard',
+    component: 'DashboardStatCard',
     icon: DollarSign,
     defaultSize: { w: 3, h: 1 },
     minSize: { w: 2, h: 1 },
@@ -719,7 +719,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
       title: "Service Revenue",
       isCurrency: true,
       rawValue: 1800000,
-      change: "+22%",
+      trendValue: "+22%",
       trend: "up",
       variant: "success"
     },
@@ -730,7 +730,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     name: 'Average Success Rate',
     description: 'Average placement success rate',
     category: 'stat',
-    component: 'EnhancedStatCard',
+    component: 'DashboardStatCard',
     icon: Percent,
     defaultSize: { w: 3, h: 1 },
     minSize: { w: 2, h: 1 },
@@ -738,7 +738,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     defaultProps: {
       title: "Success Rate",
       value: "87%",
-      change: "+4%",
+      trendValue: "+4%",
       trend: "up",
       variant: "success"
     },
@@ -749,7 +749,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     name: 'Projects Completed',
     description: 'Projects completed this month',
     category: 'stat',
-    component: 'EnhancedStatCard',
+    component: 'DashboardStatCard',
     icon: CheckCircle,
     defaultSize: { w: 3, h: 1 },
     minSize: { w: 2, h: 1 },
@@ -757,7 +757,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     defaultProps: {
       title: "Completed",
       value: "15",
-      change: "+5",
+      trendValue: "+5",
       trend: "up",
       variant: "success"
     },
@@ -830,7 +830,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     name: 'Active Candidates',
     description: 'Candidates actively seeking opportunities',
     category: 'stat',
-    component: 'EnhancedStatCard',
+    component: 'DashboardStatCard',
     icon: UserCheck,
     defaultSize: { w: 3, h: 1 },
     minSize: { w: 2, h: 1 },
@@ -838,7 +838,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     defaultProps: {
       title: "Active Candidates",
       value: "45",
-      change: "+8%",
+      trendValue: "+8%",
       trend: "up",
       variant: "success"
     },
@@ -849,7 +849,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     name: 'Placed Candidates',
     description: 'Successfully placed candidates',
     category: 'stat',
-    component: 'EnhancedStatCard',
+    component: 'DashboardStatCard',
     icon: CheckCircle,
     defaultSize: { w: 3, h: 1 },
     minSize: { w: 2, h: 1 },
@@ -857,7 +857,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     defaultProps: {
       title: "Placed Candidates",
       value: "12",
-      change: "+15%",
+      trendValue: "+15%",
       trend: "up",
       variant: "warning"
     },
@@ -868,7 +868,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     name: 'Conversion Rate',
     description: 'Application to placement conversion rate',
     category: 'stat',
-    component: 'EnhancedStatCard',
+    component: 'DashboardStatCard',
     icon: Percent,
     defaultSize: { w: 3, h: 1 },
     minSize: { w: 2, h: 1 },
@@ -876,7 +876,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     defaultProps: {
       title: "Conversion Rate",
       value: "18.5%",
-      change: "+2.3%",
+      trendValue: "+2.3%",
       trend: "up",
       variant: "neutral"
     },
@@ -954,7 +954,7 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetDefinition> = {
     maxSize: { w: 12, h: 4 },
     allowedDashboards: ['candidates']
   },
-  
+
   // ===== FEEDBACK WIDGETS =====
   'feedback-dashboard': {
     id: 'feedback-dashboard',

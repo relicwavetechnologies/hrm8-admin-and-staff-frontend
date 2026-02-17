@@ -1,4 +1,4 @@
-import { EnhancedStatCard } from './EnhancedStatCard';
+import { DashboardStatCard } from './DashboardStatCard';
 import { HiringTrendsChart } from './charts/HiringTrendsChart';
 import { ApplicationFunnelChart } from './charts/ApplicationFunnelChart';
 import { JobDistributionChart } from './charts/JobDistributionChart';
@@ -40,7 +40,7 @@ import type { DashboardWidget } from '@/shared/lib/dashboard/types';
 import { getCardActions } from '@/shared/lib/dashboard/cardActions';
 
 const COMPONENT_MAP: Record<string, React.ComponentType<any>> = {
-  EnhancedStatCard,
+  DashboardStatCard,
   HiringTrendsChart,
   ApplicationFunnelChart,
   JobDistributionChart,
@@ -99,7 +99,7 @@ export function WidgetRenderer({ widget, dashboardType = 'jobs' }: WidgetRendere
   }
 
   // Add navigation and icons to stat cards using cardActions config
-  if (widget.component === 'EnhancedStatCard') {
+  if (widget.component === 'DashboardStatCard') {
     const cardAction = getCardActions(widget.title, dashboardType);
 
     if (!cardAction) {

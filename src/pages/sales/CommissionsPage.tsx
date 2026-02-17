@@ -10,6 +10,7 @@ import { WithdrawalHistory } from "@/modules/sales/components/WithdrawalHistory"
 import { StripeConnectCard } from "@/modules/sales/components/StripeConnectCard";
 import { WithdrawalDialog } from "@/modules/sales/components/WithdrawalDialog";
 import { WithdrawalBalance, CommissionWithdrawal } from "@/shared/types/withdrawal";
+import { Card } from "@/shared/components/ui/card";
 
 export default function CommissionsPage() {
   const { toast } = useToast();
@@ -139,14 +140,14 @@ export default function CommissionsPage() {
         </TabsList>
 
         <TabsContent value="commissions" className="mt-4">
-          <div className="bg-card rounded-lg border shadow-sm p-1">
+          <Card className="p-1">
             <DataTable
               columns={columns}
               data={commissions}
               searchable={true}
               searchKeys={['description']}
             />
-          </div>
+          </Card>
         </TabsContent>
 
         <TabsContent value="withdrawals" className="mt-4">

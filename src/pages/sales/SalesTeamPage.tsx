@@ -2,10 +2,11 @@ import { useState, useMemo, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/shared/components/ui/button";
 import { DataTable } from "@/shared/components/tables/DataTable";
-import { Plus, Users, DollarSign, Target, TrendingUp, Eye, Download, BarChart3, Mail } from "lucide-react";
+import { Plus, Users, DollarSign, Target, Eye, Download, BarChart3, Trophy } from "lucide-react";
 // import { getAllSalesAgents, getSalesAgentStats } from "@/shared/lib/salesAgentStorage"; 
 import type { SalesAgent } from "@/shared/types/salesAgent";
-import { EnhancedStatCard } from "@/shared/components/dashboard/EnhancedStatCard";
+import { DashboardStatCard } from "@/shared/components/dashboard/DashboardStatCard";
+import { formatCurrency } from "@/shared/lib/utils";
 import { createSalesAgentColumns } from "@/modules/sales/components/SalesAgentTableColumns";
 import { SalesTeamFilterBar } from "@/modules/sales/components/SalesTeamFilterBar";
 import { SalesAgentBulkActions } from "@/modules/sales/components/SalesAgentBulkActions";
@@ -45,9 +46,7 @@ export default function SalesTeamPage() {
   }, []);
 
 
-  const quotaAttainment = stats.totalQuota > 0
-    ? (stats.totalRevenue / stats.totalQuota * 100).toFixed(1)
-    : '0';
+
 
   const columns = useMemo(() => createSalesAgentColumns(), []);
 
@@ -112,84 +111,68 @@ export default function SalesTeamPage() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <EnhancedStatCard
+          <DashboardStatCard
             title="Total Agents"
-            value={stats.total.toString()}
-            change={`${stats.active} active`}
+            value={stats.totalAgents.toString()}
+            description={`${stats.activeAgents} active`}
             icon={<Users className="h-6 w-6" />}
             variant="neutral"
-            showMenu={true}
             menuItems={[
               {
                 label: "View All Agents",
                 icon: <Eye className="h-4 w-4" />,
-                onClick: () => navigate('/sales/team')
+                onClick: () => { }
               },
               {
-                label: "Add Sales Agent",
+                label: "Add Agent",
                 icon: <Plus className="h-4 w-4" />,
-                onClick: () => navigate('/sales/team/new')
+                onClick: () => { }
               },
               {
-                label: "Export",
+                label: "Export Team",
                 icon: <Download className="h-4 w-4" />,
                 onClick: () => { }
               }
             ]}
           />
-          <EnhancedStatCard
+          <DashboardStatCard
             title="Total Revenue"
-            value={stats.totalRevenue.toString()}
-            change="All-time"
+            value={formatCurrency(stats.totalRevenue)}
+            description="Team revenue"
             icon={<DollarSign className="h-6 w-6" />}
-            variant="primary"
-            isCurrency={true}
-            rawValue={stats.totalRevenue}
-            showMenu={true}
-            menuItems={[
-              {
-                label: "View Report",
-                icon: <BarChart3 className="h-4 w-4" />,
-                onClick: () => { }
-              },
-              {
-                label: "Export",
-                icon: <Download className="h-4 w-4" />,
-                onClick: () => { }
-              }
-            ]}
-          />
-          <EnhancedStatCard
-            title="Avg Win Rate"
-            value={`${stats.avgConversionRate.toFixed(1)}%`}
-            change="Conversion rate"
-            icon={<TrendingUp className="h-6 w-6" />}
             variant="success"
-            showMenu={true}
             menuItems={[
               {
-                label: "View Analytics",
-                icon: <BarChart3 className="h-4 w-4" />,
-                onClick: () => { }
-              }
-            ]}
-          />
-          <EnhancedStatCard
-            title="Quota Attainment"
-            value={`${quotaAttainment}%`}
-            change="Team average"
-            icon={<Target className="h-6 w-6" />}
-            variant="warning"
-            showMenu={true}
-            menuItems={[
-              {
-                label: "View Details",
+                label: "View Revenue Report",
                 icon: <Eye className="h-4 w-4" />,
                 onClick: () => { }
-              },
+              }
+            ]}
+          />
+          <DashboardStatCard
+            title="Avg Win Rate"
+            value={`${stats.avgWinRate}%`}
+            description="Team average"
+            icon={<Trophy className="h-6 w-6" />}
+            variant="primary"
+            menuItems={[
               {
-                label: "Send Report",
-                icon: <Mail className="h-4 w-4" />,
+                label: "View Performance",
+                icon: <Eye className="h-4 w-4" />,
+                onClick: () => { }
+              }
+            ]}
+          />
+          <DashboardStatCard
+            title="Quota Attainment"
+            value={`${stats.quotaAttainment}%`}
+            description="Overall progress"
+            icon={<Target className="h-6 w-6" />}
+            variant="warning"
+            menuItems={[
+              {
+                label: "View Quotas",
+                icon: <Eye className="h-4 w-4" />,
                 onClick: () => { }
               }
             ]}

@@ -1,4 +1,4 @@
-import { EnhancedStatCard } from '@/shared/components/dashboard/EnhancedStatCard';
+import { DashboardStatCard } from '@/shared/components/dashboard/DashboardStatCard';
 import { getCohortSummaryMetrics } from '@/shared/lib/addons/cohortAnalytics';
 import { useCurrencyFormat } from '@/contexts/CurrencyFormatContext';
 import { DollarSign, Users, TrendingDown, Clock } from 'lucide-react';
@@ -9,38 +9,38 @@ export function CohortMetricsCards() {
 
   return (
     <>
-      <EnhancedStatCard
+      <DashboardStatCard
         title="Average Customer LTV"
-        icon={<DollarSign />}
+        icon={<DollarSign className="h-4 w-4" />}
         value={formatCurrency(metrics.averageLTV)}
-        change="LTV:CAC Ratio"
+        trendValue="LTV:CAC Ratio"
         trend="up"
         variant="success"
       />
       
-      <EnhancedStatCard
+      <DashboardStatCard
         title="Total Active Customers"
-        icon={<Users />}
+        icon={<Users className="h-4 w-4" />}
         value={metrics.totalCustomers.toString()}
-        change="+8.5% this month"
+        trendValue="+8.5% this month"
         trend="up"
         variant="primary"
       />
       
-      <EnhancedStatCard
+      <DashboardStatCard
         title="Average Churn Rate"
-        icon={<TrendingDown />}
+        icon={<TrendingDown className="h-4 w-4" />}
         value={`${metrics.averageChurnRate}%`}
-        change="-1.2% improvement"
+        trendValue="-1.2% improvement"
         trend="down"
         variant="warning"
       />
       
-      <EnhancedStatCard
+      <DashboardStatCard
         title="CAC Payback Period"
-        icon={<Clock />}
+        icon={<Clock className="h-4 w-4" />}
         value={`${metrics.paybackPeriod} months`}
-        change={formatCurrency(metrics.customerAcquisitionCost)}
+        trendValue={formatCurrency(metrics.customerAcquisitionCost)}
         trend="up"
         variant="neutral"
       />

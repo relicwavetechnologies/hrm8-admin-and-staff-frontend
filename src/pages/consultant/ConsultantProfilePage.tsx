@@ -478,13 +478,15 @@ export default function ConsultantProfilePage() {
                     className="flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary rounded-md text-sm"
                   >
                     {industry}
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="icon"
                       onClick={() => removeIndustry(industry)}
-                      className="ml-1 hover:text-destructive"
+                      className="ml-1 h-5 w-5 hover:text-destructive"
                     >
                       <X className="h-3 w-3" />
-                    </button>
+                    </Button>
                   </div>
                 ))}
               </div>
@@ -674,7 +676,7 @@ export default function ConsultantProfilePage() {
               <Label className="text-sm">Upload Resume (PDF, DOCX)</Label>
               {/* We import FileUpload dynamically or just use the input for now since we need to handle the File object */}
               <div className="border-2 border-dashed rounded-lg p-6 text-center hover:bg-muted/30 transition-colors">
-                <input
+                <Input
                   type="file"
                   id="resume-upload"
                   className="hidden"

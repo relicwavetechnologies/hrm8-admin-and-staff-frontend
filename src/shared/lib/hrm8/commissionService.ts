@@ -15,7 +15,7 @@ export interface Commission {
   currency: string;
   type: 'PLACEMENT' | 'SUBSCRIPTION_SALE' | 'RECRUITMENT_SERVICE' | 'CUSTOM';
   rate?: number;
-  status: 'PENDING' | 'CONFIRMED' | 'PAID' | 'CANCELLED';
+  status: 'PENDING' | 'CONFIRMED' | 'PAID' | 'CANCELLED' | 'DISPUTED';
   confirmed_at?: string;
   paid_at?: string;
   payment_reference?: string;
@@ -78,8 +78,8 @@ class CommissionService {
   }
 
   async markAsPaid(id: string, paymentReference?: string) {
-    return apiClient.put<{ commission: Commission }>(`/api/hrm8/commissions/${id}/pay`, { 
-      payment_reference: paymentReference || `PMT-${Date.now()}` 
+    return apiClient.put<{ commission: Commission }>(`/api/hrm8/commissions/${id}/pay`, {
+      payment_reference: paymentReference || `PMT-${Date.now()}`
     });
   }
 

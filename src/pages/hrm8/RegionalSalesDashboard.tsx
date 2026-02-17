@@ -41,7 +41,7 @@ import { Loader2, TrendingUp, Users, DollarSign, Activity, Target, Check, Chevro
 import { useHrm8Auth } from '@/contexts/Hrm8AuthContext';
 import { useRegionStore } from '@/shared/stores/useRegionStore';
 import { cn } from '@/shared/lib/utils';
-import { EnhancedStatCard } from '@/shared/components/dashboard/EnhancedStatCard';
+import { DashboardStatCard } from '@/shared/components/dashboard/DashboardStatCard';
 
 // Pipeline Stages Color Map
 const STAGE_COLORS: Record<string, string> = {
@@ -309,43 +309,33 @@ export default function RegionalSalesDashboard() {
           </div>
         )}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <EnhancedStatCard
+          <DashboardStatCard
             title="Total Pipeline Value"
             value={formatCurrency(stats?.totalPipelineValue || 0)}
-            rawValue={stats?.totalPipelineValue || 0}
-            change={`Across ${stats?.dealCount || 0} active deal${stats?.dealCount !== 1 ? 's' : ''}`}
+            description={`Across ${stats?.dealCount || 0} active deal${stats?.dealCount !== 1 ? 's' : ''}`}
             icon={<DollarSign className="h-6 w-6" />}
             variant="primary"
-            isCurrency={true}
-            showMenu={false}
           />
-          <EnhancedStatCard
+          <DashboardStatCard
             title="Weighted Forecast"
             value={formatCurrency(stats?.weightedPipelineValue || 0)}
-            rawValue={stats?.weightedPipelineValue || 0}
-            change="Risk-adjusted projection"
+            description="Risk-adjusted projection"
             icon={<TrendingUp className="h-6 w-6" />}
             variant="success"
-            isCurrency={true}
-            showMenu={false}
           />
-          <EnhancedStatCard
+          <DashboardStatCard
             title="Active Sales Agents"
             value={(stats?.activeAgents || 0).toString()}
-            change="Contributing to pipeline"
+            description="Contributing to pipeline"
             icon={<Users className="h-6 w-6" />}
             variant="neutral"
-            showMenu={false}
           />
-          <EnhancedStatCard
+          <DashboardStatCard
             title="Avg. Deal Size"
             value={formatCurrency((stats?.totalPipelineValue || 0) / (stats?.dealCount || 1))}
-            rawValue={(stats?.totalPipelineValue || 0) / (stats?.dealCount || 1)}
-            change="Per opportunity"
+            description="Per opportunity"
             icon={<Target className="h-6 w-6" />}
             variant="warning"
-            isCurrency={true}
-            showMenu={false}
           />
         </div>
       </div>

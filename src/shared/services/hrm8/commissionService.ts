@@ -78,8 +78,8 @@ class CommissionService {
   }
 
   async markAsPaid(id: string, paymentReference?: string) {
-    return apiClient.put<{ commission: Commission }>(`/api/hrm8/commissions/${id}/pay`, { 
-      payment_reference: paymentReference || `PMT-${Date.now()}` 
+    return apiClient.put<{ commission: Commission }>(`/api/hrm8/commissions/${id}/pay`, {
+      payment_reference: paymentReference || `PMT-${Date.now()}`
     });
   }
 
@@ -96,6 +96,18 @@ class CommissionService {
     if (status) queryParams.append('status', status);
 
     return apiClient.get<{ commissions: Commission[] }>(`/api/hrm8/commissions/regional?${queryParams.toString()}`);
+  }
+
+  async dispute(id: string, reason: string) {
+    return apiClient.put<{ commission: Commission }>(`/api/hrm8/commissions/${id}/dispute`, { reason });
+  }
+
+  async resolveDispute(id: string, resolution: 'VALID' | 'INVALID', notes?: string) {
+    return apiClient.put<{ commission: Commission }>(`/api/hrm8/commissions/${id}/resolve`, { resolution, notes });
+  }
+
+  async clawback(id: string, reason: string) {
+    return apiClient.put<{ commission: Commission }>(`/api/hrm8/commissions/${id}/clawback`, { reason });
   }
 }
 

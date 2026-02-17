@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Area, AreaChart } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Area, AreaChart } from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/shared/components/ui/chart';
 import { useHrm8Auth } from '@/contexts/Hrm8AuthContext';
 import { Alert, AlertDescription, AlertTitle } from '@/shared/components/ui/alert';
 import { Badge } from '@/shared/components/ui/badge';
@@ -8,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/sha
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table';
-import { AlertCircle, Briefcase, DollarSign, Activity, Users, Loader2, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { AlertCircle, Briefcase, DollarSign, Activity, Users, Loader2 } from 'lucide-react';
 import { apiClient } from '@/shared/lib/api';
 import { formatCurrency } from '@/shared/lib/utils';
 import { RegionalAnalyticsService, RegionalOperationalStats } from '@/shared/lib/hrm8/regionalAnalyticsService';
@@ -17,6 +18,7 @@ import { ComplianceAlertsWidget } from '@/shared/components/hrm8/ComplianceAlert
 import { useRegionStore } from '@/shared/stores/useRegionStore';
 import { cn } from '@/shared/lib/utils';
 import { Skeleton } from '@/shared/components/ui/skeleton';
+import { DashboardStatCard } from '@/shared/components/dashboard/DashboardStatCard';
 
 type TabKey = 'operations' | 'pipeline' | 'revenue' | 'risk';
 type TrendPoint = { name: string; value: number };
@@ -78,23 +80,7 @@ type RiskData = {
 
 const USE_OVERVIEW_V2 = import.meta.env.VITE_HRM8_OVERVIEW_V2 !== 'false';
 
-// Skeleton Components
-function StatCardSkeleton() {
-  return (
-    <Card>
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between">
-          <div className="flex-1 space-y-3">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-9 w-32" />
-            <Skeleton className="h-3 w-20" />
-          </div>
-          <Skeleton className="h-12 w-12 rounded-xl" />
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+
 
 function ChartSkeleton() {
   return (
@@ -169,6 +155,17 @@ function MiniMetricCard({
     value: Math.random() * 20 + (trend === 'up' ? i * 5 : 100 - i * 5)
   }));
 
+  const sparklineConfig = {
+    value: {
+      label: "Value",
+      color: colorClass.includes('chart-1') ? 'hsl(var(--chart-1))' :
+        colorClass.includes('chart-2') ? 'hsl(var(--chart-2))' :
+          colorClass.includes('chart-3') ? 'hsl(var(--chart-3))' :
+            colorClass.includes('chart-4') ? 'hsl(var(--chart-4))' :
+              'hsl(var(--primary))',
+    },
+  } satisfies ChartConfig;
+
   return (
     <Card className="overflow-hidden">
       <CardContent className="p-6">
@@ -195,36 +192,24 @@ function MiniMetricCard({
 
           {/* Mini trend chart */}
           <div className="h-16 -mb-6 -mx-6">
-            <ResponsiveContainer width="100%" height="100%">
+            <ChartContainer config={sparklineConfig} className="h-full w-full">
               <AreaChart data={trendData}>
                 <defs>
                   <linearGradient id={`mini-gradient-${title}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={colorClass.includes('chart-1') ? 'hsl(var(--chart-1))' :
-                                                    colorClass.includes('chart-2') ? 'hsl(var(--chart-2))' :
-                                                    colorClass.includes('chart-3') ? 'hsl(var(--chart-3))' :
-                                                    colorClass.includes('chart-4') ? 'hsl(var(--chart-4))' :
-                                                    'hsl(var(--primary))'} stopOpacity={0.2} />
-                    <stop offset="95%" stopColor={colorClass.includes('chart-1') ? 'hsl(var(--chart-1))' :
-                                                    colorClass.includes('chart-2') ? 'hsl(var(--chart-2))' :
-                                                    colorClass.includes('chart-3') ? 'hsl(var(--chart-3))' :
-                                                    colorClass.includes('chart-4') ? 'hsl(var(--chart-4))' :
-                                                    'hsl(var(--primary))'} stopOpacity={0} />
+                    <stop offset="5%" stopColor="var(--color-value)" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="var(--color-value)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <Area
                   type="monotone"
                   dataKey="value"
-                  stroke={colorClass.includes('chart-1') ? 'hsl(var(--chart-1))' :
-                         colorClass.includes('chart-2') ? 'hsl(var(--chart-2))' :
-                         colorClass.includes('chart-3') ? 'hsl(var(--chart-3))' :
-                         colorClass.includes('chart-4') ? 'hsl(var(--chart-4))' :
-                         'hsl(var(--primary))'}
+                  stroke="var(--color-value)"
                   strokeWidth={2}
                   fill={`url(#mini-gradient-${title})`}
                   dot={false}
                 />
               </AreaChart>
-            </ResponsiveContainer>
+            </ChartContainer>
           </div>
         </div>
       </CardContent>
@@ -232,74 +217,6 @@ function MiniMetricCard({
   );
 }
 
-// Modern Stat Card Component
-function ModernStatCard({
-  title,
-  value,
-  subtitle,
-  trend,
-  trendValue,
-  icon,
-  colorClass = "text-primary",
-  bgClass = "bg-primary/5",
-  onClick,
-  loading
-}: {
-  title: string;
-  value: string | number;
-  subtitle?: string;
-  trend?: 'up' | 'down';
-  trendValue?: string;
-  icon: React.ReactNode;
-  colorClass?: string;
-  bgClass?: string;
-  onClick?: () => void;
-  loading?: boolean;
-}) {
-  if (loading) {
-    return <StatCardSkeleton />;
-  }
-
-  return (
-    <Card
-      className={cn(
-        "relative overflow-hidden transition-all duration-300 hover:shadow-lg",
-        onClick && "cursor-pointer hover:scale-[1.02]"
-      )}
-      onClick={onClick}
-    >
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <p className="text-sm font-medium text-muted-foreground mb-1">{title}</p>
-            <h3 className="text-3xl font-bold tracking-tight mb-2">{value}</h3>
-            {subtitle && (
-              <p className="text-xs text-muted-foreground">{subtitle}</p>
-            )}
-            {trendValue && (
-              <div className={cn(
-                "flex items-center gap-1 text-xs font-medium mt-2",
-                trend === 'up' ? "text-success" : "text-destructive"
-              )}>
-                {trend === 'up' ? (
-                  <ArrowUpRight className="h-3 w-3" />
-                ) : (
-                  <ArrowDownRight className="h-3 w-3" />
-                )}
-                <span>{trendValue}</span>
-              </div>
-            )}
-          </div>
-          <div className={cn("p-3 rounded-xl", bgClass)}>
-            <div className={cn("h-6 w-6", colorClass)}>
-              {icon}
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
 
 function LegacyOverview() {
   const { hrm8User } = useHrm8Auth();
@@ -336,40 +253,40 @@ function LegacyOverview() {
         </Alert>
       )}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <ModernStatCard
+        <DashboardStatCard
           title="Open Jobs"
           value={(stats?.open_jobs_count ?? 0).toString()}
-          icon={<Briefcase className="h-6 w-6" />}
-          subtitle="Operational"
-          colorClass="text-chart-1"
-          bgClass="bg-chart-1/10"
+          icon={Briefcase}
+          description="Operational jobs"
+          trend="up"
+          trendValue="+8.2%"
           onClick={() => navigate('/hrm8/jobs/allocation')}
         />
-        <ModernStatCard
+        <DashboardStatCard
           title="Active Consultants"
           value={(stats?.active_consultants_count ?? 0).toString()}
-          icon={<Users className="h-6 w-6" />}
-          subtitle="Currently active"
-          colorClass="text-chart-2"
-          bgClass="bg-chart-2/10"
+          icon={Users}
+          description="Currently active"
+          trend="up"
+          trendValue="+12.5%"
           onClick={() => navigate('/hrm8/staff')}
         />
-        <ModernStatCard
+        <DashboardStatCard
           title="Placements (Mo)"
           value={(stats?.placements_this_month ?? 0).toString()}
-          icon={<Activity className="h-6 w-6" />}
-          subtitle="This month"
-          colorClass="text-chart-3"
-          bgClass="bg-chart-3/10"
+          icon={Activity}
+          description="This month"
+          trend="up"
+          trendValue="+4.3%"
           onClick={() => navigate('/hrm8/commissions')}
         />
-        <ModernStatCard
+        <DashboardStatCard
           title="Pipeline Value"
           value="-"
-          icon={<DollarSign className="h-6 w-6" />}
-          subtitle="Sales pipeline"
-          colorClass="text-chart-4"
-          bgClass="bg-chart-4/10"
+          icon={DollarSign}
+          description="Sales pipeline"
+          trend="up"
+          trendValue="+5.1%"
           onClick={() => navigate('/hrm8/regional-sales-dashboard')}
         />
       </div>
@@ -562,13 +479,25 @@ function OverviewV2() {
   const showTabError = tabError[activeTab];
   const showTabLoading = tabLoading[activeTab];
 
-  const CHART_COLORS = {
-    primary: 'hsl(var(--chart-1))',
-    success: 'hsl(var(--chart-2))',
-    warning: 'hsl(var(--chart-3))',
-    purple: 'hsl(var(--chart-4))',
-    danger: 'hsl(var(--chart-5))'
-  };
+  // Chart configurations
+  const operationsChartConfig = {
+    openJobs: {
+      label: "Open Jobs",
+      color: "hsl(var(--chart-1))",
+    },
+    placements: {
+      label: "Placements",
+      color: "hsl(var(--chart-2))",
+    },
+  } satisfies ChartConfig;
+
+  const pipelineChartConfig = {
+    value: {
+      label: "Pipeline Value",
+      color: "hsl(var(--chart-1))",
+    },
+  } satisfies ChartConfig;
+
 
   return (
     <div className="min-h-screen bg-background p-6 space-y-6">
@@ -608,43 +537,43 @@ function OverviewV2() {
 
       {/* Stat Cards Grid - Loaded from summary endpoint */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <ModernStatCard
+        <DashboardStatCard
           title="Open Jobs"
           value={(summary?.kpis?.openJobs ?? 0).toString()}
-          icon={<Briefcase className="h-6 w-6" />}
-          subtitle={`${summary?.kpis?.unassignedJobs ?? 0} unassigned`}
-          colorClass="text-chart-1"
-          bgClass="bg-chart-1/10"
+          icon={Briefcase}
+          description={`${summary?.kpis?.unassignedJobs ?? 0} unassigned`}
+          trend="up"
+          trendValue="+8.2%"
           onClick={() => navigate('/hrm8/jobs/allocation')}
           loading={summaryLoading}
         />
-        <ModernStatCard
+        <DashboardStatCard
           title="Active Consultants"
           value={(summary?.kpis?.activeConsultants ?? 0).toString()}
-          icon={<Users className="h-6 w-6" />}
-          subtitle="Currently active"
-          colorClass="text-chart-2"
-          bgClass="bg-chart-2/10"
+          icon={Users}
+          description="Currently active"
+          trend="up"
+          trendValue="+12.5%"
           onClick={() => navigate('/hrm8/staff')}
           loading={summaryLoading}
         />
-        <ModernStatCard
+        <DashboardStatCard
           title="Placements"
           value={(summary?.kpis?.placementsThisMonth ?? 0).toString()}
-          icon={<Activity className="h-6 w-6" />}
-          subtitle="This month"
-          colorClass="text-chart-3"
-          bgClass="bg-chart-3/10"
+          icon={Activity}
+          description="This month"
+          trend="up"
+          trendValue="+4.3%"
           onClick={() => navigate('/hrm8/commissions')}
           loading={summaryLoading}
         />
-        <ModernStatCard
+        <DashboardStatCard
           title="Settled Revenue"
           value={formatCurrency(summary?.finance?.totalSettled || 0)}
-          icon={<DollarSign className="h-6 w-6" />}
-          subtitle="Total settlements"
-          colorClass="text-chart-4"
-          bgClass="bg-chart-4/10"
+          icon={DollarSign}
+          description="Total settlements"
+          trend="up"
+          trendValue="+15.8%"
           onClick={() => navigate('/hrm8/settlements')}
           loading={summaryLoading}
         />
@@ -700,53 +629,51 @@ function OverviewV2() {
                   <CardDescription>Open jobs vs placements over time</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={320}>
+                  <ChartContainer config={operationsChartConfig} className="h-[320px] w-full">
                     <AreaChart data={operationsTrend}>
                       <defs>
-                        <linearGradient id="colorJobs" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={CHART_COLORS.primary} stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor={CHART_COLORS.primary} stopOpacity={0}/>
+                        <linearGradient id="fillOpenJobs" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="var(--color-openJobs)" stopOpacity={0.8} />
+                          <stop offset="95%" stopColor="var(--color-openJobs)" stopOpacity={0.1} />
                         </linearGradient>
-                        <linearGradient id="colorPlacements" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={CHART_COLORS.success} stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor={CHART_COLORS.success} stopOpacity={0}/>
+                        <linearGradient id="fillPlacements" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="var(--color-placements)" stopOpacity={0.8} />
+                          <stop offset="95%" stopColor="var(--color-placements)" stopOpacity={0.1} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
                       <XAxis
                         dataKey="name"
-                        stroke="hsl(var(--muted-foreground))"
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
                         fontSize={12}
                       />
                       <YAxis
-                        stroke="hsl(var(--muted-foreground))"
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
                         fontSize={12}
                       />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: 'hsl(var(--card))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px'
-                        }}
-                      />
+                      <ChartTooltip content={<ChartTooltipContent />} />
                       <Area
                         type="monotone"
                         dataKey="openJobs"
-                        stroke={CHART_COLORS.primary}
+                        stroke="var(--color-openJobs)"
                         strokeWidth={2}
                         fillOpacity={1}
-                        fill="url(#colorJobs)"
+                        fill="url(#fillOpenJobs)"
                       />
                       <Area
                         type="monotone"
                         dataKey="placements"
-                        stroke={CHART_COLORS.success}
+                        stroke="var(--color-placements)"
                         strokeWidth={2}
                         fillOpacity={1}
-                        fill="url(#colorPlacements)"
+                        fill="url(#fillPlacements)"
                       />
                     </AreaChart>
-                  </ResponsiveContainer>
+                  </ChartContainer>
                 </CardContent>
               </Card>
 
@@ -815,29 +742,30 @@ function OverviewV2() {
                   <CardDescription>Opportunity value across sales stages</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={320}>
+                  <ChartContainer config={pipelineChartConfig} className="h-[320px] w-full">
                     <BarChart data={stageRows}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
                       <XAxis
                         dataKey="stage"
-                        stroke="hsl(var(--muted-foreground))"
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
                         fontSize={12}
                       />
                       <YAxis
-                        stroke="hsl(var(--muted-foreground))"
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
                         fontSize={12}
+                        tickFormatter={(value) => formatCurrency(value)}
                       />
-                      <Tooltip
-                        formatter={(v: number) => formatCurrency(v)}
-                        contentStyle={{
-                          backgroundColor: 'hsl(var(--card))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px'
-                        }}
+                      <ChartTooltip
+                        content={<ChartTooltipContent />}
+                        formatter={(value) => formatCurrency(value as number)}
                       />
-                      <Bar dataKey="value" fill={CHART_COLORS.primary} radius={[8, 8, 0, 0]} />
+                      <Bar dataKey="value" fill="var(--color-value)" radius={[8, 8, 0, 0]} />
                     </BarChart>
-                  </ResponsiveContainer>
+                  </ChartContainer>
                 </CardContent>
               </Card>
 

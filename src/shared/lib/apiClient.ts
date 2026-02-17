@@ -47,6 +47,9 @@ class ApiClient {
       });
 
       if (!response.ok) {
+        if (response.status === 403) {
+          window.dispatchEvent(new CustomEvent('auth:forbidden'));
+        }
         return {
           success: false,
           error: data.error || `HTTP ${response.status}: ${response.statusText}`,

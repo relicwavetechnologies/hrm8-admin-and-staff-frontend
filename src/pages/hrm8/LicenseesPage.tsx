@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui
 import { toast } from 'sonner';
 import { FormDrawer } from '@/shared/components/ui/form-drawer';
 import { LicenseeForm } from '@/shared/components/hrm8/LicenseeForm';
+import { TerminateLicenseeDialog } from '@/shared/components/hrm8/TerminateLicenseeDialog';
 import { Badge } from '@/shared/components/ui/badge';
 import { TableSkeleton } from '@/shared/components/tables/TableSkeleton';
 import { AuditHistoryDrawer } from '@/shared/components/hrm8/AuditHistoryDrawer';
@@ -154,23 +155,7 @@ export default function LicenseesPage() {
     }
   };
 
-  const handleTerminate = async () => {
-    if (!selectedLicensee) return;
-    try {
-      setActionLoading(true);
-      const response = await licenseeService.terminate(selectedLicensee.id);
-      if (response.success) {
-        toast.success('Licensee terminated successfully');
-        await loadLicensees();
-      }
-    } catch (error) {
-      toast.error('Failed to terminate licensee');
-    } finally {
-      setActionLoading(false);
-      setConfirmTerminateOpen(false);
-      setSelectedLicensee(null);
-    }
-  };
+
 
   const handleSave = async () => {
     await loadLicensees();
@@ -380,33 +365,15 @@ export default function LicenseesPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={confirmTerminateOpen} onOpenChange={setConfirmTerminateOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-red-600 flex items-center gap-2">
-              <ShieldAlert className="h-5 w-5" />
-              Terminate Licensee
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to permanently terminate <strong>{selectedLicensee?.name}</strong>?
-              This action <strong>cannot be undone</strong> and will revoke all access immediately.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={actionLoading}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                handleTerminate();
-              }}
-              disabled={actionLoading}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              {actionLoading ? 'Terminating...' : 'Terminate Licensee'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <TerminateLicenseeDialog
+        open={confirmTerminateOpen}
+        onOpenChange={setConfirmTerminateOpen}
+        licensee={selectedLicensee}
+        onSuccess={() => {
+          loadLicensees();
+          setSelectedLicensee(null);
+        }}
+      />
 
       <AlertDialog open={editBlockedOpen} onOpenChange={setEditBlockedOpen}>
         <AlertDialogContent>

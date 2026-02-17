@@ -13,7 +13,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu';
-import { MoreVertical, Edit, Pause, Play, Trash2, UserCog, Eye } from 'lucide-react';
+import { MoreVertical, Edit, Pause, Play, Trash2, UserCog, Eye, ArrowRightLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface StaffActionsMenuProps {
@@ -25,6 +25,7 @@ interface StaffActionsMenuProps {
     onChangeRole: (staff: StaffMember) => void;
     onSuspend: (staff: StaffMember) => void;
     onReactivate: (staff: StaffMember) => void;
+    onReassign: (staff: StaffMember) => void;
     onDelete: (staff: StaffMember) => void;
 }
 
@@ -37,6 +38,7 @@ export function StaffActionsMenu({
     onChangeRole,
     onSuspend,
     onReactivate,
+    onReassign,
     onDelete,
 }: StaffActionsMenuProps) {
     const [open, setOpen] = useState(false);
@@ -73,6 +75,13 @@ export function StaffActionsMenu({
                         <DropdownMenuItem onClick={() => handleAction(() => onEdit(staff))}>
                             <Edit className="mr-2 h-4 w-4" />
                             Edit Staff
+                        </DropdownMenuItem>
+                    )}
+
+                    {canEdit && (
+                        <DropdownMenuItem onClick={() => handleAction(() => onReassign(staff))}>
+                            <ArrowRightLeft className="mr-2 h-4 w-4" />
+                            Reassign Assets
                         </DropdownMenuItem>
                     )}
 
@@ -117,3 +126,6 @@ export function StaffActionsMenu({
         </div>
     );
 }
+
+// Add import if missing (it was missing in the file view, but I'll add it to be safe or rely on auto-import if I could, but I can't. Wait, ArrowRightLeft is from lucide-react)
+

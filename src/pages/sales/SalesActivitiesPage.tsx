@@ -5,7 +5,7 @@ import { DataTable } from "@/shared/components/tables/DataTable";
 import { Plus, ListChecks, Calendar, AlertCircle, CheckCircle, Eye, Download, BarChart3 } from "lucide-react";
 // import { getAllActivities, getActivityStats } from "@/shared/lib/salesActivityStorage";
 import type { SalesActivity } from "@/shared/types/salesActivity";
-import { EnhancedStatCard } from "@/shared/components/dashboard/EnhancedStatCard";
+import { DashboardStatCard } from "@/shared/components/dashboard/DashboardStatCard";
 import { createActivityColumns } from "@/modules/sales/components/SalesActivityTableColumns";
 import { ActivitiesFilterBar } from "@/modules/sales/components/ActivitiesFilterBar";
 import { ActivityBulkActions } from "@/modules/sales/components/ActivityBulkActions";
@@ -106,13 +106,12 @@ export default function SalesActivitiesPage() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <EnhancedStatCard
+          <DashboardStatCard
             title="Total Activities"
             value={stats.total.toString()}
-            change="All time"
+            description="All time"
             icon={<ListChecks className="h-6 w-6" />}
             variant="neutral"
-            showMenu={true}
             menuItems={[
               {
                 label: "View All Activities",
@@ -131,13 +130,12 @@ export default function SalesActivitiesPage() {
               }
             ]}
           />
-          <EnhancedStatCard
+          <DashboardStatCard
             title="Completed"
             value={stats.completed.toString()}
-            change="Finished tasks"
+            description="Finished tasks"
             icon={<CheckCircle className="h-6 w-6" />}
             variant="success"
-            showMenu={true}
             menuItems={[
               {
                 label: "View Completed",
@@ -146,13 +144,12 @@ export default function SalesActivitiesPage() {
               }
             ]}
           />
-          <EnhancedStatCard
+          <DashboardStatCard
             title="Upcoming"
             value={stats.upcoming.toString()}
-            change="Scheduled"
+            description="Scheduled"
             icon={<Calendar className="h-6 w-6" />}
             variant="primary"
-            showMenu={true}
             menuItems={[
               {
                 label: "View Schedule",
@@ -161,13 +158,12 @@ export default function SalesActivitiesPage() {
               }
             ]}
           />
-          <EnhancedStatCard
+          <DashboardStatCard
             title="Follow-ups"
             value={stats.followUpNeeded.toString()}
-            change="Need attention"
+            description="Need attention"
             icon={<AlertCircle className="h-6 w-6" />}
             variant="warning"
-            showMenu={true}
             menuItems={[
               {
                 label: "View Follow-ups",

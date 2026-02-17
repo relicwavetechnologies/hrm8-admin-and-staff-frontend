@@ -9,13 +9,13 @@ export const DEFAULT_OVERVIEW_LAYOUT: DashboardLayout = {
     {
       id: 'stat-1',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Active Jobs',
       gridArea: { x: 0, y: 0, w: 3, h: 1 },
       props: {
         title: "Active Jobs",
         value: "24",
-        change: "+12%",
+        trendValue: "+12%",
         trend: "up",
         variant: "primary"
       },
@@ -24,13 +24,13 @@ export const DEFAULT_OVERVIEW_LAYOUT: DashboardLayout = {
     {
       id: 'stat-2',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Total Employees',
       gridArea: { x: 3, y: 0, w: 3, h: 1 },
       props: {
         title: "Total Employees",
         value: "342",
-        change: "+6%",
+        trendValue: "+6%",
         trend: "up",
         variant: "success"
       },
@@ -39,14 +39,14 @@ export const DEFAULT_OVERVIEW_LAYOUT: DashboardLayout = {
     {
       id: 'stat-3',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Total Revenue',
       gridArea: { x: 6, y: 0, w: 3, h: 1 },
       props: {
         title: "Total Revenue",
         isCurrency: true,
         rawValue: 2400000,
-        change: "+18%",
+        trendValue: "+18%",
         trend: "up",
         variant: "warning"
       },
@@ -55,13 +55,13 @@ export const DEFAULT_OVERVIEW_LAYOUT: DashboardLayout = {
     {
       id: 'stat-4',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Active Projects',
       gridArea: { x: 9, y: 0, w: 3, h: 1 },
       props: {
         title: "Active Projects",
         value: "32",
-        change: "+15%",
+        trendValue: "+15%",
         trend: "up",
         variant: "neutral"
       },
@@ -126,13 +126,13 @@ export const DEFAULT_JOBS_LAYOUT: DashboardLayout = {
     {
       id: 'stat-1',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Active Jobs',
       gridArea: { x: 0, y: 0, w: 3, h: 1 },
       props: {
         title: "Active Jobs",
         value: "24",
-        change: "+12%",
+        trendValue: "+12%",
         trend: "up",
         variant: "neutral"
       },
@@ -141,13 +141,13 @@ export const DEFAULT_JOBS_LAYOUT: DashboardLayout = {
     {
       id: 'stat-2',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Total Candidates',
       gridArea: { x: 3, y: 0, w: 3, h: 1 },
       props: {
         title: "Total Candidates",
         value: "1,234",
-        change: "+8%",
+        trendValue: "+8%",
         trend: "up",
         variant: "success"
       },
@@ -156,13 +156,13 @@ export const DEFAULT_JOBS_LAYOUT: DashboardLayout = {
     {
       id: 'stat-3',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Applications',
       gridArea: { x: 6, y: 0, w: 3, h: 1 },
       props: {
         title: "Applications",
         value: "567",
-        change: "+23%",
+        trendValue: "+23%",
         trend: "up",
         variant: "primary"
       },
@@ -171,13 +171,13 @@ export const DEFAULT_JOBS_LAYOUT: DashboardLayout = {
     {
       id: 'stat-4',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Hired This Month',
       gridArea: { x: 9, y: 0, w: 3, h: 1 },
       props: {
         title: "Hired This Month",
         value: "18",
-        change: "+5%",
+        trendValue: "+5%",
         trend: "up",
         variant: "warning"
       },
@@ -242,13 +242,13 @@ export const DEFAULT_HRMS_LAYOUT: DashboardLayout = {
     {
       id: 'stat-1',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Total Employees',
       gridArea: { x: 0, y: 0, w: 3, h: 1 },
       props: {
         title: "Total Employees",
         value: "342",
-        change: "+6%",
+        trendValue: "+6%",
         trend: "up",
         variant: "success"
       },
@@ -257,13 +257,13 @@ export const DEFAULT_HRMS_LAYOUT: DashboardLayout = {
     {
       id: 'stat-2',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Attendance Rate',
       gridArea: { x: 3, y: 0, w: 3, h: 1 },
       props: {
         title: "Attendance Rate",
         value: "94.2%",
-        change: "+2.1%",
+        trendValue: "+2.1%",
         trend: "up",
         variant: "success"
       },
@@ -272,13 +272,13 @@ export const DEFAULT_HRMS_LAYOUT: DashboardLayout = {
     {
       id: 'stat-3',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Leave Requests',
       gridArea: { x: 6, y: 0, w: 3, h: 1 },
       props: {
         title: "Leave Requests",
         value: "23",
-        change: "-12%",
+        trendValue: "-12%",
         trend: "down",
         variant: "primary"
       },
@@ -287,13 +287,13 @@ export const DEFAULT_HRMS_LAYOUT: DashboardLayout = {
     {
       id: 'stat-4',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Departments',
       gridArea: { x: 9, y: 0, w: 3, h: 1 },
       props: {
         title: "Departments",
         value: "12",
-        change: "0%",
+        trendValue: "0%",
         trend: "neutral",
         variant: "neutral"
       },
@@ -358,14 +358,14 @@ export const DEFAULT_FINANCIAL_LAYOUT: DashboardLayout = {
     {
       id: 'stat-1',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Total Revenue',
       gridArea: { x: 0, y: 0, w: 3, h: 1 },
       props: {
         title: "Total Revenue",
         isCurrency: true,
         rawValue: 2400000,
-        change: "+18%",
+        trendValue: "+18%",
         trend: "up",
         variant: "warning"
       },
@@ -374,14 +374,14 @@ export const DEFAULT_FINANCIAL_LAYOUT: DashboardLayout = {
     {
       id: 'stat-2',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Total Expenses',
       gridArea: { x: 3, y: 0, w: 3, h: 1 },
       props: {
         title: "Total Expenses",
         isCurrency: true,
         rawValue: 1800000,
-        change: "+5%",
+        trendValue: "+5%",
         trend: "up",
         variant: "warning"
       },
@@ -390,13 +390,13 @@ export const DEFAULT_FINANCIAL_LAYOUT: DashboardLayout = {
     {
       id: 'stat-3',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Profit Margin',
       gridArea: { x: 6, y: 0, w: 3, h: 1 },
       props: {
         title: "Profit Margin",
         value: "25%",
-        change: "+3%",
+        trendValue: "+3%",
         trend: "up",
         variant: "success"
       },
@@ -405,14 +405,14 @@ export const DEFAULT_FINANCIAL_LAYOUT: DashboardLayout = {
     {
       id: 'stat-4',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Payroll Cost',
       gridArea: { x: 9, y: 0, w: 3, h: 1 },
       props: {
         title: "Payroll Cost",
         isCurrency: true,
         rawValue: 890000,
-        change: "+2%",
+        trendValue: "+2%",
         trend: "up",
         variant: "primary"
       },
@@ -477,13 +477,13 @@ export const DEFAULT_CONSULTING_LAYOUT: DashboardLayout = {
     {
       id: 'stat-1',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Active Projects',
       gridArea: { x: 0, y: 0, w: 3, h: 1 },
       props: {
         title: "Active Projects",
         value: "32",
-        change: "+15%",
+        trendValue: "+15%",
         trend: "up",
         variant: "neutral"
       },
@@ -492,13 +492,13 @@ export const DEFAULT_CONSULTING_LAYOUT: DashboardLayout = {
     {
       id: 'stat-2',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Total Clients',
       gridArea: { x: 3, y: 0, w: 3, h: 1 },
       props: {
         title: "Total Clients",
         value: "18",
-        change: "+3",
+        trendValue: "+3",
         trend: "up",
         variant: "success"
       },
@@ -507,13 +507,13 @@ export const DEFAULT_CONSULTING_LAYOUT: DashboardLayout = {
     {
       id: 'stat-3',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Utilization Rate',
       gridArea: { x: 6, y: 0, w: 3, h: 1 },
       props: {
         title: "Utilization Rate",
         value: "78%",
-        change: "+5%",
+        trendValue: "+5%",
         trend: "up",
         variant: "success"
       },
@@ -522,13 +522,13 @@ export const DEFAULT_CONSULTING_LAYOUT: DashboardLayout = {
     {
       id: 'stat-4',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Billable Hours',
       gridArea: { x: 9, y: 0, w: 3, h: 1 },
       props: {
         title: "Billable Hours",
         value: "2,840",
-        change: "+12%",
+        trendValue: "+12%",
         trend: "up",
         variant: "primary"
       },
@@ -593,13 +593,13 @@ export const DEFAULT_RECRUITMENT_SERVICES_LAYOUT: DashboardLayout = {
     {
       id: 'stat-1',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Active Projects',
       gridArea: { x: 0, y: 0, w: 3, h: 1 },
       props: {
         title: "Active Projects",
         value: "28",
-        change: "+7",
+        trendValue: "+7",
         trend: "up",
         variant: "primary"
       },
@@ -608,13 +608,13 @@ export const DEFAULT_RECRUITMENT_SERVICES_LAYOUT: DashboardLayout = {
     {
       id: 'stat-2',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Shortlisting',
       gridArea: { x: 3, y: 0, w: 3, h: 1 },
       props: {
         title: "Shortlisting",
         value: "12",
-        change: "+3",
+        trendValue: "+3",
         trend: "up",
         variant: "success"
       },
@@ -623,13 +623,13 @@ export const DEFAULT_RECRUITMENT_SERVICES_LAYOUT: DashboardLayout = {
     {
       id: 'stat-3',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Full-Service',
       gridArea: { x: 6, y: 0, w: 3, h: 1 },
       props: {
         title: "Full-Service",
         value: "8",
-        change: "+2",
+        trendValue: "+2",
         trend: "up",
         variant: "primary"
       },
@@ -638,13 +638,13 @@ export const DEFAULT_RECRUITMENT_SERVICES_LAYOUT: DashboardLayout = {
     {
       id: 'stat-4',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Executive Search',
       gridArea: { x: 9, y: 0, w: 3, h: 1 },
       props: {
         title: "Executive Search",
         value: "5",
-        change: "+1",
+        trendValue: "+1",
         trend: "up",
         variant: "warning"
       },
@@ -710,13 +710,13 @@ export const DEFAULT_EMPLOYERS_LAYOUT: DashboardLayout = {
     {
       id: 'stat-total-clients-1',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Total Employers',
       gridArea: { x: 0, y: 0, w: 3, h: 1 },
       props: {
         title: "Total Employers",
         value: "18",
-        change: "+3",
+        trendValue: "+3",
         trend: "up",
         variant: "primary"
       },
@@ -725,13 +725,13 @@ export const DEFAULT_EMPLOYERS_LAYOUT: DashboardLayout = {
     {
       id: 'stat-active-projects-1',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Active Accounts',
       gridArea: { x: 3, y: 0, w: 3, h: 1 },
       props: {
         title: "Active Accounts",
         value: "15",
-        change: "+2",
+        trendValue: "+2",
         trend: "up",
         variant: "success"
       },
@@ -740,14 +740,14 @@ export const DEFAULT_EMPLOYERS_LAYOUT: DashboardLayout = {
     {
       id: 'stat-total-revenue-1',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Monthly Revenue',
       gridArea: { x: 6, y: 0, w: 3, h: 1 },
       props: {
         title: "Monthly Revenue",
         isCurrency: true,
         rawValue: 145000,
-        change: "+12%",
+        trendValue: "+12%",
         trend: "up",
         variant: "success"
       },
@@ -756,13 +756,13 @@ export const DEFAULT_EMPLOYERS_LAYOUT: DashboardLayout = {
     {
       id: 'stat-profit-margin-1',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Profit Margin',
       gridArea: { x: 9, y: 0, w: 3, h: 1 },
       props: {
         title: "Profit Margin",
         value: "28%",
-        change: "+3%",
+        trendValue: "+3%",
         trend: "up",
         variant: "success"
       },
@@ -827,13 +827,13 @@ export const DEFAULT_CANDIDATES_LAYOUT: DashboardLayout = {
     {
       id: 'stat-1',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Total Candidates',
       gridArea: { x: 0, y: 0, w: 3, h: 1 },
       props: {
         title: "Total Candidates",
         value: "150",
-        change: "+12%",
+        trendValue: "+12%",
         trend: "up",
         variant: "primary"
       },
@@ -842,13 +842,13 @@ export const DEFAULT_CANDIDATES_LAYOUT: DashboardLayout = {
     {
       id: 'stat-2',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Active Candidates',
       gridArea: { x: 3, y: 0, w: 3, h: 1 },
       props: {
         title: "Active Candidates",
         value: "45",
-        change: "+8%",
+        trendValue: "+8%",
         trend: "up",
         variant: "success"
       },
@@ -857,13 +857,13 @@ export const DEFAULT_CANDIDATES_LAYOUT: DashboardLayout = {
     {
       id: 'stat-3',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Placed Candidates',
       gridArea: { x: 6, y: 0, w: 3, h: 1 },
       props: {
         title: "Placed Candidates",
         value: "12",
-        change: "+15%",
+        trendValue: "+15%",
         trend: "up",
         variant: "warning"
       },
@@ -872,13 +872,13 @@ export const DEFAULT_CANDIDATES_LAYOUT: DashboardLayout = {
     {
       id: 'stat-4',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Conversion Rate',
       gridArea: { x: 9, y: 0, w: 3, h: 1 },
       props: {
         title: "Conversion Rate",
         value: "18.5%",
-        change: "+2.3%",
+        trendValue: "+2.3%",
         trend: "up",
         variant: "neutral"
       },
@@ -961,13 +961,13 @@ const DEFAULT_SALES_LAYOUT: DashboardLayout = {
     {
       id: 'sales-stat-1',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Total Revenue',
       gridArea: { x: 0, y: 0, w: 3, h: 1 },
       props: {
         title: "Total Revenue",
         value: "$2.4M",
-        change: "+18%",
+        trendValue: "+18%",
         trend: "up",
         variant: "primary"
       },
@@ -976,13 +976,13 @@ const DEFAULT_SALES_LAYOUT: DashboardLayout = {
     {
       id: 'sales-stat-2',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Active Projects',
       gridArea: { x: 3, y: 0, w: 3, h: 1 },
       props: {
         title: "Active Projects",
         value: "16",
-        change: "+8%",
+        trendValue: "+8%",
         trend: "up",
         variant: "success"
       },
@@ -1011,13 +1011,13 @@ const DEFAULT_RPO_LAYOUT: DashboardLayout = {
     {
       id: 'rpo-stat-1',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Active Projects',
       gridArea: { x: 0, y: 0, w: 3, h: 1 },
       props: {
         title: "Active Projects",
         value: "12",
-        change: "+5%",
+        trendValue: "+5%",
         trend: "up",
         variant: "primary"
       },
@@ -1026,13 +1026,13 @@ const DEFAULT_RPO_LAYOUT: DashboardLayout = {
     {
       id: 'rpo-stat-2',
       type: 'stat',
-      component: 'EnhancedStatCard',
+      component: 'DashboardStatCard',
       title: 'Total Candidates',
       gridArea: { x: 3, y: 0, w: 3, h: 1 },
       props: {
         title: "Total Candidates",
         value: "486",
-        change: "+12%",
+        trendValue: "+12%",
         trend: "up",
         variant: "success"
       },

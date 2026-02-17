@@ -7,9 +7,10 @@ import { useState, useEffect } from 'react';
 import { useConsultantAuth } from '@/contexts/ConsultantAuthContext';
 import { consultantService } from '@/shared/lib/consultant/consultantService';
 import { consultantWithdrawalService } from '@/shared/lib/consultant/consultantWithdrawalService';
-import { Commission } from '@/shared/lib/hrm8/commissionService';
+import { Commission } from '@/shared/services/hrm8/commissionService';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { EnhancedStatCard } from '@/shared/components/dashboard/EnhancedStatCard';
+import { DashboardStatCard } from '@/shared/components/dashboard/DashboardStatCard';
+import { formatCurrency } from '@/shared/lib/utils';
 import { DataTable } from '@/shared/components/tables/DataTable';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
@@ -397,48 +398,40 @@ export default function ConsultantCommissionsPage() {
         {loading ? (
           <>
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="rounded-lg border bg-card p-4">
+              <Card key={i} className="p-4">
                 <Skeleton className="h-4 w-28" />
                 <Skeleton className="mt-3 h-8 w-32" />
                 <Skeleton className="mt-2 h-3 w-24" />
-              </div>
+              </Card>
             ))}
           </>
         ) : (
           <>
-            <EnhancedStatCard
+            <DashboardStatCard
               title="Available Balance"
-              value=""
-              change="Ready to withdraw"
-              isCurrency={true}
-              rawValue={balance?.availableBalance || 0}
+              value={formatCurrency(balance?.availableBalance || 0)}
+              description="Ready to withdraw"
               icon={<Wallet className="h-5 w-5" />}
               variant="success"
             />
-            <EnhancedStatCard
+            <DashboardStatCard
               title="Pending Commissions"
-              value=""
-              change="Being processed"
-              isCurrency={true}
-              rawValue={balance?.pendingBalance || totalPending}
+              value={formatCurrency(balance?.pendingBalance || totalPending)}
+              description="Being processed"
               icon={<Clock className="h-5 w-5" />}
               variant="neutral"
             />
-            <EnhancedStatCard
+            <DashboardStatCard
               title="Total Paid"
-              value=""
-              change="All time"
-              isCurrency={true}
-              rawValue={totalPaid}
+              value={formatCurrency(totalPaid)}
+              description="All time"
               icon={<CheckCircle className="h-5 w-5" />}
               variant="neutral"
             />
-            <EnhancedStatCard
+            <DashboardStatCard
               title="Total Withdrawn"
-              value=""
-              change="All time"
-              isCurrency={true}
-              rawValue={balance?.totalWithdrawn || 0}
+              value={formatCurrency(balance?.totalWithdrawn || 0)}
+              description="All time"
               icon={<Download className="h-5 w-5" />}
               variant="neutral"
             />

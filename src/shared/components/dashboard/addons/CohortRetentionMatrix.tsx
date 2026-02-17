@@ -1,4 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/components/ui/table";
 import { getCohortRetentionData } from '@/shared/lib/addons/cohortAnalytics';
 import { Badge } from "@/shared/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/components/ui/tooltip";
@@ -28,32 +29,32 @@ export function CohortRetentionMatrix() {
       <CardContent>
         <div className="overflow-x-auto">
           <TooltipProvider>
-            <table className="w-full border-collapse text-sm">
-              <thead>
-                <tr>
-                  <th className="text-left p-2 font-semibold border-b border-border">Cohort</th>
-                  <th className="text-right p-2 font-semibold border-b border-border">Size</th>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[100px]">Cohort</TableHead>
+                  <TableHead className="text-right">Size</TableHead>
                   {monthHeaders.map(month => (
-                    <th key={month} className="text-center p-2 font-semibold border-b border-border">
+                    <TableHead key={month} className="text-center">
                       {month}
-                    </th>
+                    </TableHead>
                   ))}
-                  <th className="text-right p-2 font-semibold border-b border-border">LTV</th>
-                </tr>
-              </thead>
-              <tbody>
-                {cohorts.map((cohort, index) => (
-                  <tr key={cohort.cohortMonth} className={index % 2 === 0 ? 'bg-muted/30' : ''}>
-                    <td className="p-2 font-medium">{cohort.cohortMonth}</td>
-                    <td className="p-2 text-right text-muted-foreground">{cohort.cohortSize}</td>
+                  <TableHead className="text-right">LTV</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {cohorts.map((cohort) => (
+                  <TableRow key={cohort.cohortMonth}>
+                    <TableCell className="font-medium">{cohort.cohortMonth}</TableCell>
+                    <TableCell className="text-right text-muted-foreground">{cohort.cohortSize}</TableCell>
                     {monthHeaders.map(month => {
                       const retention = cohort.retention[month];
                       if (retention === undefined) {
-                        return <td key={month} className="p-1"></td>;
+                        return <TableCell key={month}></TableCell>;
                       }
                       
                       return (
-                        <td key={month} className="p-1">
+                        <TableCell key={month} className="p-1 text-center">
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <div className="flex justify-center">
@@ -71,18 +72,18 @@ export function CohortRetentionMatrix() {
                               <p>{Math.round(cohort.cohortSize * (retention / 100))} customers</p>
                             </TooltipContent>
                           </Tooltip>
-                        </td>
+                        </TableCell>
                       );
                     })}
-                    <td className="p-2 text-right font-semibold">
+                    <TableCell className="text-right font-semibold">
                       <Badge variant="secondary" className="font-mono">
                         ${cohort.ltv.toLocaleString()}
                       </Badge>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </TooltipProvider>
         </div>
         

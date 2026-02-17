@@ -329,14 +329,14 @@ export default function OpportunitiesPage() {
         </Button>
       </div>
 
-      <div className="bg-card rounded-lg border shadow-sm p-1">
+      <Card className="p-1">
         <DataTable
           columns={columns}
           data={leads}
           searchable={true}
           searchKeys={["company_name"]}
         />
-      </div>
+      </Card>
 
       {/* Create Lead Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>

@@ -9,7 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/sha
 import { Button } from "@/shared/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
 import { Badge } from "@/shared/components/ui/badge";
-import { EnhancedStatCard } from "@/shared/components/dashboard/EnhancedStatCard";
+import { DashboardStatCard } from "@/shared/components/dashboard/DashboardStatCard";
+import { formatCurrency } from "@/shared/lib/utils";
 import {
     Dialog,
     DialogContent,
@@ -469,44 +470,36 @@ export default function Consultant360EarningsPage() {
 
             {/* Balance Cards */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <EnhancedStatCard
+                <DashboardStatCard
                     title="Available Balance"
-                    value={combined?.availableBalance ?? 0}
-                    change="Available now"
+                    value={formatCurrency(combined?.availableBalance ?? 0)}
+                    description="Available now"
                     icon={<Wallet className="h-5 w-5" />}
                     variant="success"
-                    isCurrency
-                    rawValue={combined?.availableBalance ?? 0}
                 />
 
-                <EnhancedStatCard
+                <DashboardStatCard
                     title="Pending"
-                    value={combined?.pendingBalance ?? 0}
-                    change="Awaiting approval"
+                    value={formatCurrency(combined?.pendingBalance ?? 0)}
+                    description="Awaiting approval"
                     icon={<Clock className="h-5 w-5" />}
                     variant="warning"
-                    isCurrency
-                    rawValue={combined?.pendingBalance ?? 0}
                 />
 
-                <EnhancedStatCard
+                <DashboardStatCard
                     title="Total Earned"
-                    value={combined?.totalEarned ?? 0}
-                    change="All time"
+                    value={formatCurrency(combined?.totalEarned ?? 0)}
+                    description="All time"
                     icon={<DollarSign className="h-5 w-5" />}
                     variant="primary"
-                    isCurrency
-                    rawValue={combined?.totalEarned ?? 0}
                 />
 
-                <EnhancedStatCard
+                <DashboardStatCard
                     title="Total Withdrawn"
-                    value={combined?.totalWithdrawn ?? 0}
-                    change="All time"
+                    value={formatCurrency(combined?.totalWithdrawn ?? 0)}
+                    description="All time"
                     icon={<CheckCircle2 className="h-5 w-5" />}
                     variant="neutral"
-                    isCurrency
-                    rawValue={combined?.totalWithdrawn ?? 0}
                 />
             </div>
 

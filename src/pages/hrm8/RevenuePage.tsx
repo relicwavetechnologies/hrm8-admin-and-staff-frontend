@@ -4,7 +4,8 @@ import { revenueService, RegionalRevenue } from '@/shared/services/hrm8/revenueS
 import { useRegionStore } from '@/shared/stores/useRegionStore';
 import { DataTable } from '@/shared/components/tables/DataTable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { EnhancedStatCard } from '@/shared/components/dashboard/EnhancedStatCard';
+import { DashboardStatCard } from '@/shared/components/dashboard/DashboardStatCard';
+import { formatCurrency } from '@/shared/lib/utils';
 
 import { Badge } from '@/shared/components/ui/badge';
 import { toast } from 'sonner';
@@ -170,34 +171,28 @@ export default function RevenuePage() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <EnhancedStatCard
+          <DashboardStatCard
             title="Total Revenue"
-            value=""
-            isCurrency={true}
-            rawValue={totalRevenue}
+            value={formatCurrency(totalRevenue)}
             icon={<DollarSign className="h-6 w-6" />}
             variant="primary"
-            change="Overall"
+            description="Overall"
           />
 
-          <EnhancedStatCard
+          <DashboardStatCard
             title="HRM8 Share"
-            value=""
-            isCurrency={true}
-            rawValue={totalHRM8Share}
+            value={formatCurrency(totalHRM8Share)}
             icon={<TrendingUp className="h-6 w-6" />}
             variant="primary"
-            change="Total"
+            description="Total"
           />
 
-          <EnhancedStatCard
+          <DashboardStatCard
             title="Licensee Share"
-            value=""
-            isCurrency={true}
-            rawValue={totalLicenseeShare}
+            value={formatCurrency(totalLicenseeShare)}
             icon={<CheckCircle className="h-6 w-6" />}
             variant="success"
-            change="Total"
+            description="Total"
           />
         </div>
 

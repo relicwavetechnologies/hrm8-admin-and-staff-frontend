@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { commissionService, Commission } from '@/shared/lib/hrm8/commissionService';
+import { commissionService, Commission } from '@/shared/services/hrm8/commissionService';
 import { DataTable } from '@/shared/components/tables/DataTable';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { EnhancedStatCard } from '@/shared/components/dashboard/EnhancedStatCard';
+import { DashboardStatCard } from '@/shared/components/dashboard/DashboardStatCard';
+import { formatCurrency } from '@/shared/lib/utils';
 import { Badge } from '@/shared/components/ui/badge';
 import { toast } from 'sonner';
 import { DollarSign, CheckCircle, Clock, XCircle, CreditCard, ThumbsUp, AlertTriangle, Scale } from 'lucide-react';
@@ -232,30 +233,26 @@ export default function CommissionsPage() {
     >
     <div className="p-6 space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <EnhancedStatCard
+        <DashboardStatCard
           title="Total Pending"
-          value=""
-          change="All time"
-          isCurrency={true}
-          rawValue={totalPending}
+          value={formatCurrency(totalPending)}
+          description="All time"
           icon={<Clock className="h-6 w-6" />}
           variant="warning"
         />
 
-        <EnhancedStatCard
+        <DashboardStatCard
           title="Total Paid"
-          value=""
-          change="All time"
-          isCurrency={true}
-          rawValue={totalPaid}
+          value={formatCurrency(totalPaid)}
+          description="All time"
           icon={<CheckCircle className="h-6 w-6" />}
           variant="success"
         />
 
-        <EnhancedStatCard
+        <DashboardStatCard
           title="Total Commissions"
           value={commissions.length.toString()}
-          change="Current filter"
+          description="Current filter"
           icon={<DollarSign className="h-6 w-6" />}
           variant="neutral"
         />

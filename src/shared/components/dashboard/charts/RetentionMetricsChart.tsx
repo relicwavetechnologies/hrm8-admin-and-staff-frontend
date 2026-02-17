@@ -36,29 +36,29 @@ export function RetentionMetricsChart({
         <div className="grid md:grid-cols-2 gap-6">
           {/* Key Metrics */}
           <div className="space-y-4">
-            <div className="rounded-lg border bg-card p-4 transition-[background,border-color,box-shadow,color] duration-500">
+            <Card className="p-4 transition-[background,border-color,box-shadow,color] duration-500">
               <p className="text-sm text-muted-foreground">Total Clients</p>
               <p className="text-2xl font-bold">{data.totalClients}</p>
-            </div>
+            </Card>
 
-            <div className="rounded-lg border bg-card p-4 transition-[background,border-color,box-shadow,color] duration-500">
+            <Card className="p-4 transition-[background,border-color,box-shadow,color] duration-500">
               <p className="text-sm text-muted-foreground">Active Clients</p>
               <p className="text-2xl font-bold text-success">{data.activeClients}</p>
               <p className="text-xs text-muted-foreground mt-1">
                 {data.retentionRate.toFixed(1)}% retention rate
               </p>
-            </div>
+            </Card>
 
-            <div className="rounded-lg border bg-card p-4 transition-[background,border-color,box-shadow,color] duration-500">
+            <Card className="p-4 transition-[background,border-color,box-shadow,color] duration-500">
               <p className="text-sm text-muted-foreground">Churned Clients</p>
               <p className="text-2xl font-bold text-destructive">{data.churnedClients}</p>
-            </div>
+            </Card>
 
-            <div className="rounded-lg border bg-card p-4 transition-[background,border-color,box-shadow,color] duration-500">
+            <Card className="p-4 transition-[background,border-color,box-shadow,color] duration-500">
               <p className="text-sm text-muted-foreground">Avg. Client Lifespan</p>
               <p className="text-2xl font-bold">{data.averageClientLifespan.toFixed(1)}</p>
               <p className="text-xs text-muted-foreground mt-1">months</p>
-            </div>
+            </Card>
           </div>
 
           {/* Tenure Distribution */}

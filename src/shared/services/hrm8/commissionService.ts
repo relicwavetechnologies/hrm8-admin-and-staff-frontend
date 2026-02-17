@@ -15,7 +15,7 @@ export interface Commission {
   currency: string;
   type: 'PLACEMENT' | 'SUBSCRIPTION_SALE' | 'RECRUITMENT_SERVICE' | 'CUSTOM';
   rate?: number;
-  status: 'PENDING' | 'CONFIRMED' | 'PAID' | 'CANCELLED';
+  status: 'PENDING' | 'CONFIRMED' | 'PAID' | 'CANCELLED' | 'DISPUTED';
   confirmed_at?: string;
   paid_at?: string;
   payment_reference?: string;

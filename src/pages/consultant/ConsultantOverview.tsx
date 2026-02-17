@@ -6,7 +6,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useConsultantAuth } from '@/contexts/ConsultantAuthContext';
 import { consultantService } from '@/shared/lib/consultant/consultantService';
-import { EnhancedStatCard } from '@/shared/components/dashboard/EnhancedStatCard';
+import { DashboardStatCard } from '@/shared/components/dashboard/DashboardStatCard';
 import { ConsultantPageLayout } from '@/shared/components/layouts/ConsultantPageLayout';
 import { AtsPageHeader } from '@/shared/components/layouts/AtsPageHeader';
 import { ConsultantDashboardSkeleton } from '@/shared/components/skeletons/ConsultantDashboardSkeleton';
@@ -91,36 +91,36 @@ export default function ConsultantOverview() {
 
         {/* Top Stats Row */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <EnhancedStatCard
+          <DashboardStatCard
             title="Active Jobs"
             value={activeJobsCount.toString()}
             icon={<Briefcase className="h-5 w-5" />}
             variant="neutral"
-            change="0%"
+            description="0%"
           />
 
-          <EnhancedStatCard
+          <DashboardStatCard
             title="Total Placements (YY)"
             value={totalPlacements.toString()}
             icon={<Users className="h-5 w-5" />}
             variant="neutral"
-            change="0%"
+            description="0%"
           />
 
-          <EnhancedStatCard
+          <DashboardStatCard
             title="Monthly Revenue"
             value={`$${currentMonthRevenue.toLocaleString()}`}
             icon={<DollarSign className="h-5 w-5" />}
             variant={revenueProgress >= 100 ? "success" : "neutral"}
-            change={`${revenueProgress.toFixed(0)}%`}
+            description={`${revenueProgress.toFixed(0)}%`}
           />
 
-          <EnhancedStatCard
+          <DashboardStatCard
             title="Success Rate"
-            value="--" // Calculation required based on applications vs hires
+            value="--" 
+            description="Calculation required"
             icon={<TrendingUp className="h-5 w-5" />}
             variant="neutral"
-            change="0%"
           />
         </div>
 

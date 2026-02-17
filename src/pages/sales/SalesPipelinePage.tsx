@@ -2,13 +2,13 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/shared/components/ui/button";
 import { Card } from "@/shared/components/ui/card";
-import { Plus, Target, DollarSign, TrendingUp, Award, LayoutGrid, List, Download, BarChart3, Loader2, Briefcase, Users } from "lucide-react";
+import { Plus, DollarSign, PieChart, BarChart3, TrendingUp, Target, Briefcase, LayoutGrid, List, Download, Loader2, Users } from "lucide-react";
 import { DataTable } from "@/shared/components/tables/DataTable";
 import { salesService, PipelineStats } from "@/shared/services/salesService";
 import { regionalSalesService, RegionalOpportunity } from "@/shared/lib/hrm8/regionalSalesService";
 import { consultant360Service } from "@/shared/lib/consultant360/consultant360Service";
 import type { SalesOpportunity, OpportunityStage, OpportunityType } from "@/shared/types/salesOpportunity";
-import { EnhancedStatCard } from "@/shared/components/dashboard/EnhancedStatCard";
+import { DashboardStatCard } from "@/shared/components/dashboard/DashboardStatCard";
 import { createOpportunityColumns } from "@/modules/sales/components/SalesOpportunityTableColumns";
 import { OpportunitiesFilterBar } from "@/modules/sales/components/OpportunitiesFilterBar";
 import { OpportunityBulkActions } from "@/modules/sales/components/OpportunityBulkActions";
@@ -361,84 +361,76 @@ export default function SalesPipelinePage() {
 
       {/* Unified Stats for Consultant360 */}
       {isConsultant360 && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-          <EnhancedStatCard
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <DashboardStatCard
             title="Total Pipeline Value"
             value={formatCurrency(totalPipelineValue)}
-            change="Combined recruiting + sales"
+            description="Combined recruiting + sales"
             icon={<DollarSign className="h-6 w-6" />}
             variant="success"
-            showMenu={false}
           />
-          <EnhancedStatCard
+          <DashboardStatCard
             title="Recruiting Pipeline"
             value={formatCurrency(recruitingPipelineValue)}
-            change={`${recruitingStats?.totalPlacements || 0} placements`}
+            description={`${recruitingStats?.totalPlacements || 0} placements`}
             icon={<Briefcase className="h-6 w-6" />}
             variant="primary"
-            showMenu={false}
           />
-          <EnhancedStatCard
+          <DashboardStatCard
             title="Sales Pipeline"
             value={formatCurrency(salesPipelineValue)}
-            change={`${stats?.dealCount || 0} opportunities`}
+            description={`${stats?.dealCount || 0} opportunities`}
             icon={<Target className="h-6 w-6" />}
             variant="warning"
-            showMenu={false}
           />
-          <EnhancedStatCard
+          <DashboardStatCard
             title="Active Jobs"
             value={(recruitingStats?.activeJobs || 0).toString()}
-            change="Assigned to you"
+            description="Assigned to you"
             icon={<Users className="h-6 w-6" />}
             variant="neutral"
-            showMenu={false}
           />
-          <EnhancedStatCard
+          <DashboardStatCard
             title="Pending Earnings"
             value={formatCurrency(recruitingStats?.pendingBalance || 0)}
-            change="Awaiting confirmation"
+            description="Awaiting confirmation"
             icon={<TrendingUp className="h-6 w-6" />}
             variant="neutral"
-            showMenu={false}
           />
         </div>
       )}
 
       {/* Original Sales-only Stats (when NOT in Consultant360) */}
+      {/* Original Sales-only Stats (when NOT in Consultant360) */}
       {!isConsultant360 && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <EnhancedStatCard
-            title="Total Opportunities"
-            value={(stats?.dealCount || 0).toString()}
-            change="Active in pipeline"
-            icon={<Target className="h-6 w-6" />}
-            variant="neutral"
-            showMenu={false}
-          />
-          <EnhancedStatCard
-            title="Pipeline Value"
+          <DashboardStatCard
+            title="Total Pipeline Value"
             value={formatCurrency(stats?.totalPipelineValue || 0)}
-            change="Total value"
+            description="Total value"
             icon={<DollarSign className="h-6 w-6" />}
-            variant="primary"
-            showMenu={false}
+            variant="success"
           />
-          <EnhancedStatCard
+          <DashboardStatCard
             title="Weighted Value"
             value={formatCurrency(stats?.weightedPipelineValue || 0)}
-            change="Risk adjusted"
-            icon={<Award className="h-6 w-6" />}
-            variant="success"
-            showMenu={false}
+            description="Risk adjusted"
+            icon={<PieChart className="h-6 w-6" />}
+            variant="primary"
           />
-          <EnhancedStatCard
+          <DashboardStatCard
+            title="Total Opportunities"
+            value={(stats?.dealCount || 0).toString()}
+            description="Active in pipeline"
+            icon={<Target className="h-6 w-6" />}
+            variant="neutral"
+          />
+          <DashboardStatCard
             title="Avg Deal Size"
             value={formatCurrency((stats?.totalPipelineValue || 0) / (stats?.dealCount || 1))}
-            change="Per opportunity"
+            description="Per opportunity"
             icon={<TrendingUp className="h-6 w-6" />}
             variant="warning"
-            showMenu={false}
           />
         </div>
       )}

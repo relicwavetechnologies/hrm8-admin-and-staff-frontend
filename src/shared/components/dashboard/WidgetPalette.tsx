@@ -5,6 +5,7 @@ import type { DashboardType } from '@/shared/lib/dashboard/dashboardTypes';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Plus } from 'lucide-react';
+import { Card } from "@/shared/components/ui/card";
 
 interface WidgetPaletteProps {
   open: boolean;
@@ -46,9 +47,9 @@ export function WidgetPalette({ open, onOpenChange, onAddWidget, dashboardType }
                     const Icon = widget.icon;
                     
                     return (
-                      <div
+                      <Card
                         key={widget.id}
-                        className="border rounded-lg p-4 hover:border-primary transition-colors cursor-pointer group bg-card"
+                        className="p-4 hover:border-primary transition-colors cursor-pointer group"
                       >
                         <div className="flex items-start justify-between mb-2">
                           <div className="p-2 bg-primary/10 rounded-lg text-primary">
@@ -70,7 +71,7 @@ export function WidgetPalette({ open, onOpenChange, onAddWidget, dashboardType }
                           <Plus className="h-3 w-3 mr-1" />
                           Add
                         </Button>
-                      </div>
+                      </Card>
                     );
                   })}
                 </div>

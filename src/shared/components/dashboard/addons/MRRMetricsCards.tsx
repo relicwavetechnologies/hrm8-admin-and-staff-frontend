@@ -1,4 +1,4 @@
-import { EnhancedStatCard } from '@/shared/components/dashboard/EnhancedStatCard';
+import { DashboardStatCard } from '@/shared/components/dashboard/DashboardStatCard';
 import { getMRRMetrics } from '@/shared/lib/addons/revenueAnalytics';
 import { useCurrencyFormat } from '@/contexts/CurrencyFormatContext';
 import { DollarSign, TrendingUp, Target, Zap } from 'lucide-react';
@@ -16,38 +16,38 @@ export function MRRMetricsCards() {
 
   return (
     <>
-      <EnhancedStatCard
+      <DashboardStatCard
         title="Monthly Recurring Revenue"
-        icon={<DollarSign />}
+        icon={<DollarSign className="h-4 w-4" />}
         value={formatCurrency(metrics.mrr)}
-        change={`${formatCurrency(Math.abs(metrics.mrrGrowth))} MoM`}
+        trendValue={`${formatCurrency(Math.abs(metrics.mrrGrowth))} MoM`}
         trend={metrics.mrrGrowthRate >= 0 ? 'up' : 'down'}
         variant="success"
       />
       
-      <EnhancedStatCard
+      <DashboardStatCard
         title="Annual Recurring Revenue"
-        icon={<TrendingUp />}
+        icon={<TrendingUp className="h-4 w-4" />}
         value={formatCurrency(metrics.arr)}
-        change={`${metrics.mrrGrowthRate >= 0 ? '+' : ''}${(metrics.mrrGrowthRate * 12).toFixed(1)}%`}
+        trendValue={`${metrics.mrrGrowthRate >= 0 ? '+' : ''}${(metrics.mrrGrowthRate * 12).toFixed(1)}%`}
         trend={metrics.mrrGrowthRate >= 0 ? 'up' : 'down'}
         variant="primary"
       />
       
-      <EnhancedStatCard
+      <DashboardStatCard
         title="Avg Revenue per Service"
-        icon={<Target />}
+        icon={<Target className="h-4 w-4" />}
         value={formatCurrency(metrics.avgRevenuePerService)}
-        change="+5.2%"
+        trendValue="+5.2%"
         trend="up"
         variant="warning"
       />
       
-      <EnhancedStatCard
+      <DashboardStatCard
         title={`Top Service: ${topService.name}`}
-        icon={<Zap />}
+        icon={<Zap className="h-4 w-4" />}
         value={formatCurrency(topService.revenue)}
-        change={`${((topService.revenue / metrics.mrr) * 100).toFixed(1)}% of MRR`}
+        trendValue={`${((topService.revenue / metrics.mrr) * 100).toFixed(1)}% of MRR`}
         trend="up"
         variant="neutral"
       />

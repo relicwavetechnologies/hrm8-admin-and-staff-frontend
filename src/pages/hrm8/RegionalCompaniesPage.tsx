@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { EnhancedStatCard } from '@/shared/components/dashboard/EnhancedStatCard';
+import { DashboardStatCard } from '@/shared/components/dashboard/DashboardStatCard';
 import { DataTable, Column } from '@/shared/components/tables/DataTable';
 import { Building2, CheckCircle2, DollarSign } from "lucide-react";
 import { RegionalAnalyticsService } from '@/shared/lib/hrm8/regionalAnalyticsService';
@@ -178,34 +178,31 @@ export default function RegionalCompaniesPage() {
                 ) : (
                     <>
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                            <EnhancedStatCard
+                            <DashboardStatCard
                                 title="Total Companies"
                                 value={totalCompanies.toString()}
-                                change={`${lockedAttributions} locked`}
+                                description={`${lockedAttributions} locked`}
                                 trend="up"
                                 icon={<Building2 className="h-5 w-5" />}
                                 variant="neutral"
-                                showMenu={false}
                             />
 
-                            <EnhancedStatCard
+                            <DashboardStatCard
                                 title="Active Subscriptions"
                                 value={activeSubscriptions.toString()}
-                                change={`${totalCompanies - activeSubscriptions} inactive`}
+                                description={`${totalCompanies - activeSubscriptions} inactive`}
                                 trend={activeSubscriptions > 0 ? "up" : undefined}
                                 icon={<CheckCircle2 className="h-5 w-5" />}
                                 variant="success"
-                                showMenu={false}
                             />
 
-                            <EnhancedStatCard
+                            <DashboardStatCard
                                 title="Attributed"
                                 value={lockedAttributions.toString()}
-                                change="Locked attributions"
+                                description="Locked attributions"
                                 trend="up"
                                 icon={<DollarSign className="h-5 w-5" />}
                                 variant="primary"
-                                showMenu={false}
                             />
                         </div>
 

@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { EnhancedStatCard } from "@/shared/components/dashboard/EnhancedStatCard";
+import { DashboardStatCard } from "@/shared/components/dashboard/DashboardStatCard";
 import {
     DollarSign,
     Briefcase,
@@ -96,42 +96,41 @@ export default function Consultant360Dashboard() {
 
             {/* Main Stats */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <EnhancedStatCard
+                <DashboardStatCard
                     title="Total Earnings"
                     value={stats?.totalEarnings?.toLocaleString() || "0"}
-                    rawValue={stats?.totalEarnings || 0}
-                    isCurrency={true}
-                    change={`$${stats?.availableBalance?.toLocaleString() || 0} available`}
+                    icon={DollarSign}
+                    description={`$${stats?.availableBalance?.toLocaleString() || 0} available`}
                     trend="up"
-                    icon={<DollarSign className="h-5 w-5" />}
-                    variant="success"
+                    loading={loading}
+                    onClick={() => {}} // No direct link for now, maybe earnings page
                 />
-                <EnhancedStatCard
+                <DashboardStatCard
                     title="Active Jobs"
                     value={stats?.activeJobs?.toString() || "0"}
-                    rawValue={stats?.activeJobs || 0}
-                    change={`${stats?.totalPlacements || 0} placements`}
+                    icon={Briefcase}
+                    description={`${stats?.totalPlacements || 0} placements`}
                     trend="up"
-                    icon={<Briefcase className="h-5 w-5" />}
-                    variant="neutral"
+                    loading={loading}
+                    onClick={() => {}} 
                 />
-                <EnhancedStatCard
+                <DashboardStatCard
                     title="Active Leads"
                     value={stats?.activeLeads?.toString() || "0"}
-                    rawValue={stats?.activeLeads || 0}
-                    change={`${stats?.conversionRate || 0}% conversion rate`}
+                    icon={Target}
+                    description={`${stats?.conversionRate || 0}% conversion rate`}
                     trend="up"
-                    icon={<Target className="h-5 w-5" />}
-                    variant="primary"
+                    loading={loading}
+                    onClick={() => {}}
                 />
-                <EnhancedStatCard
+                <DashboardStatCard
                     title="Total Sales"
                     value={stats?.totalSubscriptionSales?.toString() || "0"}
-                    rawValue={stats?.totalSubscriptionSales || 0}
-                    change={`$${stats?.salesEarnings?.toLocaleString() || 0} earned`}
+                    icon={TrendingUp}
+                    description={`$${stats?.salesEarnings?.toLocaleString() || 0} earned`}
                     trend="up"
-                    icon={<TrendingUp className="h-5 w-5" />}
-                    variant="warning"
+                    loading={loading}
+                    onClick={() => {}}
                 />
             </div>
 

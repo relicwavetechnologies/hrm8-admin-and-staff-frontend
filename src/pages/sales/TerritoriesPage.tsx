@@ -4,7 +4,8 @@ import { DataTable } from "@/shared/components/tables/DataTable";
 import { Plus, MapPin, Users, Building2, DollarSign, Eye, Download } from "lucide-react";
 import { getAllTerritories, getTerritoryStats } from "@/shared/lib/salesTerritoryStorage";
 import type { SalesTerritory } from "@/shared/types/salesTerritory";
-import { EnhancedStatCard } from "@/shared/components/dashboard/EnhancedStatCard";
+import { DashboardStatCard } from "@/shared/components/dashboard/DashboardStatCard";
+import { formatCurrency } from "@/shared/lib/utils";
 import { createTerritoryColumns } from "@/modules/sales/components/SalesTerritoryTableColumns";
 import { TerritoriesFilterBar } from "@/modules/sales/components/TerritoriesFilterBar";
 import { TerritoryBulkActions } from "@/modules/sales/components/TerritoryBulkActions";
@@ -67,13 +68,12 @@ export default function TerritoriesPage() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <EnhancedStatCard
+          <DashboardStatCard
             title="Total Territories"
             value={stats.total.toString()}
-            change={`${stats.active} active`}
+            description={`${stats.active} active`}
             icon={<MapPin className="h-6 w-6" />}
             variant="neutral"
-            showMenu={true}
             menuItems={[
               {
                 label: "View All Territories",
@@ -92,13 +92,12 @@ export default function TerritoriesPage() {
               }
             ]}
           />
-          <EnhancedStatCard
+          <DashboardStatCard
             title="Active Employers"
             value={stats.activeEmployers.toString()}
-            change="Across territories"
+            description="Across territories"
             icon={<Building2 className="h-6 w-6" />}
             variant="success"
-            showMenu={true}
             menuItems={[
               {
                 label: "View Employers",
@@ -107,13 +106,12 @@ export default function TerritoriesPage() {
               }
             ]}
           />
-          <EnhancedStatCard
+          <DashboardStatCard
             title="Total Employers"
             value={stats.totalEmployers.toString()}
-            change="All employers"
+            description="All employers"
             icon={<Users className="h-6 w-6" />}
             variant="primary"
-            showMenu={true}
             menuItems={[
               {
                 label: "View All",
@@ -122,15 +120,12 @@ export default function TerritoriesPage() {
               }
             ]}
           />
-          <EnhancedStatCard
+          <DashboardStatCard
             title="Total Revenue"
-            value={stats.totalRevenue.toString()}
-            change="All territories"
+            value={formatCurrency(stats.totalRevenue)}
+            description="All territories"
             icon={<DollarSign className="h-6 w-6" />}
             variant="warning"
-            isCurrency={true}
-            rawValue={stats.totalRevenue}
-            showMenu={true}
             menuItems={[
               {
                 label: "View Report",

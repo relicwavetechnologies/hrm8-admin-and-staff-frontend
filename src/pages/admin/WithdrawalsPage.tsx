@@ -10,6 +10,7 @@ import { CheckCircle, XCircle, DollarSign, Eye, Loader2 } from "lucide-react";
 import { ProcessPaymentDialog } from "@/modules/admin/components/ProcessPaymentDialog";
 import { RejectWithdrawalDialog } from "@/modules/admin/components/RejectWithdrawalDialog";
 import { WithdrawalDetailsDialog } from "@/modules/admin/components/WithdrawalDetailsDialog";
+import { Card } from "@/shared/components/ui/card";
 
 export default function WithdrawalsPage() {
     const { toast } = useToast();
@@ -207,14 +208,14 @@ export default function WithdrawalsPage() {
                 <p className="text-muted-foreground">Manage sales agent commission withdrawal requests</p>
             </div>
 
-            <div className="bg-card rounded-lg border shadow-sm p-1">
+            <Card className="p-1">
                 <DataTable
                     columns={columns}
                     data={withdrawals}
                     searchable={true}
                     searchKeys={['consultantName', 'consultantEmail']}
                 />
-            </div>
+            </Card>
 
             {/* Dialogs */}
             {selectedWithdrawal && (

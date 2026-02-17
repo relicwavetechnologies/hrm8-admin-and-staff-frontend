@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { EnhancedStatCard } from "@/shared/components/dashboard/EnhancedStatCard";
+import { DashboardStatCard } from "@/shared/components/dashboard/DashboardStatCard";
+import { formatCurrency } from "@/shared/lib/utils";
 import { Button } from "@/shared/components/ui/button";
 import { Card } from "@/shared/components/ui/card";
 import { TrendingUp, AlertCircle, Target, Download, Eye, BarChart3 } from "lucide-react";
@@ -155,15 +156,12 @@ export default function SalesForecastPage() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-4">
-            <EnhancedStatCard
+            <DashboardStatCard
               title="Total Pipeline"
-              value={forecastStats.totalPipeline.toString()}
-              change={`${forecastStats.opportunityCount} active opportunities`}
+              value={formatCurrency(forecastStats.totalPipeline)}
+              description={`${forecastStats.opportunityCount} active opportunities`}
               icon={<TrendingUp className="h-6 w-6" />}
               variant="neutral"
-              isCurrency={true}
-              rawValue={forecastStats.totalPipeline}
-              showMenu={true}
               menuItems={[
                 {
                   label: "View Pipeline",
@@ -177,16 +175,13 @@ export default function SalesForecastPage() {
                 }
               ]}
             />
-            <EnhancedStatCard
+            <DashboardStatCard
               title="Weighted Forecast"
-              value={forecastStats.weightedForecast.toString()}
-              change="Most likely scenario"
+              value={formatCurrency(forecastStats.weightedForecast)}
+              description="Most likely scenario"
               trend="up"
               icon={<Target className="h-6 w-6" />}
               variant="primary"
-              isCurrency={true}
-              rawValue={forecastStats.weightedForecast}
-              showMenu={true}
               menuItems={[
                 {
                   label: "View Forecast",
@@ -200,16 +195,13 @@ export default function SalesForecastPage() {
                 }
               ]}
             />
-            <EnhancedStatCard
+            <DashboardStatCard
               title="Best Case"
-              value={forecastStats.bestCase.toString()}
-              change="Optimistic scenario"
+              value={formatCurrency(forecastStats.bestCase)}
+              description="Optimistic scenario"
               trend="up"
               icon={<TrendingUp className="h-6 w-6" />}
               variant="success"
-              isCurrency={true}
-              rawValue={forecastStats.bestCase}
-              showMenu={true}
               menuItems={[
                 {
                   label: "View Analysis",
@@ -218,15 +210,12 @@ export default function SalesForecastPage() {
                 }
               ]}
             />
-            <EnhancedStatCard
+            <DashboardStatCard
               title="Quota Gap"
-              value={quotaGap.toString()}
-              change="Remaining to reach quota"
+              value={formatCurrency(quotaGap)}
+              description="Remaining to reach quota"
               icon={<AlertCircle className="h-6 w-6" />}
               variant="warning"
-              isCurrency={true}
-              rawValue={quotaGap}
-              showMenu={true}
               menuItems={[
                 {
                   label: "View Details",

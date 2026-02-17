@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/shared/components/ui/dialog";
 import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
+import { Card } from "@/shared/components/ui/card";
 
 export default function RefundRequestsPage() {
     const { toast } = useToast();
@@ -263,14 +264,14 @@ export default function RefundRequestsPage() {
                 </div>
             </div>
 
-            <div className="bg-card rounded-lg border shadow-sm p-1">
+            <Card className="p-1">
                 <DataTable
                     columns={columns}
                     data={refundRequests}
                     searchable={true}
                     searchKeys={['company_id', 'reason']}
                 />
-            </div>
+            </Card>
 
              <Dialog open={!!selectedRequest} onOpenChange={(open) => !open && closeDialog()}>
                 <DialogContent className="sm:max-w-[500px]">

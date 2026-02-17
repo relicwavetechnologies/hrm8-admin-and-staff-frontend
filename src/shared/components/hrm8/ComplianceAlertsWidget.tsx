@@ -8,9 +8,18 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
-import { AlertTriangle, AlertCircle, Clock, DollarSign, TrendingDown, FileWarning, RefreshCw } from 'lucide-react';
+import { AlertTriangle, AlertCircle, Clock, DollarSign, TrendingDown, FileWarning, RefreshCw, MoreHorizontal } from 'lucide-react';
 import { complianceService, ComplianceAlert, AlertSummary } from '@/shared/services/hrm8/complianceService';
 import { Skeleton } from '@/shared/components/ui/skeleton';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/shared/components/ui/dropdown-menu';
 
 const severityColors = {
     CRITICAL: 'bg-red-100 text-red-800 border-red-200',
@@ -25,6 +34,12 @@ const typeIcons = {
     REVENUE_DECLINE: TrendingDown,
     EXPIRED_AGREEMENT: FileWarning,
 };
+
+function formatDetectedAt(value: string) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'Unknown';
+    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+}
 
 export function ComplianceAlertsWidget() {
     const navigate = useNavigate();
@@ -126,38 +141,81 @@ export function ComplianceAlertsWidget() {
                     </div>
                 ) : (
                     <div className="space-y-3">
-                        {alerts.map((alert) => {
-                            const Icon = typeIcons[alert.type] || AlertTriangle;
-                            return (
-                                <div
-                                    key={alert.id}
-                                    className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-                                >
-                                    <div
-                                        className={`p-2 rounded-full ${alert.severity === 'CRITICAL'
-                                                ? 'bg-red-100 text-red-600'
-                                                : alert.severity === 'HIGH'
-                                                    ? 'bg-orange-100 text-orange-600'
-                                                    : 'bg-yellow-100 text-yellow-600'
-                                            }`}
-                                    >
-                                        <Icon className="h-4 w-4" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2">
-                                            <p className="text-sm font-medium truncate">{alert.title}</p>
-                                            <Badge variant="outline" className={severityColors[alert.severity]}>
-                                                {alert.severity}
-                                            </Badge>
-                                        </div>
-                                        <p className="text-xs text-muted-foreground truncate">{alert.description}</p>
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            {alert.entity_type}: {alert.entity_name}
-                                        </p>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                        <div className="rounded-md border">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Alert</TableHead>
+                                        <TableHead>Severity</TableHead>
+                                        <TableHead>Entity</TableHead>
+                                        <TableHead>Detected</TableHead>
+                                        <TableHead className="w-[52px] text-right">Actions</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {alerts.map((alert) => {
+                                        const Icon = typeIcons[alert.type] || AlertTriangle;
+                                        const entityPath =
+                                            alert.entity_type === 'REGION' ? '/hrm8/regions' : '/hrm8/licensees';
+
+                                        return (
+                                            <TableRow key={alert.id}>
+                                                <TableCell>
+                                                    <div className="flex items-start gap-3">
+                                                        <div
+                                                            className={`mt-0.5 p-2 rounded-full ${alert.severity === 'CRITICAL'
+                                                                ? 'bg-red-100 text-red-600'
+                                                                : alert.severity === 'HIGH'
+                                                                    ? 'bg-orange-100 text-orange-600'
+                                                                    : 'bg-yellow-100 text-yellow-600'
+                                                                }`}
+                                                        >
+                                                            <Icon className="h-4 w-4" />
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <p className="text-sm font-medium truncate">{alert.title}</p>
+                                                            <p className="text-xs text-muted-foreground truncate">{alert.description}</p>
+                                                        </div>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge variant="outline" className={severityColors[alert.severity]}>
+                                                        {alert.severity}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="text-sm">{alert.entity_name}</div>
+                                                    <div className="text-xs text-muted-foreground">{alert.entity_type}</div>
+                                                </TableCell>
+                                                <TableCell className="text-sm text-muted-foreground">
+                                                    {formatDetectedAt(alert.detected_at)}
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                                <span className="sr-only">Open alert actions</span>
+                                                                <MoreHorizontal className="h-4 w-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                            <DropdownMenuItem onClick={() => navigate('/hrm8/notifications?tab=alerts')}>
+                                                                Open alerts center
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={() => navigate(entityPath)}>
+                                                                Open {alert.entity_type.toLowerCase()}
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
+                                </TableBody>
+                            </Table>
+                        </div>
                         {summary && summary.total > 5 && (
                             <Button
                                 variant="ghost"

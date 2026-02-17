@@ -31,7 +31,7 @@ const adminMenuItems: MenuItem[] = [
     { id: "leads", path: "/hrm8/leads", label: "Leads", icon: Target },
     { id: "finance", path: "/hrm8/finance", label: "Revenue & Finance", icon: DollarSign },
     { id: "careers-requests", path: "/hrm8/careers-requests", label: "Careers Requests", icon: UserCheck, adminOnly: true },
-    { id: "system", path: "/hrm8/system-settings", label: "System Settings", icon: Settings, adminOnly: true },
+    { id: "system", path: "/hrm8/settings", label: "System Settings", icon: Settings, adminOnly: true },
 ];
 
 /**

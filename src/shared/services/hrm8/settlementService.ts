@@ -68,8 +68,9 @@ class SettlementService {
     licensee_id: string;
     period_start: string;
     period_end: string;
+    commit?: boolean;
   }) {
-    return apiClient.post<{ settlement: Settlement }>('/api/hrm8/finance/settlements/calculate', data);
+    return apiClient.post<{ settlement: Settlement; committed?: boolean }>('/api/hrm8/finance/settlements/calculate', data);
   }
 
   /**

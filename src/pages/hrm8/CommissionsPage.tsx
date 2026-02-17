@@ -6,15 +6,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui
 import { EnhancedStatCard } from '@/shared/components/dashboard/EnhancedStatCard';
 import { Badge } from '@/shared/components/ui/badge';
 import { toast } from 'sonner';
-import { DollarSign, CheckCircle, Clock, XCircle, CreditCard, ThumbsUp } from 'lucide-react';
+import { DollarSign, CheckCircle, Clock, XCircle, CreditCard, ThumbsUp, AlertTriangle, Scale } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
 import { Label } from '@/shared/components/ui/label';
 import { CommissionPaymentDialog } from '@/shared/components/hrm8/CommissionPaymentDialog';
+import { DisputeCommissionDialog } from '@/shared/components/hrm8/DisputeCommissionDialog';
+import { ResolveDisputeDialog } from '@/shared/components/hrm8/ResolveDisputeDialog';
 import { Hrm8PageLayout } from '@/shared/components/layouts/Hrm8PageLayout';
 import { TableSkeleton } from '@/shared/components/tables/TableSkeleton';
 
 const getColumns = (
   onApprove: (id: string) => void,
+  onDispute: (id: string) => void,
+  onResolve: (id: string) => void,
   approvingId: string | null
 ): { key: string; label: string; render?: (c: Commission) => React.ReactNode }[] => [
   {
@@ -47,6 +51,8 @@ const getColumns = (
         CONFIRMED: { icon: CheckCircle, color: 'text-blue-600', bg: 'bg-blue-50' },
         PAID: { icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50' },
         CANCELLED: { icon: XCircle, color: 'text-red-600', bg: 'bg-red-50' },
+        DISPUTED: { icon: AlertTriangle, color: 'text-orange-600', bg: 'bg-orange-50' },
+        CLAWBACK: { icon: Scale, color: 'text-purple-600', bg: 'bg-purple-50' },
       };
       const config = statusConfig[commission.status] || statusConfig.PENDING;
       const Icon = config.icon;
@@ -70,25 +76,56 @@ const getColumns = (
   {
     key: 'actions',
     label: 'Actions',
-    render: (commission: Commission) =>
-      commission.status === 'PENDING' ? (
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={(e) => {
-            e.stopPropagation();
-            onApprove(commission.id);
-          }}
-          disabled={!!approvingId}
-        >
-          {approvingId === commission.id ? 'Approving...' : (
-            <>
-              <ThumbsUp className="h-3 w-3 mr-1" />
-              Approve
-            </>
-          )}
-        </Button>
-      ) : null,
+    render: (commission: Commission) => (
+      <div className="flex gap-2">
+        {commission.status === 'PENDING' && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={(e) => {
+              e.stopPropagation();
+              onApprove(commission.id);
+            }}
+            disabled={!!approvingId}
+          >
+            {approvingId === commission.id ? 'Approving...' : (
+              <>
+                <ThumbsUp className="h-3 w-3 mr-1" />
+                Approve
+              </>
+            )}
+          </Button>
+        )}
+        {(commission.status === 'CONFIRMED' || commission.status === 'PAID') && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+              onClick={(e) => {
+                  e.stopPropagation();
+                  onDispute(commission.id);
+              }}
+            >
+              <AlertTriangle className="h-3 w-3 mr-1" />
+              Dispute
+            </Button>
+        )}
+        {commission.status === 'DISPUTED' && (
+            <Button
+              size="sm"
+              variant="default"
+              className="bg-purple-600 hover:bg-purple-700"
+              onClick={(e) => {
+                  e.stopPropagation();
+                  onResolve(commission.id);
+              }}
+            >
+              <Scale className="h-3 w-3 mr-1" />
+              Resolve
+            </Button>
+        )}
+      </div>
+    ),
   },
 ];
 
@@ -99,6 +136,10 @@ export default function CommissionsPage() {
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [selectedCommissions, setSelectedCommissions] = useState<Commission[]>([]);
   const [approvingId, setApprovingId] = useState<string | null>(null);
+  
+  // Dispute Dialogs
+  const [disputeId, setDisputeId] = useState<string | null>(null);
+  const [resolveId, setResolveId] = useState<string | null>(null);
 
   useEffect(() => {
     loadCommissions();
@@ -176,6 +217,8 @@ export default function CommissionsPage() {
               <SelectItem value="CONFIRMED">Confirmed</SelectItem>
               <SelectItem value="PAID">Paid</SelectItem>
               <SelectItem value="CANCELLED">Cancelled</SelectItem>
+              <SelectItem value="DISPUTED">Disputed</SelectItem>
+              <SelectItem value="CLAWBACK">Clawback</SelectItem>
             </SelectContent>
           </Select>
           {commissions.filter(c => c.status === 'PENDING' || c.status === 'CONFIRMED').length > 0 && (
@@ -228,7 +271,12 @@ export default function CommissionsPage() {
           ) : (
             <DataTable
               data={commissions}
-              columns={getColumns(handleApproveCommission, approvingId)}
+              columns={getColumns(
+                  handleApproveCommission, 
+                  (id) => setDisputeId(id), 
+                  (id) => setResolveId(id), 
+                  approvingId
+              )}
               searchable
               searchKeys={['consultant_id', 'type']}
               emptyMessage="No commissions found"
@@ -242,6 +290,20 @@ export default function CommissionsPage() {
         onOpenChange={setPaymentDialogOpen}
         commissions={selectedCommissions}
         onSuccess={handlePaymentSuccess}
+      />
+      
+      <DisputeCommissionDialog
+        open={!!disputeId}
+        onOpenChange={(open) => !open && setDisputeId(null)}
+        commissionId={disputeId}
+        onSuccess={loadCommissions}
+      />
+
+      <ResolveDisputeDialog
+        open={!!resolveId}
+        onOpenChange={(open) => !open && setResolveId(null)}
+        commissionId={resolveId}
+        onSuccess={loadCommissions}
       />
     </div>
     </Hrm8PageLayout>

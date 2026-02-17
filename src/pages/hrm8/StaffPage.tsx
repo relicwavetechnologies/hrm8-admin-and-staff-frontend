@@ -17,6 +17,7 @@ import { ReactivateStaffDialog } from '@/shared/components/hrm8/ReactivateStaffD
 import { ChangeRoleDialog } from '@/shared/components/hrm8/ChangeRoleDialog';
 import { DeleteStaffDialog } from '@/shared/components/hrm8/DeleteStaffDialog';
 import { useRegionStore } from '@/shared/stores/useRegionStore';
+import { ReassignAssetsDialog } from '@/shared/components/hrm8/ReassignAssetsDialog';
 
 
 export default function StaffPage() {
@@ -33,6 +34,7 @@ export default function StaffPage() {
   const [reactivateDialogOpen, setReactivateDialogOpen] = useState(false);
   const [changeRoleDialogOpen, setChangeRoleDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [reassignDialogOpen, setReassignDialogOpen] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
 
   const isGlobalAdmin = hrm8User?.role === 'GLOBAL_ADMIN';
@@ -100,6 +102,11 @@ export default function StaffPage() {
     setDeleteDialogOpen(true);
   };
 
+  const handleReassign = (staff: StaffMember) => {
+    setSelectedStaff(staff);
+    setReassignDialogOpen(true);
+  };
+
 
   const handleDialogSuccess = async () => {
     await loadStaff();
@@ -146,6 +153,7 @@ export default function StaffPage() {
           onChangeRole={handleChangeRole}
           onSuspend={handleSuspend}
           onReactivate={handleReactivate}
+          onReassign={handleReassign}
           onDelete={handleDelete}
         />
       ),
@@ -226,6 +234,13 @@ export default function StaffPage() {
           staff={selectedStaff}
           open={changeRoleDialogOpen}
           onOpenChange={setChangeRoleDialogOpen}
+          onSuccess={handleDialogSuccess}
+        />
+
+        <ReassignAssetsDialog
+          staff={selectedStaff}
+          open={reassignDialogOpen}
+          onOpenChange={setReassignDialogOpen}
           onSuccess={handleDialogSuccess}
         />
 

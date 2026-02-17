@@ -18,6 +18,17 @@ import { Label } from '@/shared/components/ui/label';
 import { staffService, StaffMember } from '@/shared/lib/hrm8/staffService';
 import { StaffStatusBadge } from '@/shared/components/hrm8/StaffStatusBadge';
 import { toast } from 'sonner';
+import { ReassignAssetsDialog } from '@/shared/components/hrm8/ReassignAssetsDialog';
+import { SuspendStaffDialog } from '@/shared/components/hrm8/SuspendStaffDialog';
+import { ReactivateStaffDialog } from '@/shared/components/hrm8/ReactivateStaffDialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/shared/components/ui/dropdown-menu';
+import { MoreVertical, ArrowRightLeft, Pause, Play } from 'lucide-react';
 
 interface StaffStats {
   jobsCount?: number;
@@ -41,6 +52,9 @@ export default function StaffProfilePage() {
   const [commissionDialogOpen, setCommissionDialogOpen] = useState(false);
   const [commissionRate, setCommissionRate] = useState<number>(10);
   const [isUpdatingCommission, setIsUpdatingCommission] = useState(false);
+  const [reassignDialogOpen, setReassignDialogOpen] = useState(false);
+  const [suspendDialogOpen, setSuspendDialogOpen] = useState(false);
+  const [reactivateDialogOpen, setReactivateDialogOpen] = useState(false);
 
   useEffect(() => {
     loadStaffProfile();
@@ -219,6 +233,33 @@ export default function StaffProfilePage() {
               <Percent className="mr-2 h-4 w-4" />
               Change Rate
             </Button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full">
+                  <MoreVertical className="mr-2 h-4 w-4" />
+                  Manage Consultant
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setReassignDialogOpen(true)}>
+                  <ArrowRightLeft className="mr-2 h-4 w-4" />
+                  Reassign Assets
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                {staff.status === 'SUSPENDED' ? (
+                  <DropdownMenuItem onClick={() => setReactivateDialogOpen(true)} className="text-green-600">
+                    <Play className="mr-2 h-4 w-4" />
+                    Reactivate
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem onClick={() => setSuspendDialogOpen(true)} className="text-amber-600">
+                    <Pause className="mr-2 h-4 w-4" />
+                    Suspend / Offboard
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
@@ -454,6 +495,36 @@ export default function StaffProfilePage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ReassignAssetsDialog
+        staff={staff}
+        open={reassignDialogOpen}
+        onOpenChange={setReassignDialogOpen}
+        onSuccess={() => {
+          loadStaffProfile();
+          toast.success('Assets reassigned successfully');
+        }}
+      />
+
+      <SuspendStaffDialog
+        staff={staff}
+        open={suspendDialogOpen}
+        onOpenChange={setSuspendDialogOpen}
+        onSuccess={() => {
+          loadStaffProfile();
+          toast.success('Consultant suspended successfully');
+        }}
+      />
+
+      <ReactivateStaffDialog
+        staff={staff}
+        open={reactivateDialogOpen}
+        onOpenChange={setReactivateDialogOpen}
+        onSuccess={() => {
+          loadStaffProfile();
+          toast.success('Consultant reactivated successfully');
+        }}
+      />
     </div>
   );
 }

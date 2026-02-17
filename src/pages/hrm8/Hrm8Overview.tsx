@@ -9,6 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/sha
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table';
+import { Avatar, AvatarFallback } from '@/shared/components/ui/avatar';
+import { Separator } from '@/shared/components/ui/separator';
 import { AlertCircle, Briefcase, DollarSign, Activity, Users, Loader2 } from 'lucide-react';
 import { apiClient } from '@/shared/lib/api';
 import { formatCurrency } from '@/shared/lib/utils';
@@ -16,7 +18,6 @@ import { RegionalAnalyticsService, RegionalOperationalStats } from '@/shared/lib
 import { regionalSalesService, RegionalOpportunity, RegionalPipelineStats } from '@/shared/services/hrm8/regionalSalesService';
 import { ComplianceAlertsWidget } from '@/shared/components/hrm8/ComplianceAlertsWidget';
 import { useRegionStore } from '@/shared/stores/useRegionStore';
-import { cn } from '@/shared/lib/utils';
 import { Skeleton } from '@/shared/components/ui/skeleton';
 import { DashboardStatCard } from '@/shared/components/dashboard/DashboardStatCard';
 
@@ -80,6 +81,24 @@ type RiskData = {
 
 const USE_OVERVIEW_V2 = import.meta.env.VITE_HRM8_OVERVIEW_V2 !== 'false';
 
+function getCompanyInitials(name: string) {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return 'CO';
+  return words.slice(0, 2).map((w) => w[0]?.toUpperCase() || '').join('');
+}
+
+function formatCompactNumber(value: number) {
+  return Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(value);
+}
+
+function formatStageLabel(stage: string) {
+  return stage
+    .toLowerCase()
+    .split('_')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
 
 
 function ChartSkeleton() {
@@ -132,92 +151,6 @@ function TableSkeleton({ rows = 5 }: { rows?: number }) {
   );
 }
 
-// Mini Metric Card with Chart (like the reference design)
-function MiniMetricCard({
-  title,
-  value,
-  subtitle,
-  icon,
-  trend = 'up',
-  colorClass = "text-primary",
-  bgClass = "bg-primary/5"
-}: {
-  title: string;
-  value: string | number;
-  subtitle?: string;
-  icon?: React.ReactNode;
-  trend?: 'up' | 'down';
-  colorClass?: string;
-  bgClass?: string;
-}) {
-  // Generate simple trend data
-  const trendData = Array.from({ length: 12 }, (_, i) => ({
-    value: Math.random() * 20 + (trend === 'up' ? i * 5 : 100 - i * 5)
-  }));
-
-  const sparklineConfig = {
-    value: {
-      label: "Value",
-      color: colorClass.includes('chart-1') ? 'hsl(var(--chart-1))' :
-        colorClass.includes('chart-2') ? 'hsl(var(--chart-2))' :
-          colorClass.includes('chart-3') ? 'hsl(var(--chart-3))' :
-            colorClass.includes('chart-4') ? 'hsl(var(--chart-4))' :
-              'hsl(var(--primary))',
-    },
-  } satisfies ChartConfig;
-
-  return (
-    <Card className="overflow-hidden">
-      <CardContent className="p-6">
-        <div className="space-y-4">
-          {/* Header with icon */}
-          <div className="flex items-center gap-2">
-            {icon && (
-              <div className={cn("p-2 rounded-lg", bgClass)}>
-                <div className={cn("h-5 w-5", colorClass)}>
-                  {icon}
-                </div>
-              </div>
-            )}
-            <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          </div>
-
-          {/* Value */}
-          <div>
-            <h3 className="text-3xl font-bold tracking-tight">{value}</h3>
-            {subtitle && (
-              <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
-            )}
-          </div>
-
-          {/* Mini trend chart */}
-          <div className="h-16 -mb-6 -mx-6">
-            <ChartContainer config={sparklineConfig} className="h-full w-full">
-              <AreaChart data={trendData}>
-                <defs>
-                  <linearGradient id={`mini-gradient-${title}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--color-value)" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="var(--color-value)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <Area
-                  type="monotone"
-                  dataKey="value"
-                  stroke="var(--color-value)"
-                  strokeWidth={2}
-                  fill={`url(#mini-gradient-${title})`}
-                  dot={false}
-                />
-              </AreaChart>
-            </ChartContainer>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-
 function LegacyOverview() {
   const { hrm8User } = useHrm8Auth();
   const navigate = useNavigate();
@@ -261,6 +194,8 @@ function LegacyOverview() {
           trend="up"
           trendValue="+8.2%"
           onClick={() => navigate('/hrm8/jobs/allocation')}
+          showBackgroundGraph
+          graphData={stats?.trends?.open_jobs?.map((p) => p.value) || []}
         />
         <DashboardStatCard
           title="Active Consultants"
@@ -279,6 +214,8 @@ function LegacyOverview() {
           trend="up"
           trendValue="+4.3%"
           onClick={() => navigate('/hrm8/commissions')}
+          showBackgroundGraph
+          graphData={stats?.trends?.placements?.map((p) => p.value) || []}
         />
         <DashboardStatCard
           title="Pipeline Value"
@@ -471,10 +408,55 @@ function OverviewV2() {
     return jobs.map((j: TrendPoint) => ({ name: j.name, openJobs: j.value, placements: placementsMap.get(j.name) || 0 }));
   }, [summary, operationsData]);
 
+  const openJobsTrendSeries = useMemo(() => {
+    const summaryJobs = summary?.charts?.jobsTrend;
+    if (Array.isArray(summaryJobs) && summaryJobs.length > 1) {
+      return summaryJobs.map((p) => p.value);
+    }
+    const fallback = operationsData?.stats?.trends?.open_jobs || [];
+    return fallback.length > 1 ? fallback.map((p) => p.value) : [];
+  }, [summary, operationsData]);
+
+  const placementsTrendSeries = useMemo(() => {
+    const summaryPlacements = summary?.charts?.placementsTrend;
+    if (Array.isArray(summaryPlacements) && summaryPlacements.length > 1) {
+      return summaryPlacements.map((p) => p.value);
+    }
+    const fallback = operationsData?.stats?.trends?.placements || [];
+    return fallback.length > 1 ? fallback.map((p) => p.value) : [];
+  }, [summary, operationsData]);
+
   const stageRows = useMemo(() => {
-    const byStage = pipelineData?.stats?.byStage || {};
-    return Object.entries(byStage).map(([stage, v]) => ({ stage, count: v.count, value: v.value }));
+    const byStage = pipelineData?.stats?.byStage;
+    if (byStage && Object.keys(byStage).length > 0) {
+      return Object.entries(byStage).map(([stage, v]) => ({ stage, count: v.count, value: v.value }));
+    }
+
+    // Fallback: derive stage distribution from opportunities when backend stats omit byStage.
+    const derived = (pipelineData?.opportunities || []).reduce<Record<string, { count: number; value: number }>>(
+      (acc, opp) => {
+        const stage = (opp.stage || 'UNKNOWN').toString().toUpperCase();
+        if (!acc[stage]) {
+          acc[stage] = { count: 0, value: 0 };
+        }
+        acc[stage].count += 1;
+        acc[stage].value += Number(opp.amount || 0);
+        return acc;
+      },
+      {},
+    );
+
+    return Object.entries(derived).map(([stage, v]) => ({ stage, count: v.count, value: v.value }));
   }, [pipelineData]);
+
+  const revenueTrendSeries = useMemo(() => {
+    const settlements = revenueData?.settlements || [];
+    if (settlements.length < 2) return [];
+    return settlements
+      .slice(0, 12)
+      .reverse()
+      .map((s) => Number(s.total_revenue || 0));
+  }, [revenueData]);
 
   const showTabError = tabError[activeTab];
   const showTabLoading = tabLoading[activeTab];
@@ -504,8 +486,8 @@ function OverviewV2() {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground mt-1 text-sm md:text-base">
             {isGlobalAdmin ? 'Global ecosystem summary' : 'Regional ecosystem summary'}
           </p>
         </div>
@@ -546,6 +528,8 @@ function OverviewV2() {
           trendValue="+8.2%"
           onClick={() => navigate('/hrm8/jobs/allocation')}
           loading={summaryLoading}
+          showBackgroundGraph
+          graphData={openJobsTrendSeries}
         />
         <DashboardStatCard
           title="Active Consultants"
@@ -566,6 +550,8 @@ function OverviewV2() {
           trendValue="+4.3%"
           onClick={() => navigate('/hrm8/commissions')}
           loading={summaryLoading}
+          showBackgroundGraph
+          graphData={placementsTrendSeries}
         />
         <DashboardStatCard
           title="Settled Revenue"
@@ -589,17 +575,29 @@ function OverviewV2() {
 
       {/* Tabs Section - Loaded on demand */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabKey)} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 h-auto p-1 bg-muted/50">
-          <TabsTrigger value="operations" className="data-[state=active]:bg-background">
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 h-auto rounded-xl border border-border/60 bg-background p-1">
+          <TabsTrigger
+            value="operations"
+            className="rounded-lg px-4 py-2.5 text-sm font-medium text-muted-foreground transition-colors data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:border data-[state=active]:border-border/60"
+          >
             Operations
           </TabsTrigger>
-          <TabsTrigger value="pipeline" className="data-[state=active]:bg-background">
+          <TabsTrigger
+            value="pipeline"
+            className="rounded-lg px-4 py-2.5 text-sm font-medium text-muted-foreground transition-colors data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:border data-[state=active]:border-border/60"
+          >
             Pipeline
           </TabsTrigger>
-          <TabsTrigger value="revenue" className="data-[state=active]:bg-background">
+          <TabsTrigger
+            value="revenue"
+            className="rounded-lg px-4 py-2.5 text-sm font-medium text-muted-foreground transition-colors data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:border data-[state=active]:border-border/60"
+          >
             Revenue
           </TabsTrigger>
-          <TabsTrigger value="risk" className="data-[state=active]:bg-background">
+          <TabsTrigger
+            value="risk"
+            className="rounded-lg px-4 py-2.5 text-sm font-medium text-muted-foreground transition-colors data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:border data-[state=active]:border-border/60"
+          >
             Risk & Compliance
           </TabsTrigger>
         </TabsList>
@@ -624,9 +622,17 @@ function OverviewV2() {
           ) : (
             <div className="grid gap-6 lg:grid-cols-2">
               <Card>
-                <CardHeader>
+                <CardHeader className="pb-2">
                   <CardTitle>Operational Trends</CardTitle>
                   <CardDescription>Open jobs vs placements over time</CardDescription>
+                  <div className="flex items-center gap-2 pt-1">
+                    <Badge variant="outline" className="h-5 px-2 text-[11px] font-medium">
+                      Open Jobs
+                    </Badge>
+                    <Badge variant="outline" className="h-5 px-2 text-[11px] font-medium border-emerald-300 text-emerald-700 dark:border-emerald-700 dark:text-emerald-300">
+                      Placements
+                    </Badge>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <ChartContainer config={operationsChartConfig} className="h-[320px] w-full">
@@ -655,7 +661,16 @@ function OverviewV2() {
                         tickMargin={8}
                         fontSize={12}
                       />
-                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <ChartTooltip
+                        content={
+                          <ChartTooltipContent
+                            formatter={(value, name) => [
+                              <span className="font-semibold tabular-nums">{formatCompactNumber(Number(value) || 0)}</span>,
+                              name,
+                            ]}
+                          />
+                        }
+                      />
                       <Area
                         type="monotone"
                         dataKey="openJobs"
@@ -683,24 +698,55 @@ function OverviewV2() {
                   <CardDescription>Companies with most job activity</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {(operationsData?.topCompanies || []).slice(0, 6).map((company, idx) => (
-                      <div key={company.company_name} className="flex items-center gap-4">
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
-                          {idx + 1}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">{company.company_name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {company.total_jobs} jobs · {company.total_applications} applications
-                          </p>
-                        </div>
-                        <div className="flex-shrink-0 text-right">
-                          <p className="text-sm font-semibold">{company.total_views}</p>
-                          <p className="text-xs text-muted-foreground">views</p>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Company</TableHead>
+                          <TableHead className="text-right">Jobs</TableHead>
+                          <TableHead className="text-right">Applications</TableHead>
+                          <TableHead className="text-right">Views</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {(operationsData?.topCompanies || []).slice(0, 6).map((company, idx) => (
+                          <TableRow key={company.company_name}>
+                            <TableCell className="min-w-0">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-8 w-8">
+                                  <AvatarFallback className="text-[11px] font-semibold bg-primary/10 text-primary">
+                                    {idx + 1}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="min-w-0">
+                                  <p className="font-medium truncate">{company.company_name}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {getCompanyInitials(company.company_name)}
+                                  </p>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right font-medium tabular-nums">
+                              {formatCompactNumber(company.total_jobs)}
+                            </TableCell>
+                            <TableCell className="text-right font-medium tabular-nums">
+                              {formatCompactNumber(company.total_applications)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="inline-flex items-baseline gap-1.5">
+                                <span className="font-semibold tabular-nums">{formatCompactNumber(company.total_views)}</span>
+                                <span className="text-xs text-muted-foreground">views</span>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  <Separator className="my-4" />
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>Showing top 6 companies by activity</span>
+                    <span>{operationsData?.topCompanies?.length || 0} total tracked</span>
                   </div>
                 </CardContent>
               </Card>
@@ -742,30 +788,38 @@ function OverviewV2() {
                   <CardDescription>Opportunity value across sales stages</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ChartContainer config={pipelineChartConfig} className="h-[320px] w-full">
-                    <BarChart data={stageRows}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                      <XAxis
-                        dataKey="stage"
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
-                        fontSize={12}
-                      />
-                      <YAxis
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
-                        fontSize={12}
-                        tickFormatter={(value) => formatCurrency(value)}
-                      />
-                      <ChartTooltip
-                        content={<ChartTooltipContent />}
-                        formatter={(value) => formatCurrency(value as number)}
-                      />
-                      <Bar dataKey="value" fill="var(--color-value)" radius={[8, 8, 0, 0]} />
-                    </BarChart>
-                  </ChartContainer>
+                  {stageRows.length > 0 ? (
+                    <ChartContainer config={pipelineChartConfig} className="h-[320px] w-full">
+                      <BarChart data={stageRows}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                        <XAxis
+                          dataKey="stage"
+                          tickLine={false}
+                          axisLine={false}
+                          tickMargin={8}
+                          fontSize={12}
+                          tickFormatter={(value) => formatStageLabel(String(value))}
+                        />
+                        <YAxis
+                          tickLine={false}
+                          axisLine={false}
+                          tickMargin={8}
+                          fontSize={12}
+                          tickFormatter={(value) => formatCurrency(value)}
+                        />
+                        <ChartTooltip
+                          content={<ChartTooltipContent />}
+                          formatter={(value) => formatCurrency(value as number)}
+                          labelFormatter={(label) => formatStageLabel(String(label))}
+                        />
+                        <Bar dataKey="value" fill="var(--color-value)" radius={[8, 8, 0, 0]} />
+                      </BarChart>
+                    </ChartContainer>
+                  ) : (
+                    <div className="h-[320px] rounded-md border border-dashed flex items-center justify-center text-sm text-muted-foreground">
+                      No pipeline stage data available.
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -775,19 +829,33 @@ function OverviewV2() {
                   <CardDescription>Latest pipeline opportunities</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {(pipelineData?.opportunities || []).slice(0, 6).map((opp) => (
-                      <div key={opp.id} className="flex items-center gap-4 pb-3 border-b last:border-0">
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">{opp.name}</p>
-                          <p className="text-xs text-muted-foreground">{opp.company?.name || 'Unknown'}</p>
-                        </div>
-                        <div className="flex-shrink-0 text-right">
-                          <Badge variant="outline" className="mb-1">{opp.stage}</Badge>
-                          <p className="text-sm font-semibold">{formatCurrency(opp.amount || 0)}</p>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Opportunity</TableHead>
+                          <TableHead>Company</TableHead>
+                          <TableHead className="text-right">Stage</TableHead>
+                          <TableHead className="text-right">Amount</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {(pipelineData?.opportunities || []).slice(0, 6).map((opp) => (
+                          <TableRow key={opp.id}>
+                            <TableCell className="font-medium">{opp.name}</TableCell>
+                            <TableCell className="text-muted-foreground">{opp.company?.name || 'Unknown'}</TableCell>
+                            <TableCell className="text-right">
+                              <Badge variant="outline" className="h-5 px-2 text-[11px] font-medium">
+                                {formatStageLabel(opp.stage || 'NEW')}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right font-semibold tabular-nums">
+                              {formatCurrency(opp.amount || 0)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
                 </CardContent>
               </Card>
@@ -817,32 +885,34 @@ function OverviewV2() {
           ) : (
             <>
               <div className="grid gap-6 md:grid-cols-3">
-                <MiniMetricCard
+                <DashboardStatCard
                   title="Total Settled"
                   value={formatCurrency(revenueData?.stats.totalSettled || 0)}
-                  subtitle={`${revenueData?.stats.count || 0} settlements`}
-                  icon={<DollarSign className="h-5 w-5" />}
+                  description={`${revenueData?.stats.count || 0} settlements`}
+                  icon={DollarSign}
                   trend="up"
-                  colorClass="text-chart-1"
-                  bgClass="bg-chart-1/10"
+                  trendValue="+15.8%"
+                  onClick={() => navigate('/hrm8/settlements')}
+                  showBackgroundGraph
+                  graphData={revenueTrendSeries}
                 />
-                <MiniMetricCard
+                <DashboardStatCard
                   title="HRM8 Share"
                   value={formatCurrency(revenueData?.stats.hrm8Share || 0)}
-                  subtitle="Platform revenue"
-                  icon={<Activity className="h-5 w-5" />}
+                  description="Platform revenue"
+                  icon={Activity}
                   trend="up"
-                  colorClass="text-chart-2"
-                  bgClass="bg-chart-2/10"
+                  trendValue="+8.1%"
+                  onClick={() => navigate('/hrm8/revenue')}
                 />
-                <MiniMetricCard
+                <DashboardStatCard
                   title="Licensee Share"
                   value={formatCurrency(revenueData?.stats.licenseeShare || 0)}
-                  subtitle="Partner revenue"
-                  icon={<Users className="h-5 w-5" />}
+                  description="Partner revenue"
+                  icon={Users}
                   trend="up"
-                  colorClass="text-chart-3"
-                  bgClass="bg-chart-3/10"
+                  trendValue="+6.4%"
+                  onClick={() => navigate('/hrm8/revenue')}
                 />
               </div>
 
@@ -885,74 +955,134 @@ function OverviewV2() {
         {/* Risk Tab */}
         <TabsContent value="risk" className="space-y-6">
           {showTabLoading ? (
-            <div className="grid gap-6 md:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <Skeleton className="h-6 w-32" />
-                  <Skeleton className="h-4 w-48 mt-2" />
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="flex items-center justify-between">
-                      <Skeleton className="h-4 w-40" />
-                      <Skeleton className="h-6 w-12 rounded-full" />
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <Skeleton className="h-6 w-48" />
-                  <Skeleton className="h-4 w-56 mt-2" />
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="flex items-center justify-between">
-                      <Skeleton className="h-4 w-36" />
-                      <Skeleton className="h-6 w-12 rounded-full" />
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </div>
+            <>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                <DashboardStatCard
+                  title="Critical Alerts"
+                  value={0}
+                  description="Immediate attention"
+                  icon={AlertCircle}
+                  loading
+                />
+                <DashboardStatCard
+                  title="High Priority"
+                  value={0}
+                  description="Requires review"
+                  icon={AlertCircle}
+                  loading
+                />
+                <DashboardStatCard
+                  title="Pending Requests"
+                  value={0}
+                  description="Total queue items"
+                  icon={Activity}
+                  loading
+                />
+                <DashboardStatCard
+                  title="Overloaded Staff"
+                  value={0}
+                  description="Capacity warnings"
+                  icon={Users}
+                  loading
+                />
+              </div>
+
+              <div className="grid gap-6 md:grid-cols-2">
+                <Card>
+                  <CardHeader>
+                    <Skeleton className="h-6 w-40" />
+                    <Skeleton className="mt-2 h-4 w-56" />
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <div key={i} className="flex items-center justify-between">
+                        <Skeleton className="h-4 w-40" />
+                        <Skeleton className="h-6 w-12 rounded-full" />
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <Skeleton className="h-6 w-44" />
+                    <Skeleton className="mt-2 h-4 w-60" />
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <div key={i} className="flex items-center justify-between">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-6 w-12 rounded-full" />
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              </div>
+            </>
           ) : (
             <>
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                <MiniMetricCard
+                <DashboardStatCard
                   title="Critical Alerts"
                   value={riskData?.compliance.critical || 0}
-                  subtitle="Immediate attention"
-                  icon={<AlertCircle className="h-5 w-5" />}
+                  description="Immediate attention"
+                  icon={AlertCircle}
                   trend="down"
-                  colorClass="text-destructive"
-                  bgClass="bg-destructive/10"
+                  trendValue="-12.0%"
+                  showBackgroundGraph
+                  graphData={[
+                    riskData?.compliance.low || 0,
+                    riskData?.compliance.medium || 0,
+                    riskData?.compliance.high || 0,
+                    riskData?.compliance.critical || 0,
+                  ]}
                 />
-                <MiniMetricCard
+                <DashboardStatCard
                   title="High Priority"
                   value={riskData?.compliance.high || 0}
-                  subtitle="Requires review"
-                  icon={<AlertCircle className="h-5 w-5" />}
+                  description="Requires review"
+                  icon={AlertCircle}
                   trend="down"
-                  colorClass="text-chart-3"
-                  bgClass="bg-chart-3/10"
+                  trendValue="-6.5%"
+                  showBackgroundGraph
+                  graphData={[
+                    riskData?.compliance.medium || 0,
+                    riskData?.compliance.high || 0,
+                    riskData?.compliance.critical || 0,
+                  ]}
                 />
-                <MiniMetricCard
+                <DashboardStatCard
                   title="Pending Requests"
                   value={(riskData?.queues.pendingConversionRequests || 0) + (riskData?.queues.pendingRefundRequests || 0) + (riskData?.queues.pendingCareersRequests || 0)}
-                  subtitle="Total queue items"
-                  icon={<Activity className="h-5 w-5" />}
+                  description="Total queue items"
+                  icon={Activity}
                   trend="down"
-                  colorClass="text-chart-1"
-                  bgClass="bg-chart-1/10"
+                  trendValue="-4.2%"
+                  showBackgroundGraph
+                  graphData={[
+                    riskData?.queues.pendingConversionRequests || 0,
+                    riskData?.queues.pendingRefundRequests || 0,
+                    riskData?.queues.pendingCareersRequests || 0,
+                    riskData?.queues.pendingSettlements || 0,
+                  ]}
                 />
-                <MiniMetricCard
+                <DashboardStatCard
                   title="Overloaded Staff"
                   value={riskData?.capacity.summary.overloaded || 0}
-                  subtitle="Capacity warnings"
-                  icon={<Users className="h-5 w-5" />}
+                  description="Capacity warnings"
+                  icon={Users}
                   trend="down"
-                  colorClass="text-chart-4"
-                  bgClass="bg-chart-4/10"
+                  trendValue="-9.1%"
+                  showBackgroundGraph
+                  graphData={[
+                    Math.max(
+                      0,
+                      (riskData?.capacity.summary.total || 0) -
+                        (riskData?.capacity.summary.warning || 0) -
+                        (riskData?.capacity.summary.overloaded || 0),
+                    ),
+                    riskData?.capacity.summary.warning || 0,
+                    riskData?.capacity.summary.overloaded || 0,
+                  ]}
                 />
               </div>
 

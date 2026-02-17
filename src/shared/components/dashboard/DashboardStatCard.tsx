@@ -1,3 +1,4 @@
+import { useId, useMemo } from "react";
 import { Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/shared/lib/utils";
@@ -12,6 +13,8 @@ export interface DashboardStatCardProps {
     trendValue?: string;
     onClick?: () => void;
     loading?: boolean;
+    showBackgroundGraph?: boolean;
+    graphData?: number[];
 }
 
 function SkeletonCard() {
@@ -40,19 +43,78 @@ export function DashboardStatCard({
     trendValue,
     onClick,
     loading = false,
+    showBackgroundGraph = false,
+    graphData,
 }: DashboardStatCardProps) {
     if (loading) {
         return <SkeletonCard />;
     }
 
+    const tone: "up" | "down" = trend === "down" ? "down" : "up";
+    const graphId = useId().replace(/:/g, "");
+    const shouldRenderGraph = Boolean(showBackgroundGraph && graphData && graphData.length > 1);
+    const points = shouldRenderGraph ? (graphData as number[]) : [];
+
+    const normalized = useMemo(() => {
+        if (points.length < 2) return [];
+        const min = Math.min(...points);
+        const max = Math.max(...points);
+        const range = Math.max(1, max - min);
+        const yPadding = 8;
+        return points.map((v, i) => {
+            const x = (i / (points.length - 1)) * 100;
+            const rawY = 100 - ((v - min) / range) * 100;
+            const y = Math.min(100 - yPadding, Math.max(yPadding, rawY));
+            return { x, y };
+        });
+    }, [points]);
+
+    const linePath = normalized.length > 1
+        ? normalized
+        .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`)
+            .join(" ")
+        : "";
+    const areaPath = `${linePath} L 100 100 L 0 100 Z`;
+
     return (
         <Card
             className={cn(
-                "@container/card bg-gradient-to-t from-primary/5 to-card shadow-xs dark:bg-card transition-all",
+                "@container/card relative overflow-hidden bg-gradient-to-t from-primary/5 to-card shadow-xs dark:bg-card transition-all",
                 onClick && "cursor-pointer hover:shadow-md"
             )}
             onClick={onClick}
         >
+            {shouldRenderGraph && normalized.length > 1 && (
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 opacity-90">
+                    <svg
+                        className="h-full w-full"
+                        viewBox="0 0 100 100"
+                        preserveAspectRatio="none"
+                        aria-hidden="true"
+                    >
+                        <defs>
+                            <linearGradient id={`stat-graph-fill-${tone}-${graphId}`} x1="0" y1="0" x2="0" y2="1">
+                                <stop
+                                    offset="0%"
+                                    stopColor={tone === "up" ? "rgb(34 197 94 / 0.22)" : "rgb(239 68 68 / 0.22)"}
+                                />
+                                <stop
+                                    offset="100%"
+                                    stopColor={tone === "up" ? "rgb(34 197 94 / 0)" : "rgb(239 68 68 / 0)"}
+                                />
+                            </linearGradient>
+                        </defs>
+                        <path d={areaPath} fill={`url(#stat-graph-fill-${tone}-${graphId})`} />
+                        <path
+                            d={linePath}
+                            fill="none"
+                            stroke={tone === "up" ? "rgb(34 197 94 / 0.45)" : "rgb(239 68 68 / 0.45)"}
+                            strokeWidth="0.85"
+                            vectorEffect="non-scaling-stroke"
+                        />
+                    </svg>
+                </div>
+            )}
             <CardHeader className="relative">
                 <CardDescription>{title}</CardDescription>
                 <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">

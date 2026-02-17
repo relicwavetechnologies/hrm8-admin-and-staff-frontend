@@ -1,8 +1,7 @@
 /**
  * Unified Sidebar Component
  * Replaces CandidateSidebar, ConsultantSidebar, Hrm8Sidebar with a single configurable component
- *
- * Uses shadcn/ui Sidebar components with Collapsible for nested menus
+ * Uses shadcn/ui Sidebar components with direct parent-to-first-child routing.
  */
 
 import { useMemo, useState } from "react";
@@ -10,7 +9,6 @@ import { NavLink, useLocation } from "react-router-dom";
 import logoDark from "@/assets/logo-dark.png";
 import logoLight from "@/assets/logo-light.png";
 import iconMark from "@/assets/icon-mark.png";
-import { ChevronDown } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -19,23 +17,10 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
   SidebarHeader,
   SidebarFooter,
   useSidebar,
 } from "@/shared/components/ui/sidebar";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/shared/components/ui/collapsible";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/shared/components/ui/hover-card";
 import { cn } from "@/shared/lib/utils";
 import { UnifiedSidebarFooter } from "./UnifiedSidebarFooter";
 import { RegionToggler } from "@/shared/components/hrm8/RegionToggler";
@@ -45,12 +30,9 @@ import { getNestedRoutes } from "@/shared/config/nestedRoutes";
 interface UnifiedSidebarProps {
   config: SidebarConfig;
   auth: AuthAdapter;
-  showAiToggle?: boolean;
-  isAiOpen?: boolean;
-  onToggleAi?: () => void;
 }
 
-export function UnifiedSidebar({ config, auth, showAiToggle, isAiOpen, onToggleAi }: UnifiedSidebarProps) {
+export function UnifiedSidebar({ config, auth }: UnifiedSidebarProps) {
   const location = useLocation();
   const { open } = useSidebar();
   const [isHovering, setIsHovering] = useState(false);
@@ -104,7 +86,7 @@ export function UnifiedSidebar({ config, auth, showAiToggle, isAiOpen, onToggleA
       onMouseLeave={() => !open && setIsHovering(false)}
     >
       {/* Header with Logo */}
-      <SidebarHeader className="border-b border-sidebar-border p-0 bg-gradient-to-b from-sidebar-accent to-sidebar">
+      <SidebarHeader className="border-b border-sidebar-border p-0 bg-sidebar">
         <NavLink
           to={config.homePath}
           className={cn(
@@ -148,38 +130,39 @@ export function UnifiedSidebar({ config, auth, showAiToggle, isAiOpen, onToggleA
             <SidebarMenu>
               {menuItems.map((item) => {
                 const Icon = item.icon;
-                const active = isActive(item.path);
                 const nestedRoutes = nestedRouteMap.get(item.path) || [];
                 const hasNestedRoutes = nestedRoutes.length > 0;
+                const parentTargetPath = nestedRoutes[0]?.path || item.path;
+                const active = isActive(item.path) || hasActiveNested(item.path) || isActive(parentTargetPath);
                 const hasActiveChild = hasActiveNested(item.path);
+                const showChildren = isExpanded && hasNestedRoutes;
 
-                // Menu item without nested routes
-                if (!hasNestedRoutes) {
-                  return (
-                    <SidebarMenuItem key={item.id}>
+                return (
+                  <div key={item.id}>
+                    <SidebarMenuItem>
                       <SidebarMenuButton
                         asChild
-                        isActive={active}
+                        isActive={active || hasActiveChild}
                         className={cn(
                           "relative transition-all duration-200",
                           "hover:bg-sidebar-accent",
-                          active && [
-                            "bg-primary/15",
-                            "text-primary",
-                            "font-semibold",
-                            "shadow-sm",
+                          (active || hasActiveChild) && [
+                            "bg-sidebar-accent",
+                            "text-sidebar-accent-foreground",
+                            "font-medium",
                           ]
                         )}
+                        tooltip={!isExpanded ? item.label : undefined}
                       >
                         <NavLink
-                          to={item.path}
+                          to={parentTargetPath}
                           className="flex items-center gap-3 w-full"
                         >
                           <Icon
                             className={cn(
                               "h-5 w-5 transition-all",
                               !isExpanded && "mx-auto",
-                              active && "drop-shadow-sm"
+                              (active || hasActiveChild) && "text-sidebar-accent-foreground"
                             )}
                           />
                           {isExpanded && (
@@ -195,149 +178,32 @@ export function UnifiedSidebar({ config, auth, showAiToggle, isAiOpen, onToggleA
                         </NavLink>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                  );
-                }
 
-                // Menu item with nested routes
-                // When expanded: use Collapsible for inline nested items
-                // When collapsed: use HoverCard to show nested items on hover
-                if (!isExpanded) {
-                  // Collapsed state - show HoverCard on hover
-                  return (
-                    <SidebarMenuItem key={item.id}>
-                      <HoverCard openDelay={100} closeDelay={100}>
-                        <HoverCardTrigger asChild>
-                          <SidebarMenuButton
-                            asChild
-                            isActive={active || hasActiveChild}
-                            className={cn(
-                              "relative transition-all duration-200",
-                              "hover:bg-sidebar-accent",
-                              (active || hasActiveChild) && [
-                                "bg-primary/15",
-                                "text-primary",
-                                "font-semibold",
-                                "shadow-sm",
-                              ]
-                            )}
-                            tooltip={item.label}
-                          >
-                            <NavLink to={item.path}>
-                              <Icon
-                                className={cn(
-                                  "h-5 w-5 transition-all mx-auto",
-                                  (active || hasActiveChild) && "drop-shadow-sm"
-                                )}
-                              />
+                    {showChildren && (
+                      <div className="ml-8 mt-1 space-y-0.5">
+                        {nestedRoutes.map((route) => {
+                          const NestedIcon = route.icon;
+                          const nestedActive = isActive(route.path);
+
+                          return (
+                            <NavLink
+                              key={route.id}
+                              to={route.path}
+                              className={cn(
+                                "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors",
+                                nestedActive
+                                  ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                                  : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                              )}
+                            >
+                              <NestedIcon className="h-3.5 w-3.5 shrink-0" />
+                              <span className="truncate">{route.label}</span>
                             </NavLink>
-                          </SidebarMenuButton>
-                        </HoverCardTrigger>
-                        <HoverCardContent
-                          side="right"
-                          align="start"
-                          className="w-56 rounded-lg border border-border bg-popover p-2 shadow-lg"
-                          sideOffset={8}
-                        >
-                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mb-1">
-                            {item.label}
-                          </div>
-                          <div className="space-y-0.5">
-                            {nestedRoutes.map((route) => {
-                              const NestedIcon = route.icon;
-                              const nestedActive = isActive(route.path);
-                              return (
-                                <NavLink
-                                  key={route.id}
-                                  to={route.path}
-                                  className={cn(
-                                    "flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors",
-                                    nestedActive
-                                      ? "bg-primary/20 text-primary font-semibold"
-                                      : "text-foreground hover:bg-muted"
-                                  )}
-                                >
-                                  <NestedIcon className={cn(
-                                    "h-4 w-4 shrink-0",
-                                    nestedActive && "drop-shadow-sm"
-                                  )} />
-                                  <span className="flex-1 truncate">{route.label}</span>
-                                </NavLink>
-                              );
-                            })}
-                          </div>
-                        </HoverCardContent>
-                      </HoverCard>
-                    </SidebarMenuItem>
-                  );
-                }
-
-                // Expanded state - use Collapsible for inline nested items
-                return (
-                  <Collapsible
-                    key={item.id}
-                    defaultOpen={hasActiveChild}
-                    className="group/collapsible"
-                  >
-                    <SidebarMenuItem>
-                      <CollapsibleTrigger asChild>
-                        <SidebarMenuButton
-                          isActive={active || hasActiveChild}
-                          className={cn(
-                            "relative transition-all duration-200",
-                            "hover:bg-sidebar-accent",
-                            (active || hasActiveChild) && [
-                              "bg-primary/15",
-                              "text-primary",
-                              "font-semibold",
-                              "shadow-sm",
-                            ]
-                          )}
-                        >
-                          <Icon
-                            className={cn(
-                              "h-5 w-5 transition-all",
-                              (active || hasActiveChild) && "drop-shadow-sm"
-                            )}
-                          />
-                          <span className="transition-opacity duration-200">
-                            {item.label}
-                          </span>
-                          <ChevronDown className="ml-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
-                        </SidebarMenuButton>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <SidebarMenuSub>
-                          {nestedRoutes.map((route) => {
-                            const NestedIcon = route.icon;
-                            const nestedActive = isActive(route.path);
-                            return (
-                              <SidebarMenuSubItem key={route.id}>
-                                <SidebarMenuSubButton
-                                  asChild
-                                  isActive={nestedActive}
-                                  className={cn(
-                                    nestedActive && [
-                                      "bg-primary/20",
-                                      "text-primary",
-                                      "font-semibold",
-                                    ]
-                                  )}
-                                >
-                                  <NavLink to={route.path}>
-                                    <NestedIcon className={cn(
-                                      "h-4 w-4 shrink-0",
-                                      nestedActive && "drop-shadow-sm"
-                                    )} />
-                                    <span className="flex-1 truncate">{route.label}</span>
-                                  </NavLink>
-                                </SidebarMenuSubButton>
-                              </SidebarMenuSubItem>
-                            );
-                          })}
-                        </SidebarMenuSub>
-                      </CollapsibleContent>
-                    </SidebarMenuItem>
-                  </Collapsible>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </SidebarMenu>
@@ -346,14 +212,12 @@ export function UnifiedSidebar({ config, auth, showAiToggle, isAiOpen, onToggleA
       </SidebarContent>
 
       {/* Footer */}
-      <SidebarFooter className="border-t border-sidebar-border p-3 bg-gradient-to-t from-sidebar-accent/30 to-transparent">
+      <SidebarFooter className="border-t border-sidebar-border bg-sidebar p-3">
         <UnifiedSidebarFooter
           actions={config.footerActions}
           showLogout={config.showLogoutButton}
           onLogout={auth.logout}
-          showAiToggle={showAiToggle}
-          isAiOpen={isAiOpen}
-          onToggleAi={onToggleAi}
+          showAiToggle={false}
         />
       </SidebarFooter>
     </Sidebar>

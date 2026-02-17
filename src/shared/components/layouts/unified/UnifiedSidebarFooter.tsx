@@ -61,7 +61,7 @@ export function UnifiedSidebarFooter({
               </div>
             </Button>
           </TooltipTrigger>
-          {!open && <TooltipContent side="right">AI Assistant (Cmd+K)</TooltipContent>}
+          {!open && <TooltipContent side="right">AI Assistant</TooltipContent>}
         </Tooltip>
       )}
 

@@ -119,13 +119,17 @@ export function ComplianceAlertsWidget() {
                 {summary && summary.total > 0 && (
                     <div className="flex items-center gap-2">
                         {summary.critical > 0 && (
-                            <Badge variant="destructive">{summary.critical} Critical</Badge>
+                            <Badge variant="destructive" className="h-5 px-2 text-[11px] font-medium">
+                                {summary.critical} Critical
+                            </Badge>
                         )}
                         {summary.high > 0 && (
-                            <Badge className="bg-orange-500">{summary.high} High</Badge>
+                            <Badge className="h-5 px-2 text-[11px] font-medium bg-orange-500">
+                                {summary.high} High
+                            </Badge>
                         )}
                         {summary.medium > 0 && (
-                            <Badge variant="outline" className="border-yellow-500 text-yellow-700">
+                            <Badge variant="outline" className="h-5 px-2 text-[11px] font-medium border-yellow-500 text-yellow-700">
                                 {summary.medium} Medium
                             </Badge>
                         )}
@@ -155,8 +159,10 @@ export function ComplianceAlertsWidget() {
                                 <TableBody>
                                     {alerts.map((alert) => {
                                         const Icon = typeIcons[alert.type] || AlertTriangle;
+                                        const entityType = alert.entity_type ?? 'LICENSEE';
                                         const entityPath =
-                                            alert.entity_type === 'REGION' ? '/hrm8/regions' : '/hrm8/licensees';
+                                            entityType === 'REGION' ? '/hrm8/regions' : '/hrm8/licensees';
+                                        const entityLabel = entityType.toLowerCase();
 
                                         return (
                                             <TableRow key={alert.id}>
@@ -179,7 +185,10 @@ export function ComplianceAlertsWidget() {
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Badge variant="outline" className={severityColors[alert.severity]}>
+                                                    <Badge
+                                                        variant="outline"
+                                                        className={`h-5 px-2 text-[11px] font-medium ${severityColors[alert.severity]}`}
+                                                    >
                                                         {alert.severity}
                                                     </Badge>
                                                 </TableCell>
@@ -205,7 +214,7 @@ export function ComplianceAlertsWidget() {
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={() => navigate(entityPath)}>
-                                                                Open {alert.entity_type.toLowerCase()}
+                                                                Open {entityLabel}
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>

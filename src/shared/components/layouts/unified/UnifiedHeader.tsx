@@ -4,7 +4,6 @@ import { Search, Command, MessageSquare, PanelRightOpen, PanelRightClose } from 
 import { UserNav } from "@/shared/components/layouts/UserNav";
 import { NotificationBell } from "@/shared/components/notifications/NotificationBell";
 import { Breadcrumbs } from "@/shared/components/common/Breadcrumbs";
-import { Badge } from "@/shared/components/ui/badge";
 import { ThemeToggle } from "@/shared/components/common/ThemeToggle";
 import { TooltipProvider } from "@/shared/components/ui/tooltip";
 import { Button } from "@/shared/components/ui/button";
@@ -23,16 +22,12 @@ export function UnifiedHeader({ showAiToggle = false, isAiOpen = false, onToggle
 
     return (
         <TooltipProvider>
-            <header className="sticky top-0 z-50 w-full shadow-sm">
-                {/* Thin top accent line */}
-                <div className="h-[2px] w-full bg-gradient-to-r from-primary/60 via-primary/80 to-violet-500/60" />
-
-                {/* Single unified row */}
-                <div className="relative flex h-14 items-center gap-3 px-4 md:px-6 bg-background/95 backdrop-blur-xl border-b border-border/50">
+            <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
+                <div className="relative flex h-14 items-center gap-3 px-4 md:px-6">
                     {/* Left: Sidebar trigger + Breadcrumbs */}
                     <div className="flex items-center gap-3 min-w-0">
-                        <SidebarTrigger className="shrink-0 hover:bg-accent/60 transition-colors rounded-lg" />
-                        <Separator orientation="vertical" className="h-5 shrink-0 bg-border/60" />
+                        <SidebarTrigger className="shrink-0 rounded-md" />
+                        <Separator orientation="vertical" className="h-5 shrink-0" />
                         <div className="hidden sm:block min-w-0 overflow-hidden">
                             <Breadcrumbs />
                         </div>
@@ -46,16 +41,13 @@ export function UnifiedHeader({ showAiToggle = false, isAiOpen = false, onToggle
                         className="relative max-w-xs w-full hidden md:block cursor-pointer group"
                         onClick={handleSearchClick}
                     >
-                        <div className="flex items-center gap-2 px-3.5 h-9 rounded-full bg-muted border border-border hover:border-primary/50 hover:bg-accent transition-all duration-200 group-hover:shadow-sm">
+                        <div className="flex items-center gap-2 h-9 rounded-md border bg-background px-3 transition-colors group-hover:bg-accent">
                             <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                             <span className="text-sm text-muted-foreground truncate">Search...</span>
-                            <Badge
-                                variant="outline"
-                                className="ml-auto text-[10px] px-1.5 py-0 font-mono opacity-70 group-hover:opacity-100 transition-opacity flex items-center bg-background border-border shrink-0"
-                            >
+                            <kbd className="ml-auto inline-flex h-5 shrink-0 items-center rounded border px-1.5 text-[10px] font-mono text-muted-foreground">
                                 <Command className="h-2.5 w-2.5 mr-0.5" />
                                 K
-                            </Badge>
+                            </kbd>
                         </div>
                     </div>
 
@@ -64,11 +56,11 @@ export function UnifiedHeader({ showAiToggle = false, isAiOpen = false, onToggle
                         {showAiToggle && (
                             <Button
                                 type="button"
-                                variant={isAiOpen ? "default" : "outline"}
+                                variant={isAiOpen ? "secondary" : "outline"}
                                 size="sm"
                                 className="h-8 px-2.5"
                                 onClick={onToggleAi}
-                                title="Toggle AI Assistant (Cmd/Ctrl + K)"
+                                title="Toggle AI Assistant"
                             >
                                 {isAiOpen ? <PanelRightClose className="h-4 w-4 mr-1.5" /> : <PanelRightOpen className="h-4 w-4 mr-1.5" />}
                                 <MessageSquare className="h-3.5 w-3.5 mr-1" />
@@ -77,7 +69,7 @@ export function UnifiedHeader({ showAiToggle = false, isAiOpen = false, onToggle
                         )}
                         <ThemeToggle />
                         <NotificationBell />
-                        <Separator orientation="vertical" className="h-5 mx-1 bg-border/40 hidden md:block" />
+                        <Separator orientation="vertical" className="h-5 mx-1 hidden md:block" />
                         <UserNav />
                     </div>
                 </div>

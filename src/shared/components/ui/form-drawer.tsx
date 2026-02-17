@@ -1,5 +1,4 @@
 import * as React from "react";
-import { X } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import {
   Sheet,
@@ -8,8 +7,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/shared/components/ui/sheet";
-import { Button } from "@/shared/components/ui/button";
-import { ScrollArea } from "@/shared/components/ui/scroll-area";
 
 interface FormDrawerProps {
   open: boolean;
@@ -39,55 +36,23 @@ export function FormDrawer({
   width = "lg",
   showCloseButton = true,
 }: FormDrawerProps) {
-  // Reset scroll position when drawer opens
-  React.useEffect(() => {
-    if (open) {
-      // Small delay to ensure ScrollArea is mounted
-      const timeoutId = setTimeout(() => {
-        const viewport = document.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement;
-        if (viewport) {
-          viewport.scrollTop = 0;
-          viewport.scrollLeft = 0;
-        }
-      }, 50);
-      
-      return () => clearTimeout(timeoutId);
-    }
-  }, [open]);
-
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className={cn("w-full p-0 flex flex-col", widthClasses[width])}
+        showCloseButton={showCloseButton}
+        className={cn("w-full p-0", widthClasses[width])}
       >
-        <div className="sticky top-0 z-10 bg-background border-b px-8 py-4 lg:px-12">
-          <SheetHeader>
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <SheetTitle>{title}</SheetTitle>
-                {description && (
-                  <SheetDescription className="mt-1">{description}</SheetDescription>
-                )}
-              </div>
-              {showCloseButton && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 -mr-2"
-                  onClick={() => onOpenChange(false)}
-                >
-                  <X className="h-4 w-4" />
-                  <span className="sr-only">Close</span>
-                </Button>
-              )}
-            </div>
+        <div className="border-b px-6 py-4">
+          <SheetHeader className="pr-8">
+            <SheetTitle>{title}</SheetTitle>
+            {description ? <SheetDescription>{description}</SheetDescription> : null}
           </SheetHeader>
         </div>
-        
-        <ScrollArea className="flex-1">
-          <div className="p-8 lg:px-12 lg:py-8">{children}</div>
-        </ScrollArea>
+
+        <div className="max-h-[calc(100svh-5rem)] overflow-y-auto px-6 py-6">
+          {children}
+        </div>
       </SheetContent>
     </Sheet>
   );

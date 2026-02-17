@@ -42,19 +42,10 @@ export function UnifiedDashboardLayout({ children }: UnifiedDashboardLayoutProps
     useEffect(() => {
         if (!showAiPanel) {
             setIsAiPanelOpen(false);
-            return;
+            return undefined;
         }
 
-        const onKeyDown = (event: KeyboardEvent) => {
-            // Cmd+K or Ctrl+K to toggle AI panel
-            if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-                event.preventDefault();
-                setIsAiPanelOpen((prev) => !prev);
-            }
-        };
-
-        window.addEventListener("keydown", onKeyDown);
-        return () => window.removeEventListener("keydown", onKeyDown);
+        return undefined;
     }, [showAiPanel]);
 
     return (
@@ -64,9 +55,6 @@ export function UnifiedDashboardLayout({ children }: UnifiedDashboardLayoutProps
                 <UnifiedSidebar
                     config={config}
                     auth={authAdapter}
-                    showAiToggle={showAiPanel}
-                    isAiOpen={isAiPanelOpen}
-                    onToggleAi={toggleAiPanel}
                 />
 
                 <SidebarInset className="flex flex-col flex-1 min-h-0 overflow-hidden">

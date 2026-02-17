@@ -10,6 +10,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
+  SelectValue,
 } from '@/shared/components/ui/select';
 import { useRegionStore } from '@/shared/stores/useRegionStore';
 import { regionService } from '@/shared/lib/hrm8/regionService';
@@ -55,47 +56,54 @@ export function RegionToggler({ isExpanded = true }: RegionTogglerProps) {
 
 
   const selectedRegion = regions.find((r) => r.id === selectedRegionId);
+  const triggerLabel =
+    selectedRegionId === 'all' && isGlobalAdmin
+      ? 'All Regions'
+      : selectedRegion?.name || 'Select region';
 
   return (
-    <div className={cn(
-      "flex items-center gap-3 px-4 py-3 border-t border-sidebar-border/50 bg-sidebar-accent/5 rounded-lg mb-2 mx-1",
-      !isExpanded && "justify-center px-0 mx-0"
-    )}>
-      {isLoading ? (
-        <Loader2 className="h-5 w-5 flex-shrink-0 text-muted-foreground animate-spin" />
-      ) : (
-        <Globe className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
-      )}
-      {isExpanded && (
-        <Select value={selectedRegionId || 'all'} onValueChange={setSelectedRegion} disabled={isLoading}>
-          <SelectTrigger className="h-8 text-[13px] border-0 bg-transparent hover:bg-sidebar-accent/50 flex-1 px-1 focus:ring-0 focus:ring-offset-0">
-            {isLoading ? (
-              <span className="text-muted-foreground">Loading...</span>
-            ) : selectedRegionId === 'all' && isGlobalAdmin ? (
-              <span className="font-medium truncate">All Regions</span>
-            ) : selectedRegion ? (
-              <span className="font-medium truncate">{selectedRegion.name}</span>
-            ) : (
-              <span className="text-muted-foreground">Select...</span>
-            )}
-          </SelectTrigger>
-          <SelectContent>
-            {(isGlobalAdmin || hrm8User?.role === 'REGIONAL_LICENSEE') && (
-              <SelectItem value="all">
-                <div className="flex items-center gap-2">
-                  <Globe className="h-3.5 w-3.5" />
-                  <span>All Regions</span>
-                </div>
-              </SelectItem>
-            )}
-            {regions.map((region) => (
-              <SelectItem key={region.id} value={region.id}>
-                {region.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      )}
+    <div className={cn("mx-1 mb-2", !isExpanded && "mx-0")}>
+      <Select value={selectedRegionId || 'all'} onValueChange={setSelectedRegion} disabled={isLoading}>
+        <SelectTrigger
+          className={cn(
+            "h-11 w-full rounded-md border border-sidebar-border bg-sidebar px-3 text-[13px] shadow-none transition-colors hover:bg-sidebar-accent focus:ring-1 focus:ring-sidebar-ring focus:ring-offset-0 [&>svg]:text-muted-foreground",
+            !isExpanded && "h-9 w-9 justify-center border-0 bg-transparent p-0 hover:bg-sidebar-accent"
+          )}
+          aria-label="Select region"
+        >
+          {isExpanded ? (
+            <div className="flex min-w-0 items-center gap-2.5">
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
+              ) : (
+                <Globe className="h-4 w-4 shrink-0 text-muted-foreground" />
+              )}
+              <SelectValue>
+                <span className="truncate font-medium">{isLoading ? 'Loading...' : triggerLabel}</span>
+              </SelectValue>
+            </div>
+          ) : isLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          ) : (
+            <Globe className="h-4 w-4 text-muted-foreground" />
+          )}
+        </SelectTrigger>
+        <SelectContent>
+          {(isGlobalAdmin || hrm8User?.role === 'REGIONAL_LICENSEE') && (
+            <SelectItem value="all">
+              <div className="flex items-center gap-2">
+                <Globe className="h-3.5 w-3.5" />
+                <span>All Regions</span>
+              </div>
+            </SelectItem>
+          )}
+          {regions.map((region) => (
+            <SelectItem key={region.id} value={region.id}>
+              {region.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }

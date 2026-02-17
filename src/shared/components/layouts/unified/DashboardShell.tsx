@@ -67,22 +67,12 @@ export function DashboardShell({ config, auth, children }: DashboardShellProps) 
       return;
     }
 
-    const onKeyDown = (event: KeyboardEvent) => {
-      // Cmd+K (Mac) or Ctrl+K (Windows) to toggle AI panel
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        setIsAiPanelOpen((prev) => !prev);
-      }
-    };
-
     const onResize = () => {
       setWindowWidth(window.innerWidth);
     };
 
-    window.addEventListener("keydown", onKeyDown);
     window.addEventListener("resize", onResize);
     return () => {
-      window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("resize", onResize);
     };
   }, [aiEnabled]);
@@ -93,9 +83,6 @@ export function DashboardShell({ config, auth, children }: DashboardShellProps) 
       <UnifiedSidebar
         config={config.sidebar}
         auth={auth}
-        showAiToggle={aiEnabled}
-        isAiOpen={isAiPanelOpen}
-        onToggleAi={toggleAiPanel}
       />
       <SidebarInset className="flex-1 flex flex-col min-h-0 overflow-hidden">
         <UnifiedHeader

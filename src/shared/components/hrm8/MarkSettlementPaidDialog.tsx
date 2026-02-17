@@ -51,11 +51,37 @@ export function MarkSettlementPaidDialog({
       return;
     }
 
+    let paymentDateISO = paymentDate;
+    
+    // Validate and format date
+    const dateObj = new Date(paymentDate);
+    if (isNaN(dateObj.getTime())) {
+      // Try parsing DD/MM/YYYY manually if standard parsing fails
+      const parts = paymentDate.split('/');
+      if (parts.length === 3) {
+        // Assume DD/MM/YYYY
+        const [day, month, year] = parts;
+        const isoStr = `${year}-${month}-${day}`;
+        const builtDate = new Date(isoStr);
+        if (!isNaN(builtDate.getTime())) {
+          paymentDateISO = builtDate.toISOString();
+        } else {
+          setError("Invalid date format. Please check the payment date.");
+          return;
+        }
+      } else {
+        setError("Invalid date format. Please check the payment date.");
+        return;
+      }
+    } else {
+      paymentDateISO = dateObj.toISOString();
+    }
+
     setIsSubmitting(true);
 
     try {
       const response = await settlementService.markAsPaid(settlement.id, {
-        payment_date: paymentDate,
+        payment_date: paymentDateISO,
         payment_reference: reference,
       });
 

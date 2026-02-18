@@ -25,7 +25,10 @@ export function StripeConnectCard({ onStatusChange }: StripeConnectCardProps) {
             setLoading(true);
             const response = await salesService.getStripeStatus();
             if (response.success && response.data) {
-                setStatus(response.data);
+                setStatus({
+                    payoutEnabled: !!response.data.payoutEnabled || response.data.accountStatus === 'active',
+                    detailsSubmitted: !!response.data.detailsSubmitted || !!response.data.isConnected,
+                });
                 if (onStatusChange) onStatusChange();
             }
         } catch (error) {
@@ -55,8 +58,9 @@ export function StripeConnectCard({ onStatusChange }: StripeConnectCardProps) {
         try {
             setActionLoading(true);
             const response = await salesService.getStripeLoginLink();
-            if (response.success && response.data?.url) {
-                window.open(response.data.url, "_blank");
+            const url = response.data?.url || response.data?.loginLink;
+            if (response.success && url) {
+                window.open(url, "_blank");
             } else {
                 toast.error("Failed to get login link");
             }

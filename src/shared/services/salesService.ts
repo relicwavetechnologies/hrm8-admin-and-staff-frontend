@@ -255,11 +255,16 @@ export const salesService = {
   },
 
   getStripeStatus: async () => {
-    return await apiClient.get<{ payoutEnabled: boolean; detailsSubmitted: boolean }>('/api/sales/stripe/status');
+    return await apiClient.get<{
+      payoutEnabled?: boolean;
+      detailsSubmitted?: boolean;
+      isConnected?: boolean;
+      accountStatus?: string | null;
+    }>('/api/sales/stripe/status');
   },
 
   getStripeLoginLink: async () => {
-    return await apiClient.post<{ url: string }>('/api/sales/stripe/login-link');
+    return await apiClient.post<{ url?: string; loginLink?: string }>('/api/sales/stripe/login-link');
   },
 
   executeWithdrawal: async (id: string) => {

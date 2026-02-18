@@ -34,12 +34,12 @@ class CommissionService {
     commission_type?: string;
   }) {
     const queryParams = new URLSearchParams();
-    if (filters?.consultant_id) queryParams.append('consultant_id', filters.consultant_id);
-    if (filters?.region_id) queryParams.append('region_id', filters.region_id);
+    if (filters?.consultant_id) queryParams.append('consultantId', filters.consultant_id);
+    if (filters?.region_id) queryParams.append('regionId', filters.region_id);
     if (filters?.job_id) queryParams.append('job_id', filters.job_id);
     if (filters?.company_id) queryParams.append('company_id', filters.company_id);
     if (filters?.status) queryParams.append('status', filters.status);
-    if (filters?.commission_type) queryParams.append('commission_type', filters.commission_type);
+    if (filters?.commission_type) queryParams.append('commissionType', filters.commission_type);
 
     const query = queryParams.toString();
     return apiClient.get<{ commissions: Commission[] }>(`/api/hrm8/commissions${query ? `?${query}` : ''}`);
@@ -92,7 +92,7 @@ class CommissionService {
 
   async getRegional(regionId: string, status?: string) {
     const queryParams = new URLSearchParams();
-    queryParams.append('region_id', regionId);
+    queryParams.append('regionId', regionId);
     if (status) queryParams.append('status', status);
 
     return apiClient.get<{ commissions: Commission[] }>(`/api/hrm8/commissions/regional?${queryParams.toString()}`);
@@ -112,4 +112,3 @@ class CommissionService {
 }
 
 export const commissionService = new CommissionService();
-

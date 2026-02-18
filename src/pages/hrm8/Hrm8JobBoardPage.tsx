@@ -9,7 +9,7 @@ import { Card, CardContent } from '@/shared/components/ui/card';
 import { Input } from '@/shared/components/ui/input';
 import { Badge } from '@/shared/components/ui/badge';
 import { Skeleton } from '@/shared/components/ui/skeleton';
-import { Building2, Briefcase, Eye, MousePointerClick, Search, ArrowRight, Filter } from 'lucide-react';
+import { Building2, Briefcase, Eye, MousePointerClick, Search, Filter } from 'lucide-react';
 import { apiClient } from '@/shared/lib/apiClient';
 import { useRegionStore } from '@/shared/stores/useRegionStore';
 import { TablePagination } from '@/shared/components/tables/TablePagination';
@@ -37,7 +37,7 @@ interface PaginatedCompaniesResponse {
 
 export default function Hrm8JobBoardPage() {
     const navigate = useNavigate();
-    const { selectedRegionId } = useRegionStore();
+    const { selectedRegionId, regions } = useRegionStore();
 
     const [companies, setCompanies] = useState<CompanyJobStats[]>([]);
     const [loading, setLoading] = useState(true);
@@ -45,6 +45,14 @@ export default function Hrm8JobBoardPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [totalCompanies, setTotalCompanies] = useState(0);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            loadCompanies(1);
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     useEffect(() => {
         setCurrentPage(1); // Reset to first page when region changes
@@ -57,6 +65,11 @@ export default function Hrm8JobBoardPage() {
             const params = new URLSearchParams();
             params.append('page', page.toString());
             params.append('limit', size.toString());
+
+            // Add search query if present
+            if (searchQuery) {
+                params.append('search', searchQuery);
+            }
 
             // Add region filter if selected
             if (selectedRegionId) {
@@ -85,14 +98,8 @@ export default function Hrm8JobBoardPage() {
         }
     };
 
-    // Client-side filtering for search
-    const filteredCompanies = companies.filter(company =>
-        (company.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (company.domain || '').toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
     // Calculate stats only from current page companies
-    const totalStats = filteredCompanies.reduce(
+    const totalStats = companies.reduce(
         (acc, company) => ({
             totalJobs: acc.totalJobs + (company.total_jobs || 0),
             activeJobs: acc.activeJobs + (company.active_jobs || 0),
@@ -103,7 +110,7 @@ export default function Hrm8JobBoardPage() {
     );
 
     const totalPages = Math.ceil(totalCompanies / pageSize);
-    const selectedRegion = useRegionStore().regions.find(r => r.id === selectedRegionId);
+    const selectedRegion = (regions || []).find((r) => r.id === selectedRegionId);
 
     return (
         <Hrm8PageLayout
@@ -120,58 +127,58 @@ export default function Hrm8JobBoardPage() {
         >
             <div className="p-6 space-y-6">
                 {/* Summary Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     <Card>
-                        <CardContent className="pt-6">
+                        <CardContent className="p-4">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-primary/10 rounded-lg">
-                                    <Building2 className="h-5 w-5 text-primary" />
+                                <div className="p-1.5 bg-primary/10 rounded-lg">
+                                    <Building2 className="h-4 w-4 text-primary" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-muted-foreground">Companies</p>
-                                    <p className="text-2xl font-bold">{totalCompanies}</p>
+                                    <p className="text-xs text-muted-foreground">Companies</p>
+                                    <p className="text-xl font-bold">{totalCompanies}</p>
                                     {totalCompanies > pageSize && (
-                                        <p className="text-xs text-muted-foreground mt-1">Page: {currentPage}/{totalPages}</p>
+                                        <p className="text-[10px] text-muted-foreground mt-0.5">Page: {currentPage}/{totalPages}</p>
                                     )}
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
                     <Card>
-                        <CardContent className="pt-6">
+                        <CardContent className="p-4">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-green-500/10 rounded-lg">
-                                    <Briefcase className="h-5 w-5 text-green-500" />
+                                <div className="p-1.5 bg-green-500/10 rounded-lg">
+                                    <Briefcase className="h-4 w-4 text-green-500" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-muted-foreground">Active Jobs</p>
-                                    <p className="text-2xl font-bold">{totalStats.activeJobs}</p>
+                                    <p className="text-xs text-muted-foreground">Active Jobs</p>
+                                    <p className="text-xl font-bold">{totalStats.activeJobs}</p>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
                     <Card>
-                        <CardContent className="pt-6">
+                        <CardContent className="p-4">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-blue-500/10 rounded-lg">
-                                    <Eye className="h-5 w-5 text-blue-500" />
+                                <div className="p-1.5 bg-blue-500/10 rounded-lg">
+                                    <Eye className="h-4 w-4 text-blue-500" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-muted-foreground">Total Views</p>
-                                    <p className="text-2xl font-bold">{totalStats.totalViews.toLocaleString()}</p>
+                                    <p className="text-xs text-muted-foreground">Total Views</p>
+                                    <p className="text-xl font-bold">{totalStats.totalViews.toLocaleString()}</p>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
                     <Card>
-                        <CardContent className="pt-6">
+                        <CardContent className="p-4">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-amber-500/10 rounded-lg">
-                                    <MousePointerClick className="h-5 w-5 text-amber-500" />
+                                <div className="p-1.5 bg-amber-500/10 rounded-lg">
+                                    <MousePointerClick className="h-4 w-4 text-amber-500" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-muted-foreground">Total Clicks</p>
-                                    <p className="text-2xl font-bold">{totalStats.totalClicks.toLocaleString()}</p>
+                                    <p className="text-xs text-muted-foreground">Total Clicks</p>
+                                    <p className="text-xl font-bold">{totalStats.totalClicks.toLocaleString()}</p>
                                 </div>
                             </div>
                         </CardContent>
@@ -187,7 +194,11 @@ export default function Hrm8JobBoardPage() {
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="pl-10 max-w-sm"
                     />
-                    <p className="text-xs text-muted-foreground mt-2">Showing {filteredCompanies.length} of {companies.length} companies on this page</p>
+                    {!loading && searchQuery && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                            Found {totalCompanies} results for "{searchQuery}"
+                        </p>
+                    )}
                 </div>
 
                 {/* Companies Grid */}
@@ -208,55 +219,65 @@ export default function Hrm8JobBoardPage() {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {filteredCompanies.map((company) => (
+                        {companies.map((company) => (
                             <Card
                                 key={company.id}
-                                className="hover:shadow-md transition-shadow cursor-pointer group"
+                                className="group overflow-hidden hover:shadow-lg transition-values duration-200 cursor-pointer border-muted/60"
                                 onClick={() => navigate(`/hrm8/job-board/${company.id}`)}
                             >
-                                <CardContent className="pt-6">
-                                    <div className="flex items-start justify-between mb-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                                <CardContent className="p-5">
+                                    <div className="flex items-start justify-between mb-5">
+                                        <div className="flex min-w-0 flex-1 items-center gap-3.5">
+                                            <div className="h-12 w-12 bg-primary/5 border border-primary/10 rounded-xl flex items-center justify-center shrink-0">
                                                 {company.logo ? (
-                                                    <img src={company.logo} alt={company.name} className="h-8 w-8 rounded" />
+                                                    <img src={company.logo} alt={company.name} className="h-8 w-8 rounded-lg object-contain" />
                                                 ) : (
-                                                    <Building2 className="h-5 w-5 text-primary" />
+                                                    <Building2 className="h-6 w-6 text-primary/70" />
                                                 )}
                                             </div>
-                                            <div>
-                                                <h3 className="font-semibold">{company.name}</h3>
+                                            <div className="min-w-0 flex-1">
+                                                <h3 className="truncate pr-2 text-base font-semibold leading-tight" title={company.name}>{company.name}</h3>
                                                 {company.domain && (
-                                                    <p className="text-xs text-muted-foreground">{company.domain}</p>
+                                                    <p className="mt-1 max-w-full truncate text-xs text-muted-foreground transition-colors hover:text-primary" title={company.domain}>
+                                                        {company.domain}
+                                                    </p>
                                                 )}
                                             </div>
                                         </div>
-                                        <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4 mb-4">
-                                        <div>
-                                            <p className="text-xs text-muted-foreground">Active Jobs</p>
-                                            <p className="text-lg font-semibold">{company.active_jobs}</p>
+                                    <div className="grid grid-cols-2 gap-3 mb-5">
+                                        <div className="bg-muted/30 rounded-lg p-3 border border-muted/50">
+                                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-0.5">Active</p>
+                                            <div className="flex items-baseline gap-1">
+                                                <span className="text-xl font-bold text-foreground">{company.active_jobs}</span>
+                                                <span className="text-xs text-muted-foreground">jobs</span>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-xs text-muted-foreground">Total Jobs</p>
-                                            <p className="text-lg font-semibold">{company.total_jobs}</p>
+                                        <div className="bg-muted/30 rounded-lg p-3 border border-muted/50">
+                                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-0.5">Total</p>
+                                            <div className="flex items-baseline gap-1">
+                                                <span className="text-xl font-bold text-foreground">{company.total_jobs}</span>
+                                                <span className="text-xs text-muted-foreground">jobs</span>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                        <div className="flex items-center gap-1">
-                                            <Eye className="h-3.5 w-3.5" />
-                                            <span>{(company.total_views || 0).toLocaleString()}</span>
+                                    <div className="flex items-center justify-between text-xs text-muted-foreground border-t pt-3 mt-auto">
+                                        <div className="flex gap-4">
+                                            <div className="flex items-center gap-1.5 hover:text-foreground transition-colors">
+                                                <Eye className="h-3.5 w-3.5" />
+                                                <span className="font-medium">{(company.total_views || 0).toLocaleString()}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5 hover:text-foreground transition-colors">
+                                                <MousePointerClick className="h-3.5 w-3.5" />
+                                                <span className="font-medium">{(company.total_clicks || 0).toLocaleString()}</span>
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-1">
-                                            <MousePointerClick className="h-3.5 w-3.5" />
-                                            <span>{(company.total_clicks || 0).toLocaleString()}</span>
-                                        </div>
+
                                         {company.on_hold_jobs > 0 && (
-                                            <Badge variant="secondary" className="text-xs">
-                                                {company.on_hold_jobs} on hold
+                                            <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-normal bg-amber-500/10 text-amber-600 border-amber-500/20 hover:bg-amber-500/20">
+                                                {company.on_hold_jobs} hold
                                             </Badge>
                                         )}
                                     </div>
@@ -266,7 +287,7 @@ export default function Hrm8JobBoardPage() {
                     </div>
                 )}
 
-                {!loading && filteredCompanies.length === 0 && (
+                {!loading && companies.length === 0 && (
                     <Card>
                         <CardContent className="py-12 text-center">
                             <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />

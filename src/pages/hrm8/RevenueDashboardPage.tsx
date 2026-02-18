@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
-import { Loader2, DollarSign, TrendingUp, TrendingDown, Users, Calendar as CalendarIcon, RefreshCw } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, Users, Calendar as CalendarIcon, RefreshCw, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { revenueAnalyticsService, type DashboardData } from '@/shared/lib/hrm8/revenueAnalyticsService';
 import { format, subMonths } from 'date-fns';
@@ -22,6 +22,8 @@ import {
     Legend,
     ResponsiveContainer,
 } from 'recharts';
+import { Skeleton } from '@/shared/components/ui/skeleton';
+import { StaffProfileSheet } from './components/StaffProfileSheet';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
@@ -33,6 +35,16 @@ export default function RevenueDashboardPage() {
         start: subMonths(new Date(), 12),
         end: new Date(),
     });
+
+
+    // Consultant Sheet State
+    const [selectedConsultantId, setSelectedConsultantId] = useState<string | null>(null);
+    const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+    const handleConsultantClick = (id: string) => {
+        setSelectedConsultantId(id);
+        setIsSheetOpen(true);
+    };
 
     useEffect(() => {
         loadDashboard();
@@ -80,11 +92,62 @@ export default function RevenueDashboardPage() {
 
     if (loading) {
         return (
+            <div className="p-6 space-y-6">
+                {/* Header Skeleton */}
+                <div className="flex justify-between items-center">
+                    <div>
+                        <Skeleton className="h-8 w-48 mb-2" />
+                        <Skeleton className="h-4 w-64" />
+                    </div>
+                    <div className="flex gap-3">
+                        <Skeleton className="h-10 w-[140px]" />
+                        <Skeleton className="h-10 w-[140px]" />
+                        <Skeleton className="h-10 w-24" />
+                    </div>
+                </div>
 
-            <div className="flex items-center justify-center h-96">
-                <Loader2 className="h-8 w-8 animate-spin" />
+                {/* Summary Cards Skeleton */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {[...Array(4)].map((_, i) => (
+                        <Card key={i}>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <Skeleton className="h-4 w-24" />
+                                <Skeleton className="h-4 w-4 rounded-full" />
+                            </CardHeader>
+                            <CardContent>
+                                <Skeleton className="h-8 w-32 mb-1" />
+                                <Skeleton className="h-3 w-20" />
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+
+                {/* Charts Row Skeleton */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {[...Array(2)].map((_, i) => (
+                        <Card key={i}>
+                            <CardHeader>
+                                <Skeleton className="h-6 w-32 mb-2" />
+                                <Skeleton className="h-4 w-48" />
+                            </CardHeader>
+                            <CardContent>
+                                <Skeleton className="h-[300px] w-full rounded-md" />
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+
+                {/* Timeline Chart Skeleton */}
+                <Card>
+                    <CardHeader>
+                        <Skeleton className="h-6 w-32 mb-2" />
+                        <Skeleton className="h-4 w-48" />
+                    </CardHeader>
+                    <CardContent>
+                        <Skeleton className="h-[300px] w-full rounded-md" />
+                    </CardContent>
+                </Card>
             </div>
-
         );
     }
 
@@ -313,13 +376,17 @@ export default function RevenueDashboardPage() {
                     {top_consultants && top_consultants.length > 0 ? (
                         <div className="space-y-4">
                             {top_consultants.map((consultant, index) => (
-                                <div key={consultant.consultant_id} className="flex items-center justify-between">
+                                <div
+                                    key={consultant.consultant_id}
+                                    className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer group"
+                                    onClick={() => handleConsultantClick(consultant.consultant_id)}
+                                >
                                     <div className="flex items-center gap-3">
-                                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold">
+                                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                                             {index + 1}
                                         </div>
                                         <div>
-                                            <div className="font-medium">{consultant.name}</div>
+                                            <div className="font-medium group-hover:text-primary transition-colors">{consultant.name}</div>
                                             <div className="text-sm text-muted-foreground">
                                                 {consultant.region_name} • {consultant.commission_count} commissions
                                             </div>
@@ -336,7 +403,15 @@ export default function RevenueDashboardPage() {
                     )}
                 </CardContent>
             </Card>
-        </div>
+
+
+            {/* Staff Profile Sheet */}
+            <StaffProfileSheet
+                staffId={selectedConsultantId}
+                open={isSheetOpen}
+                onOpenChange={setIsSheetOpen}
+            />
+        </div >
 
     );
 }

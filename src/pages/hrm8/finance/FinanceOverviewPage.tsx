@@ -112,8 +112,6 @@ function FinanceStatCard({
     trend,
     trendValue,
     icon,
-    colorClass = 'text-primary',
-    bgClass = 'bg-primary/5',
     onClick,
 }: {
     title: string;
@@ -122,8 +120,6 @@ function FinanceStatCard({
     trend?: 'up' | 'down';
     trendValue?: string;
     icon: React.ReactNode;
-    colorClass?: string;
-    bgClass?: string;
     onClick?: () => void;
 }) {
     return (
@@ -138,7 +134,7 @@ function FinanceStatCard({
                 <div className="flex items-start justify-between">
                     <div className="flex-1">
                         <p className="text-sm font-medium text-muted-foreground mb-1">{title}</p>
-                        <h3 className="text-3xl font-bold tracking-tight mb-1">{value}</h3>
+                        <h3 className="text-2xl font-semibold tracking-tight mb-1">{value}</h3>
                         {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
                         {trendValue && (
                             <div
@@ -156,9 +152,7 @@ function FinanceStatCard({
                             </div>
                         )}
                     </div>
-                    <div className={cn('p-3 rounded-xl', bgClass)}>
-                        <div className={cn('h-6 w-6', colorClass)}>{icon}</div>
-                    </div>
+                    <div className="text-muted-foreground">{icon}</div>
                 </div>
             </CardContent>
         </Card>
@@ -170,12 +164,10 @@ function RevenueBar({
     label,
     amount,
     total,
-    color,
 }: {
     label: string;
     amount: number;
     total: number;
-    color: string;
 }) {
     const pct = total > 0 ? (amount / total) * 100 : 0;
     return (
@@ -184,9 +176,9 @@ function RevenueBar({
                 <span className="text-muted-foreground">{label}</span>
                 <span className="font-medium">{formatCurrency(amount)}</span>
             </div>
-            <div className="h-2 rounded-full bg-muted overflow-hidden">
+            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                 <div
-                    className={cn('h-full rounded-full transition-all duration-500', color)}
+                    className="h-full rounded-full transition-all duration-500 bg-foreground/20"
                     style={{ width: `${Math.max(pct, 2)}%` }}
                 />
             </div>
@@ -286,8 +278,6 @@ export default function FinanceOverviewPage() {
                     trend={overview.revenueGrowth >= 0 ? 'up' : 'down'}
                     trendValue={formatPercentage(overview.revenueGrowth)}
                     icon={<DollarSign className="h-6 w-6" />}
-                    colorClass="text-chart-1"
-                    bgClass="bg-chart-1/10"
                     onClick={() => navigate('/hrm8/finance/revenue')}
                 />
                 <FinanceStatCard
@@ -297,8 +287,6 @@ export default function FinanceOverviewPage() {
                     trend={overview.commissionsGrowth >= 0 ? 'up' : 'down'}
                     trendValue={formatPercentage(overview.commissionsGrowth)}
                     icon={<TrendingUp className="h-6 w-6" />}
-                    colorClass="text-chart-2"
-                    bgClass="bg-chart-2/10"
                     onClick={() => navigate('/hrm8/finance/commissions')}
                 />
                 <FinanceStatCard
@@ -306,8 +294,6 @@ export default function FinanceOverviewPage() {
                     value={formatCurrency(overview.netCashFlow)}
                     subtitle="Revenue minus payouts"
                     icon={<BarChart3 className="h-6 w-6" />}
-                    colorClass="text-chart-4"
-                    bgClass="bg-chart-4/10"
                     onClick={() => navigate('/hrm8/finance/revenue-analytics')}
                 />
                 <FinanceStatCard
@@ -315,8 +301,6 @@ export default function FinanceOverviewPage() {
                     value={formatCurrency(overview.projectedPayouts)}
                     subtitle="Pending items total"
                     icon={<Wallet className="h-6 w-6" />}
-                    colorClass="text-chart-3"
-                    bgClass="bg-chart-3/10"
                 />
             </div>
 
@@ -333,19 +317,16 @@ export default function FinanceOverviewPage() {
                             label="Subscriptions"
                             amount={overview.revenueBySource.subscriptions}
                             total={overview.totalRevenue}
-                            color="bg-chart-1"
                         />
                         <RevenueBar
                             label="Placements"
                             amount={overview.revenueBySource.placements}
                             total={overview.totalRevenue}
-                            color="bg-chart-2"
                         />
                         <RevenueBar
                             label="Other"
                             amount={overview.revenueBySource.other}
                             total={overview.totalRevenue}
-                            color="bg-chart-3"
                         />
                     </CardContent>
                 </Card>
@@ -361,13 +342,11 @@ export default function FinanceOverviewPage() {
                             label="Recruitment"
                             amount={overview.commissionsByType.recruitment}
                             total={overview.totalCommissions}
-                            color="bg-chart-2"
                         />
                         <RevenueBar
                             label="Sales"
                             amount={overview.commissionsByType.sales}
                             total={overview.totalCommissions}
-                            color="bg-chart-4"
                         />
                         <div className="pt-2 border-t">
                             <div className="flex items-center justify-between text-sm">
@@ -441,8 +420,8 @@ export default function FinanceOverviewPage() {
                     >
                         <CardContent className="p-5">
                             <div className="flex items-center gap-4">
-                                <div className="p-2.5 rounded-xl bg-chart-1/10">
-                                    <ArrowDownToLine className="h-5 w-5 text-chart-1" />
+                                <div className="text-muted-foreground">
+                                    <ArrowDownToLine className="h-5 w-5" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium text-muted-foreground">
@@ -468,8 +447,8 @@ export default function FinanceOverviewPage() {
                     >
                         <CardContent className="p-5">
                             <div className="flex items-center gap-4">
-                                <div className="p-2.5 rounded-xl bg-chart-3/10">
-                                    <RotateCcw className="h-5 w-5 text-chart-3" />
+                                <div className="text-muted-foreground">
+                                    <RotateCcw className="h-5 w-5" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium text-muted-foreground">
@@ -495,8 +474,8 @@ export default function FinanceOverviewPage() {
                     >
                         <CardContent className="p-5">
                             <div className="flex items-center gap-4">
-                                <div className="p-2.5 rounded-xl bg-chart-2/10">
-                                    <HandCoins className="h-5 w-5 text-chart-2" />
+                                <div className="text-muted-foreground">
+                                    <HandCoins className="h-5 w-5" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium text-muted-foreground">
@@ -562,8 +541,8 @@ export default function FinanceOverviewPage() {
                             onClick={() => navigate(item.path)}
                         >
                             <CardContent className="p-5 flex items-center gap-4">
-                                <div className={cn('p-2.5 rounded-xl', item.bg)}>
-                                    <div className={item.color}>{item.icon}</div>
+                                <div className="text-muted-foreground">
+                                    {item.icon}
                                 </div>
                                 <div>
                                     <p className="font-medium text-sm">{item.label}</p>

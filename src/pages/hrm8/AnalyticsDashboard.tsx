@@ -4,7 +4,6 @@ import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
 import { Skeleton } from '@/shared/components/ui/skeleton';
-import { Progress } from '@/shared/components/ui/progress';
 import { toast } from 'sonner';
 import { apiClient } from '@/shared/lib/api';
 import {
@@ -166,7 +165,7 @@ export default function AnalyticsDashboard() {
             {loading ? (
               <Skeleton className="h-8 w-24" />
             ) : (
-              <div className="text-3xl font-bold">{formatNumber(overview?.total_views || 0)}</div>
+              <div className="text-2xl font-medium">{formatNumber(overview?.total_views || 0)}</div>
             )}
           </CardContent>
         </Card>
@@ -181,7 +180,7 @@ export default function AnalyticsDashboard() {
             {loading ? (
               <Skeleton className="h-8 w-24" />
             ) : (
-              <div className="text-3xl font-bold">{formatNumber(overview?.total_clicks || 0)}</div>
+              <div className="text-2xl font-medium">{formatNumber(overview?.total_clicks || 0)}</div>
             )}
           </CardContent>
         </Card>
@@ -196,7 +195,7 @@ export default function AnalyticsDashboard() {
             {loading ? (
               <Skeleton className="h-8 w-24" />
             ) : (
-              <div className="text-3xl font-bold">{formatNumber(overview?.total_applications || 0)}</div>
+              <div className="text-2xl font-medium">{formatNumber(overview?.total_applications || 0)}</div>
             )}
           </CardContent>
         </Card>
@@ -211,7 +210,7 @@ export default function AnalyticsDashboard() {
             {loading ? (
               <Skeleton className="h-8 w-24" />
             ) : (
-              <div className="text-3xl font-bold">
+              <div className="text-2xl font-medium">
                 {overview?.active_jobs || 0}
                 <span className="text-sm font-normal text-muted-foreground ml-2">
                   / {overview?.total_jobs || 0}
@@ -223,47 +222,75 @@ export default function AnalyticsDashboard() {
       </div>
 
       {/* Conversion Rates */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <div>
+        <div className="mb-4">
+          <h2 className="text-lg font-medium flex items-center gap-2">
             <TrendingUp className="h-5 w-5" /> Conversion Rates
-          </CardTitle>
-          <CardDescription>Funnel performance metrics</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-8 w-full" />
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-6">
-              <div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-sm font-medium">View → Click</span>
-                  <span className="text-sm font-bold">{overview?.conversion_rates?.view_to_click || 0}%</span>
+          </h2>
+          <p className="text-sm text-muted-foreground">Funnel performance metrics</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* View to Click */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardDescription className="text-xs uppercase tracking-wide">View → Click</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <Skeleton className="h-10 w-20" />
+              ) : (
+                <div className="space-y-1">
+                  <div className="text-2xl font-medium flex items-baseline gap-1">
+                    {(overview?.conversion_rates?.view_to_click || 0).toFixed(1)}
+                    <span className="text-lg text-muted-foreground">%</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">of views become clicks</p>
                 </div>
-                <Progress value={overview?.conversion_rates?.view_to_click || 0} className="h-2" />
-              </div>
-              <div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-sm font-medium">Click → Apply</span>
-                  <span className="text-sm font-bold">{overview?.conversion_rates?.click_to_apply || 0}%</span>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Click to Apply */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardDescription className="text-xs uppercase tracking-wide">Click → Apply</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <Skeleton className="h-10 w-20" />
+              ) : (
+                <div className="space-y-1">
+                  <div className="text-2xl font-medium flex items-baseline gap-1">
+                    {(overview?.conversion_rates?.click_to_apply || 0).toFixed(1)}
+                    <span className="text-lg text-muted-foreground">%</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">of clicks become applies</p>
                 </div>
-                <Progress value={overview?.conversion_rates?.click_to_apply || 0} className="h-2" />
-              </div>
-              <div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-sm font-medium">View → Apply</span>
-                  <span className="text-sm font-bold">{overview?.conversion_rates?.view_to_apply || 0}%</span>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* View to Apply */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardDescription className="text-xs uppercase tracking-wide">View → Apply</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <Skeleton className="h-10 w-20" />
+              ) : (
+                <div className="space-y-1">
+                  <div className="text-2xl font-medium flex items-baseline gap-1">
+                    {(overview?.conversion_rates?.view_to_apply || 0).toFixed(1)}
+                    <span className="text-lg text-muted-foreground">%</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">overall conversion rate</p>
                 </div>
-                <Progress value={overview?.conversion_rates?.view_to_apply || 0} className="h-2" />
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Source Breakdown */}
@@ -328,7 +355,7 @@ export default function AnalyticsDashboard() {
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground">
-                        {company.total_jobs ?? 0} jobs • {formatNumber(company.total_views ?? 0)} views
+                          {company.total_jobs ?? 0} jobs • {formatNumber(company.total_views ?? 0)} views
                         </p>
                       </div>
                     </div>

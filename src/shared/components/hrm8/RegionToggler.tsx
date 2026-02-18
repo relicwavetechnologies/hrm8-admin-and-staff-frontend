@@ -66,8 +66,8 @@ export function RegionToggler({ isExpanded = true }: RegionTogglerProps) {
       <Select value={selectedRegionId || 'all'} onValueChange={setSelectedRegion} disabled={isLoading}>
         <SelectTrigger
           className={cn(
-            "h-11 w-full rounded-md border border-sidebar-border bg-sidebar px-3 text-[13px] shadow-none transition-colors hover:bg-sidebar-accent focus:ring-1 focus:ring-sidebar-ring focus:ring-offset-0 [&>svg]:text-muted-foreground",
-            !isExpanded && "h-9 w-9 justify-center border-0 bg-transparent p-0 hover:bg-sidebar-accent"
+            "h-11 w-full rounded-md text-[13px] shadow-none transition-colors hover:bg-sidebar-accent [&>svg]:text-muted-foreground",
+            !isExpanded && "h-9 w-9 justify-center p-0 hover:bg-sidebar-accent"
           )}
           aria-label="Select region"
         >

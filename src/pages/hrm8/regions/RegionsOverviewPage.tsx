@@ -17,6 +17,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { RegionProfileSheet } from '../components/RegionProfileSheet';
 
 const OWNERSHIP_COLORS: Record<string, string> = {
   HRM8: '#6366f1',
@@ -73,6 +74,8 @@ function RegionsOverviewSkeleton() {
 export default function RegionsOverviewPage() {
   const [loading, setLoading] = useState(true);
   const [overview, setOverview] = useState<RegionsOverviewData | null>(null);
+  const [profileSheetOpen, setProfileSheetOpen] = useState(false);
+  const [selectedRegionId, setSelectedRegionId] = useState<string | null>(null);
 
   useEffect(() => {
     const loadOverview = async () => {
@@ -102,6 +105,11 @@ export default function RegionsOverviewPage() {
       currency: 'USD',
       maximumFractionDigits: 0,
     }).format(value || 0);
+
+  const handleViewProfile = (regionId: string) => {
+    setSelectedRegionId(regionId);
+    setProfileSheetOpen(true);
+  };
 
   const ownershipData = useMemo(() => {
     if (!overview) return [];
@@ -224,28 +232,44 @@ export default function RegionsOverviewPage() {
             <p className="text-sm text-muted-foreground">No regional metrics available yet.</p>
           )}
           {overview.top_regions.map((region) => (
-            <div key={region.id} className="flex items-center justify-between rounded-md border p-3">
-              <div>
+            <div
+              key={region.id}
+              className="group flex items-center justify-between py-3 border-b last:border-0 cursor-pointer hover:bg-muted/30 transition-colors -mx-2 px-2 rounded-sm"
+              onClick={() => handleViewProfile(region.id)}
+            >
+              <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <p className="font-medium">{region.name}</p>
-                  <Badge variant={region.owner_type === 'LICENSEE' ? 'default' : 'secondary'}>
+                  <p className="font-medium text-sm text-foreground/90 group-hover:text-primary transition-colors">{region.name}</p>
+                  <Badge variant={region.owner_type === 'LICENSEE' ? 'default' : 'secondary'} className="text-[10px] h-4 px-1.5 font-normal">
                     {region.owner_type}
                   </Badge>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {region.country} • {region.companies} companies • {region.open_jobs} open jobs • {region.active_consultants} active consultants
-                </p>
+                <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                  <span className="font-medium text-foreground/70">{region.country}</span>
+                  <span>•</span>
+                  <span>{region.companies} companies</span>
+                  <span>•</span>
+                  <span>{region.open_jobs} jobs</span>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="font-semibold">{formatCurrency(region.total_revenue)}</p>
-                <p className="text-xs text-muted-foreground">
-                  Licensee {formatCurrency(region.licensee_share)} • HRM8 {formatCurrency(region.hrm8_share)}
-                </p>
+              <div className="text-right space-y-0.5">
+                <p className="font-semibold text-sm">{formatCurrency(region.total_revenue)}</p>
+                <div className="flex items-center justify-end gap-2 text-[10px] text-muted-foreground">
+                  <span>Lic. {formatCurrency(region.licensee_share)}</span>
+                  <span className="w-px h-2 bg-border"></span>
+                  <span>HRM8 {formatCurrency(region.hrm8_share)}</span>
+                </div>
               </div>
             </div>
           ))}
         </CardContent>
       </Card>
+
+      <RegionProfileSheet
+        regionId={selectedRegionId}
+        open={profileSheetOpen}
+        onOpenChange={setProfileSheetOpen}
+      />
     </div>
   );
 }

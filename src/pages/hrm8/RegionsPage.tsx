@@ -6,6 +6,7 @@ import { AuditHistoryDrawer } from '@/shared/components/hrm8/AuditHistoryDrawer'
 import { Plus, Edit, Trash2, MoreVertical, Link2, ArrowRightLeft, History } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { toast } from 'sonner';
+import { cn } from '@/shared/lib/utils';
 import { FormDrawer } from '@/shared/components/ui/form-drawer';
 import { RegionForm } from '@/shared/components/hrm8/RegionForm';
 import { DeleteConfirmationDialog } from '@/shared/components/ui/delete-confirmation-dialog';
@@ -15,6 +16,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Badge } from '@/shared/components/ui/badge';
 import { TableSkeleton } from '@/shared/components/tables/TableSkeleton';
 import { useHrm8Auth } from '@/contexts/Hrm8AuthContext';
+import { RegionProfileSheet } from './components/RegionProfileSheet';
 
 const createColumns = (
   onEdit: (region: Region) => void,
@@ -22,6 +24,7 @@ const createColumns = (
   onAssignLicensee: (region: Region) => void,
   onTransfer: (region: Region) => void,
   onViewHistory: (region: Region) => void,
+  onViewProfile: (region: Region) => void,
   canManageRegions: boolean
 ) => [
     {
@@ -43,9 +46,17 @@ const createColumns = (
       key: 'ownerType',
       label: 'Owner',
       render: (region: Region) => (
-        <span className={region.ownerType === 'HRM8' ? 'text-blue-600' : 'text-purple-600'}>
+        <Badge
+          variant="outline"
+          className={cn(
+            "text-[10px] h-5 px-1.5 font-normal border-opacity-50",
+            region.ownerType === 'HRM8'
+              ? 'border-primary/50 text-primary bg-primary/5'
+              : 'border-purple-500/50 text-purple-600 bg-purple-500/5'
+          )}
+        >
           {region.ownerType}
-        </span>
+        </Badge>
       ),
     },
     {
@@ -69,7 +80,10 @@ const createColumns = (
       key: 'isActive',
       label: 'Status',
       render: (region: Region) => (
-        <Badge variant={region.isActive ? 'default' : 'secondary'}>
+        <Badge
+          variant={region.isActive ? 'default' : 'secondary'}
+          className="text-[10px] h-5 px-1.5 font-normal"
+        >
           {region.isActive ? 'Active' : 'Inactive'}
         </Badge>
       ),
@@ -80,6 +94,14 @@ const createColumns = (
       width: '100px',
       render: (region: Region) => (
         <div onClick={(e) => e.stopPropagation()} className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            title="View Profile"
+            onClick={() => onViewProfile(region)}
+          >
+            <ArrowRightLeft className="h-4 w-4 rotate-45" />
+          </Button>
           <Button
             variant="ghost"
             size="sm"
@@ -99,6 +121,10 @@ const createColumns = (
                 <DropdownMenuItem onClick={() => onEdit(region)}>
                   <Edit className="h-4 w-4 mr-2" />
                   Edit Region
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onViewProfile(region)}>
+                  <ArrowRightLeft className="h-4 w-4 mr-2" />
+                  View Analytics
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onAssignLicensee(region)}>
                   {region.licensee ? (
@@ -151,6 +177,10 @@ export default function RegionsPage() {
   const [regionForTransfer, setRegionForTransfer] = useState<Region | null>(null);
   const [historyDrawerOpen, setHistoryDrawerOpen] = useState(false);
   const [historyRegion, setHistoryRegion] = useState<Region | null>(null);
+
+  // Profile Sheet State
+  const [profileSheetOpen, setProfileSheetOpen] = useState(false);
+  const [selectedRegionId, setSelectedRegionId] = useState<string | null>(null);
 
   useEffect(() => {
     loadRegions();
@@ -228,6 +258,11 @@ export default function RegionsPage() {
     await loadRegions();
   };
 
+  const handleViewProfile = (region: Region) => {
+    setSelectedRegionId(region.id);
+    setProfileSheetOpen(true);
+  };
+
   const columns = createColumns(
     handleEdit,
     handleDelete,
@@ -237,6 +272,7 @@ export default function RegionsPage() {
       setHistoryRegion(region);
       setHistoryDrawerOpen(true);
     },
+    handleViewProfile,
     canManageRegions
   );
 
@@ -271,6 +307,7 @@ export default function RegionsPage() {
               searchable
               searchKeys={['code', 'name', 'country']}
               emptyMessage="No regions found"
+              onRowClick={handleViewProfile}
             />
           )}
         </CardContent>
@@ -319,6 +356,12 @@ export default function RegionsPage() {
         entityType="REGION"
         entityId={historyRegion?.id || ''}
         entityName={historyRegion?.name || ''}
+      />
+
+      <RegionProfileSheet
+        regionId={selectedRegionId}
+        open={profileSheetOpen}
+        onOpenChange={setProfileSheetOpen}
       />
     </div>
 

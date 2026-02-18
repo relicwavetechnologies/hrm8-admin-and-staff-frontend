@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useHrm8Auth } from '@/contexts/Hrm8AuthContext';
 import { staffService, StaffMember } from '@/shared/lib/hrm8/staffService';
 import { DataTable, Column } from '@/shared/components/tables/DataTable';
@@ -18,16 +17,20 @@ import { ChangeRoleDialog } from '@/shared/components/hrm8/ChangeRoleDialog';
 import { DeleteStaffDialog } from '@/shared/components/hrm8/DeleteStaffDialog';
 import { useRegionStore } from '@/shared/stores/useRegionStore';
 import { ReassignAssetsDialog } from '@/shared/components/hrm8/ReassignAssetsDialog';
+import { StaffProfileSheet } from './components/StaffProfileSheet';
 
 
 export default function StaffPage() {
-  const navigate = useNavigate();
   const { hrm8User } = useHrm8Auth();
   const { selectedRegionId } = useRegionStore();
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingStaffId, setEditingStaffId] = useState<string | null>(null);
+
+  // Profile Sheet State
+  const [profileSheetOpen, setProfileSheetOpen] = useState(false);
+  const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
 
   // Dialog states
   const [suspendDialogOpen, setSuspendDialogOpen] = useState(false);
@@ -114,7 +117,8 @@ export default function StaffPage() {
   };
 
   const handleRowClick = (staff: StaffMember) => {
-    navigate(`/hrm8/staff/${staff.id}`);
+    setSelectedStaffId(staff.id);
+    setProfileSheetOpen(true);
   };
 
   const columns: Column<StaffMember>[] = [
@@ -161,97 +165,104 @@ export default function StaffPage() {
   ];
 
   return (
-    
-      <div className="px-2 py-1 md:px-3 space-y-4">
-        <div className="flex justify-between items-start md:items-center gap-3">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Staff Members</h1>
-            <p className="text-muted-foreground">Manage consultants and sales agents.</p>
-          </div>
-          {canCreate && (
-            <Button onClick={handleCreate}>
-              <Plus className="mr-2 h-4 w-4" />
-              Create Staff
-            </Button>
-          )}
+
+    <div className="px-2 py-1 md:px-3 space-y-4">
+      <div className="flex justify-between items-start md:items-center gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Staff Members</h1>
+          <p className="text-muted-foreground">Manage consultants and sales agents.</p>
         </div>
-
-        <Card>
-          <CardContent className="overflow-visible p-3 sm:p-4">
-            {loading ? (
-              <TableSkeleton columns={5} />
-            ) : (
-              <div className="overflow-visible">
-                <DataTable
-                  data={staffList}
-                  columns={columns}
-                  searchable
-                  searchKeys={['firstName', 'lastName', 'email']}
-                  emptyMessage="No staff members found"
-                  onRowClick={handleRowClick}
-                />
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Create/Edit Drawer */}
         {canCreate && (
-          <FormDrawer
-            open={drawerOpen}
-            onOpenChange={setDrawerOpen}
-            title={editingStaffId ? 'Edit Staff Member' : 'Create Staff Member'}
-          >
-            <StaffForm
-              consultantId={editingStaffId}
-              onSave={handleSave}
-              onCancel={() => {
-                setDrawerOpen(false);
-                setEditingStaffId(null);
-              }}
-            />
-          </FormDrawer>
+          <Button onClick={handleCreate}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create Staff
+          </Button>
         )}
-
-        {/* Suspend Dialog */}
-        <SuspendStaffDialog
-          staff={selectedStaff}
-          open={suspendDialogOpen}
-          onOpenChange={setSuspendDialogOpen}
-          onSuccess={handleDialogSuccess}
-        />
-
-        {/* Reactivate Dialog */}
-        <ReactivateStaffDialog
-          staff={selectedStaff}
-          open={reactivateDialogOpen}
-          onOpenChange={setReactivateDialogOpen}
-          onSuccess={handleDialogSuccess}
-        />
-
-        {/* Change Role Dialog */}
-        <ChangeRoleDialog
-          staff={selectedStaff}
-          open={changeRoleDialogOpen}
-          onOpenChange={setChangeRoleDialogOpen}
-          onSuccess={handleDialogSuccess}
-        />
-
-        <ReassignAssetsDialog
-          staff={selectedStaff}
-          open={reassignDialogOpen}
-          onOpenChange={setReassignDialogOpen}
-          onSuccess={handleDialogSuccess}
-        />
-
-        {/* Delete Dialog */}
-        <DeleteStaffDialog
-          staff={selectedStaff}
-          open={deleteDialogOpen}
-          onOpenChange={setDeleteDialogOpen}
-          onSuccess={handleDialogSuccess}
-        />
       </div>
-    
+
+      <Card>
+        <CardContent className="overflow-visible p-3 sm:p-4">
+          {loading ? (
+            <TableSkeleton columns={5} />
+          ) : (
+            <div className="overflow-visible">
+              <DataTable
+                data={staffList}
+                columns={columns}
+                searchable
+                searchKeys={['firstName', 'lastName', 'email']}
+                emptyMessage="No staff members found"
+                onRowClick={handleRowClick}
+              />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Create/Edit Drawer */}
+      {canCreate && (
+        <FormDrawer
+          open={drawerOpen}
+          onOpenChange={setDrawerOpen}
+          title={editingStaffId ? 'Edit Staff Member' : 'Create Staff Member'}
+        >
+          <StaffForm
+            consultantId={editingStaffId}
+            onSave={handleSave}
+            onCancel={() => {
+              setDrawerOpen(false);
+              setEditingStaffId(null);
+            }}
+          />
+        </FormDrawer>
+      )}
+
+      {/* Suspend Dialog */}
+      <SuspendStaffDialog
+        staff={selectedStaff}
+        open={suspendDialogOpen}
+        onOpenChange={setSuspendDialogOpen}
+        onSuccess={handleDialogSuccess}
+      />
+
+      {/* Reactivate Dialog */}
+      <ReactivateStaffDialog
+        staff={selectedStaff}
+        open={reactivateDialogOpen}
+        onOpenChange={setReactivateDialogOpen}
+        onSuccess={handleDialogSuccess}
+      />
+
+      {/* Change Role Dialog */}
+      <ChangeRoleDialog
+        staff={selectedStaff}
+        open={changeRoleDialogOpen}
+        onOpenChange={setChangeRoleDialogOpen}
+        onSuccess={handleDialogSuccess}
+      />
+
+      <ReassignAssetsDialog
+        staff={selectedStaff}
+        open={reassignDialogOpen}
+        onOpenChange={setReassignDialogOpen}
+        onSuccess={handleDialogSuccess}
+      />
+
+      {/* Delete Dialog */}
+      <DeleteStaffDialog
+        staff={selectedStaff}
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onSuccess={handleDialogSuccess}
+      />
+
+      {/* Unified Profile Sheet */}
+      <StaffProfileSheet
+        staffId={selectedStaffId}
+        open={profileSheetOpen}
+        onOpenChange={setProfileSheetOpen}
+      />
+    </div>
+
   );
 }

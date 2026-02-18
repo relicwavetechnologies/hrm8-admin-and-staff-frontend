@@ -37,11 +37,12 @@ import {
 } from '@/shared/components/ui/command';
 import { regionalSalesService, RegionalOpportunity, RegionalPipelineStats } from '@/shared/services/hrm8/regionalSalesService';
 import { formatCurrency } from '@/shared/lib/utils';
-import { Loader2, TrendingUp, Users, DollarSign, Activity, Target, Check, ChevronsUpDown } from 'lucide-react';
+import { TrendingUp, Users, DollarSign, Activity, Target, Check, ChevronsUpDown } from 'lucide-react';
 import { useHrm8Auth } from '@/contexts/Hrm8AuthContext';
 import { useRegionStore } from '@/shared/stores/useRegionStore';
 import { cn } from '@/shared/lib/utils';
 import { DashboardStatCard } from '@/shared/components/dashboard/DashboardStatCard';
+import { Skeleton } from '@/shared/components/ui/skeleton';
 
 // Pipeline Stages Color Map
 const STAGE_COLORS: Record<string, string> = {
@@ -115,12 +116,12 @@ export default function RegionalSalesDashboard() {
 
       const fetchOppsPromise = regionalSalesService.getOpportunities(regionId, filters)
         .then(data => {
-            console.log('Opportunities fetched:', data);
-            setOpportunities(data || []);
+          console.log('Opportunities fetched:', data);
+          setOpportunities(data || []);
         })
         .catch(err => {
-            console.error('Failed to fetch opportunities:', err);
-            setOpportunities([]);
+          console.error('Failed to fetch opportunities:', err);
+          setOpportunities([]);
         });
 
       await Promise.allSettled([fetchStatsPromise, fetchOppsPromise]);
@@ -168,8 +169,68 @@ export default function RegionalSalesDashboard() {
 
   if (loading && !stats) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="space-y-6 p-6">
+        {/* Header Skeleton */}
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <Skeleton className="h-9 w-64 mb-2" />
+              <Skeleton className="h-5 w-96" />
+            </div>
+            <Skeleton className="h-10 w-24" />
+          </div>
+          <Skeleton className="h-14 w-full md:w-[280px]" />
+        </div>
+
+        {/* KPI Cards Skeleton */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-8 w-32" />
+                    <Skeleton className="h-3 w-40" />
+                  </div>
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Charts & Tables Skeleton */}
+        <div className="grid gap-4 md:grid-cols-7">
+          <Card className="col-span-4">
+            <CardHeader>
+              <Skeleton className="h-6 w-48 mb-2" />
+              <Skeleton className="h-4 w-64" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-[300px] w-full" />
+            </CardContent>
+          </Card>
+          <Card className="col-span-3">
+            <CardHeader>
+              <Skeleton className="h-6 w-48 mb-2" />
+              <Skeleton className="h-4 w-64" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="flex justify-between">
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-40" />
+                      <Skeleton className="h-3 w-32" />
+                    </div>
+                    <Skeleton className="h-8 w-16" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -188,7 +249,7 @@ export default function RegionalSalesDashboard() {
 
           <div className="flex items-center gap-2">
             {regions.length === 0 && !loading && (
-               <div className="text-sm text-amber-600 font-medium mr-2">No regions found. Use the sidebar to select a region.</div>
+              <div className="text-sm text-amber-600 font-medium mr-2">No regions found. Use the sidebar to select a region.</div>
             )}
             <Button
               variant="outline"
@@ -379,7 +440,7 @@ export default function RegionalSalesDashboard() {
                         const count = props?.payload?.count ?? 0;
                         return [formatCurrency(value), `${count} deal${count !== 1 ? 's' : ''}`];
                       }}
-                      cursor={{fill: 'rgba(0, 0, 0, 0.05)'}}
+                      cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
                       contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
                     />
                     <Bar dataKey="value" radius={[8, 8, 0, 0]}>
@@ -457,90 +518,90 @@ export default function RegionalSalesDashboard() {
         )}
         <Card className="shadow-sm">
           <CardHeader className="border-b">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>All Opportunities</CardTitle>
-              <CardDescription className="mt-1">
-                Complete list of {opportunities.length} opportunit{opportunities.length !== 1 ? 'ies' : 'y'} in the pipeline
-              </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>All Opportunities</CardTitle>
+                <CardDescription className="mt-1">
+                  Complete list of {opportunities.length} opportunit{opportunities.length !== 1 ? 'ies' : 'y'} in the pipeline
+                </CardDescription>
+              </div>
+              {opportunities.length > 0 && (
+                <Badge variant="secondary" className="text-xs">
+                  {opportunities.length} Total
+                </Badge>
+              )}
             </div>
-            {opportunities.length > 0 && (
-              <Badge variant="secondary" className="text-xs">
-                {opportunities.length} Total
-              </Badge>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Opportunity Name</TableHead>
-                  <TableHead className="font-semibold">Company</TableHead>
-                  <TableHead className="font-semibold">Sales Agent</TableHead>
-                  <TableHead className="font-semibold">Stage</TableHead>
-                  <TableHead className="font-semibold">Probability</TableHead>
-                  <TableHead className="text-right font-semibold">Amount</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {opportunities.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center h-32">
-                      <div className="flex flex-col items-center justify-center">
-                        <div className="rounded-full bg-muted w-12 h-12 flex items-center justify-center mb-3">
-                          <Activity className="h-6 w-6 text-muted-foreground" />
-                        </div>
-                        <p className="text-sm text-muted-foreground font-medium">No opportunities found</p>
-                        <p className="text-xs text-muted-foreground mt-1">Try adjusting your filters or selecting a different region.</p>
-                      </div>
-                    </TableCell>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="font-semibold">Opportunity Name</TableHead>
+                    <TableHead className="font-semibold">Company</TableHead>
+                    <TableHead className="font-semibold">Sales Agent</TableHead>
+                    <TableHead className="font-semibold">Stage</TableHead>
+                    <TableHead className="font-semibold">Probability</TableHead>
+                    <TableHead className="text-right font-semibold">Amount</TableHead>
                   </TableRow>
-                ) : (
-                  opportunities.map((opp) => (
-                    <TableRow key={opp.id} className="hover:bg-muted/50 transition-colors">
-                      <TableCell className="font-medium">{opp.name}</TableCell>
-                      <TableCell>{opp.company?.name}</TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {opp.sales_agent?.first_name} {opp.sales_agent?.last_name}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          style={{
-                            backgroundColor: STAGE_COLORS[opp.stage] + '15',
-                            color: STAGE_COLORS[opp.stage],
-                            borderColor: STAGE_COLORS[opp.stage] + '40'
-                          }}
-                          variant="outline"
-                          className="font-medium"
-                        >
-                          {(opp.stage || '').replace('_', ' ')}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className="flex-1 bg-muted rounded-full h-1.5 w-12">
-                            <div
-                              className="h-full rounded-full transition-all"
-                              style={{
-                                width: `${opp.probability}%`,
-                                backgroundColor: STAGE_COLORS[opp.stage]
-                              }}
-                            />
+                </TableHeader>
+                <TableBody>
+                  {opportunities.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center h-32">
+                        <div className="flex flex-col items-center justify-center">
+                          <div className="rounded-full bg-muted w-12 h-12 flex items-center justify-center mb-3">
+                            <Activity className="h-6 w-6 text-muted-foreground" />
                           </div>
-                          <span className="text-xs font-medium w-8 text-right">{opp.probability}%</span>
+                          <p className="text-sm text-muted-foreground font-medium">No opportunities found</p>
+                          <p className="text-xs text-muted-foreground mt-1">Try adjusting your filters or selecting a different region.</p>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right font-semibold">{formatCurrency(opp.amount || 0)}</TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                  ) : (
+                    opportunities.map((opp) => (
+                      <TableRow key={opp.id} className="hover:bg-muted/50 transition-colors">
+                        <TableCell className="font-medium">{opp.name}</TableCell>
+                        <TableCell>{opp.company?.name}</TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {opp.sales_agent?.first_name} {opp.sales_agent?.last_name}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            style={{
+                              backgroundColor: STAGE_COLORS[opp.stage] + '15',
+                              color: STAGE_COLORS[opp.stage],
+                              borderColor: STAGE_COLORS[opp.stage] + '40'
+                            }}
+                            variant="outline"
+                            className="font-medium"
+                          >
+                            {(opp.stage || '').replace('_', ' ')}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 bg-muted rounded-full h-1.5 w-12">
+                              <div
+                                className="h-full rounded-full transition-all"
+                                style={{
+                                  width: `${opp.probability}%`,
+                                  backgroundColor: STAGE_COLORS[opp.stage]
+                                }}
+                              />
+                            </div>
+                            <span className="text-xs font-medium w-8 text-right">{opp.probability}%</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right font-semibold">{formatCurrency(opp.amount || 0)}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

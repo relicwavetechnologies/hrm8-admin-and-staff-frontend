@@ -44,7 +44,7 @@ const columns = [
     key: 'hrm8_share',
     label: 'HRM8 Share',
     render: (revenue: RegionalRevenue) => (
-      <span className="text-blue-600 font-medium">${(revenue.hrm8_share || 0).toLocaleString()}</span>
+      <span className="text-primary font-medium">${(revenue.hrm8_share || 0).toLocaleString()}</span>
     ),
   },
   {
@@ -60,7 +60,7 @@ const columns = [
     render: (revenue: RegionalRevenue) => {
       const statusConfig = {
         PENDING: { color: 'text-yellow-600', bg: 'bg-yellow-50' },
-        CONFIRMED: { color: 'text-blue-600', bg: 'bg-blue-50' },
+        CONFIRMED: { color: 'text-primary', bg: 'bg-primary/10' },
         PAID: { color: 'text-green-600', bg: 'bg-green-50' },
       };
       const config = statusConfig[revenue.status] || statusConfig.PENDING;
@@ -145,106 +145,106 @@ export default function RevenuePage() {
 
   return (
     <div className="p-6 space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-             <div>
-                <h1 className="text-2xl font-bold tracking-tight">Revenue Tracking</h1>
-                <p className="text-muted-foreground">Track regional revenue and shares</p>
-             </div>
-             <div className="flex items-center gap-2">
-              {activeTab === 'overview' && (
-                <>
-                  <Label>Filter by Status:</Label>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-32 lg:w-40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All</SelectItem>
-                      <SelectItem value="PENDING">Pending</SelectItem>
-                      <SelectItem value="CONFIRMED">Confirmed</SelectItem>
-                      <SelectItem value="PAID">Paid</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </>
-              )}
-            </div>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Revenue Tracking</h1>
+          <p className="text-muted-foreground">Track regional revenue and shares</p>
         </div>
-
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <DashboardStatCard
-            title="Total Revenue"
-            value={formatCurrency(totalRevenue)}
-            icon={<DollarSign className="h-6 w-6" />}
-            variant="primary"
-            description="Overall"
-          />
-
-          <DashboardStatCard
-            title="HRM8 Share"
-            value={formatCurrency(totalHRM8Share)}
-            icon={<TrendingUp className="h-6 w-6" />}
-            variant="primary"
-            description="Total"
-          />
-
-          <DashboardStatCard
-            title="Licensee Share"
-            value={formatCurrency(totalLicenseeShare)}
-            icon={<CheckCircle className="h-6 w-6" />}
-            variant="success"
-            description="Total"
-          />
+        <div className="flex items-center gap-2">
+          {activeTab === 'overview' && (
+            <>
+              <Label>Filter by Status:</Label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-32 lg:w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="PENDING">Pending</SelectItem>
+                  <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+                  <SelectItem value="PAID">Paid</SelectItem>
+                </SelectContent>
+              </Select>
+            </>
+          )}
         </div>
+      </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          {isGlobalAdmin ? (
-            <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
-              <TabsTrigger value="overview">Revenue Overview</TabsTrigger>
-              <TabsTrigger value="companies">Company Breakdown</TabsTrigger>
-            </TabsList>
-          ) : (
-            <TabsList className="grid w-full grid-cols-1 lg:w-[200px]">
-              <TabsTrigger value="companies">Company Breakdown</TabsTrigger>
-            </TabsList>
-          )}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <DashboardStatCard
+          title="Total Revenue"
+          value={formatCurrency(totalRevenue)}
+          icon={<DollarSign className="h-6 w-6" />}
+          variant="primary"
+          description="Overall"
+        />
 
-          {isGlobalAdmin && (
-            <TabsContent value="overview" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Regional Revenue Records</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {loading ? (
-                    <TableSkeleton columns={6} />
-                  ) : (
-                    <DataTable
-                      data={revenues}
-                      columns={columns}
-                      searchable
-                      searchKeys={['status']}
-                      emptyMessage="No revenue records found"
-                    />
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          )}
+        <DashboardStatCard
+          title="HRM8 Share"
+          value={formatCurrency(totalHRM8Share)}
+          icon={<TrendingUp className="h-6 w-6" />}
+          variant="primary"
+          description="Total"
+        />
 
-          <TabsContent value="companies" className="mt-6">
+        <DashboardStatCard
+          title="Licensee Share"
+          value={formatCurrency(totalLicenseeShare)}
+          icon={<CheckCircle className="h-6 w-6" />}
+          variant="success"
+          description="Total"
+        />
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        {isGlobalAdmin ? (
+          <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
+            <TabsTrigger value="overview">Revenue Overview</TabsTrigger>
+            <TabsTrigger value="companies">Company Breakdown</TabsTrigger>
+          </TabsList>
+        ) : (
+          <TabsList className="grid w-full grid-cols-1 lg:w-[200px]">
+            <TabsTrigger value="companies">Company Breakdown</TabsTrigger>
+          </TabsList>
+        )}
+
+        {isGlobalAdmin && (
+          <TabsContent value="overview" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Revenue by Company</CardTitle>
+                <CardTitle>Regional Revenue Records</CardTitle>
               </CardHeader>
               <CardContent>
-                <CompanyRevenueTable
-                  data={companyRevenues}
-                  loading={companyLoading}
-                />
+                {loading ? (
+                  <TableSkeleton columns={6} />
+                ) : (
+                  <DataTable
+                    data={revenues}
+                    columns={columns}
+                    searchable
+                    searchKeys={['status']}
+                    emptyMessage="No revenue records found"
+                  />
+                )}
               </CardContent>
             </Card>
           </TabsContent>
-        </Tabs>
-      </div>
+        )}
+
+        <TabsContent value="companies" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Revenue by Company</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CompanyRevenueTable
+                data={companyRevenues}
+                loading={companyLoading}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

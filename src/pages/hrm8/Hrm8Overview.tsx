@@ -502,9 +502,6 @@ function OverviewV2() {
               <SelectItem value="90d">Last 90 days</SelectItem>
             </SelectContent>
           </Select>
-          <Badge variant="outline" className="px-3 py-1.5">
-            {regionId === 'all' ? 'All Regions' : regions.find((r) => r.id === regionId)?.name || 'Region'}
-          </Badge>
           {(summaryLoading || showTabLoading) && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
         </div>
       </div>
@@ -1077,8 +1074,8 @@ function OverviewV2() {
                     Math.max(
                       0,
                       (riskData?.capacity.summary.total || 0) -
-                        (riskData?.capacity.summary.warning || 0) -
-                        (riskData?.capacity.summary.overloaded || 0),
+                      (riskData?.capacity.summary.warning || 0) -
+                      (riskData?.capacity.summary.overloaded || 0),
                     ),
                     riskData?.capacity.summary.warning || 0,
                     riskData?.capacity.summary.overloaded || 0,

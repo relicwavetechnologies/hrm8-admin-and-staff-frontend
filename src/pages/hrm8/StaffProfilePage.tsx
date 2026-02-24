@@ -61,7 +61,7 @@ export default function StaffProfilePage() {
   }, [id]);
 
   useEffect(() => {
-    if (staff?.defaultCommissionRate) {
+    if (staff?.defaultCommissionRate !== undefined && staff?.defaultCommissionRate !== null) {
       setCommissionRate(staff.defaultCommissionRate);
     }
   }, [staff]);
@@ -107,7 +107,7 @@ export default function StaffProfilePage() {
         return;
       }
 
-      const oldRate = staff.defaultCommissionRate || 10;
+      const oldRate = staff.defaultCommissionRate ?? 10;
       const response = await staffService.update(id, { defaultCommissionRate: commissionRate });
       if (!response.success) {
         toast.error(response.error || 'Failed to update commission rate');

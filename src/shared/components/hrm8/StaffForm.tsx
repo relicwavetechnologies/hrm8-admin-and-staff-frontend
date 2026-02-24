@@ -79,7 +79,7 @@ export function StaffForm({ consultantId, onSave, onCancel }: StaffFormProps) {
         setValue('phone', consultant.phone || '');
         setValue('role', consultant.role);
         setValue('regionId', consultant.regionId || '');
-        setValue('defaultCommissionRate', consultant.defaultCommissionRate || 10);
+        setValue('defaultCommissionRate', consultant.defaultCommissionRate ?? 10);
       }
     } catch (error) {
       toast.error('Failed to load staff member');
@@ -172,7 +172,7 @@ export function StaffForm({ consultantId, onSave, onCancel }: StaffFormProps) {
           role: data.role,
           password: data.password,
           phone: data.phone,
-          defaultCommissionRate: data.defaultCommissionRate || 10
+          defaultCommissionRate: data.defaultCommissionRate ?? 10
         };
 
         const response = await staffService.create(createData);
@@ -347,6 +347,5 @@ export function StaffForm({ consultantId, onSave, onCancel }: StaffFormProps) {
     </form>
   );
 }
-
 
 

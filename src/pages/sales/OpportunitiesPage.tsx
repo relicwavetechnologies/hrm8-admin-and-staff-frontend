@@ -26,7 +26,7 @@ import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { cn } from "@/shared/lib/utils";
 import { Textarea } from "@/shared/components/ui/textarea"; // Added Textarea import
-import { leadConversionService } from "@/shared/services/leadConversionService"; // Added leadConversionService import
+import { leadConversionService, type ConversionIntentSnapshot } from "@/shared/services/leadConversionService"; // Added leadConversionService import
 import { useAuth } from "@/shared/contexts/AuthContext";
 import { consultant360Service } from "@/shared/lib/consultant360/consultant360Service";
 
@@ -44,6 +44,31 @@ const TIMELINE_OPTIONS = [
   { value: "3-6 Months", label: "3-6 Months" },
   { value: "6+ Months", label: "6+ Months" },
   { value: "Just Exploring", label: "Just Exploring / No Timeline" },
+];
+
+const SETUP_TYPE_OPTIONS = [
+  { value: "ADVANCED", label: "Advanced Flow" },
+  { value: "SIMPLE", label: "Simple Flow" },
+  { value: "NONE", label: "Not sure yet" },
+];
+
+const SERVICE_PACKAGE_OPTIONS = [
+  { value: "self-managed", label: "Self Managed" },
+  { value: "shortlisting", label: "Shortlisting" },
+  { value: "full-service", label: "Full Service Recruitment" },
+  { value: "executive-search", label: "Executive Search" },
+  { value: "rpo", label: "RPO" },
+  { value: "NONE", label: "Not sure yet" },
+];
+
+const SUBSCRIPTION_PLAN_OPTIONS = [
+  { value: "PAYG", label: "Pay As You Go" },
+  { value: "SMALL", label: "Small" },
+  { value: "MEDIUM", label: "Medium" },
+  { value: "LARGE", label: "Large" },
+  { value: "ENTERPRISE", label: "Enterprise" },
+  { value: "RPO", label: "RPO" },
+  { value: "NONE", label: "Not sure yet" },
 ];
 
 const QUALIFICATION_STEPS = [
@@ -82,9 +107,14 @@ export default function OpportunitiesPage() {
     message: ""
   });
 
-  const [convertForm, setConvertForm] = useState({
+  const [convertForm, setConvertForm] = useState<ConvertFormState>({
     agentNotes: "",
-    tempPassword: ""
+    tempPassword: "",
+    intendedSetupType: "ADVANCED",
+    intendedServicePackage: "self-managed",
+    expectedSubscriptionPlan: "NONE",
+    expectedFirstPaymentAmount: "",
+    expectedCurrency: "",
   });
 
   const fetchLeads = useCallback(async () => {
@@ -197,16 +227,46 @@ export default function OpportunitiesPage() {
       return;
     }
 
+    setProcessing(true);
     try {
+      const expectedAmount = convertForm.expectedFirstPaymentAmount
+        ? Number(convertForm.expectedFirstPaymentAmount)
+        : undefined;
+      const normalizedAmount =
+        expectedAmount && Number.isFinite(expectedAmount) && expectedAmount > 0
+          ? Number(expectedAmount.toFixed(2))
+          : undefined;
+
+      const normalizedCurrency = convertForm.expectedCurrency
+        ? convertForm.expectedCurrency.trim().toUpperCase()
+        : undefined;
+
+      const intentSnapshot: ConversionIntentSnapshot = {
+        intendedSetupType:
+          convertForm.intendedSetupType !== "NONE" ? convertForm.intendedSetupType : undefined,
+        intendedServicePackage:
+          convertForm.intendedServicePackage !== "NONE"
+            ? convertForm.intendedServicePackage
+            : undefined,
+        expectedSubscriptionPlan:
+          convertForm.expectedSubscriptionPlan !== "NONE"
+            ? convertForm.expectedSubscriptionPlan
+            : undefined,
+        expectedFirstPaymentAmount: normalizedAmount,
+        expectedCurrency: normalizedCurrency || undefined,
+      };
+
       if (is360) {
         await consultant360Service.submitConversionRequest(selectedLead.id, {
           agentNotes: convertForm.agentNotes,
-          tempPassword: convertForm.tempPassword
+          tempPassword: convertForm.tempPassword,
+          intentSnapshot,
         });
       } else {
         await leadConversionService.submitRequest(selectedLead.id, {
           agentNotes: convertForm.agentNotes,
-          tempPassword: convertForm.tempPassword
+          tempPassword: convertForm.tempPassword,
+          intentSnapshot,
         });
       }
       toast({
@@ -214,7 +274,15 @@ export default function OpportunitiesPage() {
         description: "Conversion request submitted! Waiting for admin approval."
       });
       setConvertDialogOpen(false);
-      setConvertForm({ agentNotes: "", tempPassword: "" });
+      setConvertForm({
+        agentNotes: "",
+        tempPassword: "",
+        intendedSetupType: "ADVANCED",
+        intendedServicePackage: "self-managed",
+        expectedSubscriptionPlan: "NONE",
+        expectedFirstPaymentAmount: "",
+        expectedCurrency: "",
+      });
       fetchLeads();
     } catch (error: any) {
       toast({
@@ -229,7 +297,15 @@ export default function OpportunitiesPage() {
 
   const openConvertDialog = (lead: Lead) => {
     setSelectedLead(lead);
-    setConvertForm({ agentNotes: "", tempPassword: "" }); // Reset form for new request
+    setConvertForm({
+      agentNotes: "",
+      tempPassword: "",
+      intendedSetupType: "ADVANCED",
+      intendedServicePackage: "self-managed",
+      expectedSubscriptionPlan: "NONE",
+      expectedFirstPaymentAmount: "",
+      expectedCurrency: "",
+    });
     setConvertDialogOpen(true);
   };
 
@@ -642,6 +718,93 @@ export default function OpportunitiesPage() {
               />
             </div>
 
+            <div className="rounded-xl border p-4 space-y-4 bg-muted/20">
+              <p className="text-sm font-medium">Intent Snapshot (Optional, helps admin decision)</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Intended Setup Flow</Label>
+                  <Select
+                    value={convertForm.intendedSetupType}
+                    onValueChange={(value) => setConvertForm({
+                      ...convertForm,
+                      intendedSetupType: value as ConvertFormState["intendedSetupType"],
+                    })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select setup flow" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SETUP_TYPE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Intended Service</Label>
+                  <Select
+                    value={convertForm.intendedServicePackage}
+                    onValueChange={(value) => setConvertForm({
+                      ...convertForm,
+                      intendedServicePackage: value as ConvertFormState["intendedServicePackage"],
+                    })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select service package" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SERVICE_PACKAGE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Expected Subscription Plan</Label>
+                  <Select
+                    value={convertForm.expectedSubscriptionPlan}
+                    onValueChange={(value) => setConvertForm({
+                      ...convertForm,
+                      expectedSubscriptionPlan: value as ConvertFormState["expectedSubscriptionPlan"],
+                    })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select plan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SUBSCRIPTION_PLAN_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Expected First Payment Amount</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={convertForm.expectedFirstPaymentAmount}
+                    onChange={(e) => setConvertForm({ ...convertForm, expectedFirstPaymentAmount: e.target.value })}
+                    placeholder="e.g. 499.00"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Expected Currency</Label>
+                <Input
+                  value={convertForm.expectedCurrency}
+                  onChange={(e) => setConvertForm({ ...convertForm, expectedCurrency: e.target.value.toUpperCase() })}
+                  placeholder="USD / INR / EUR"
+                  maxLength={8}
+                />
+              </div>
+            </div>
+
             <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg">
               <p className="text-sm text-blue-900 dark:text-blue-100">
                 <strong>Note:</strong> This request will be sent to your regional admin for approval.
@@ -661,3 +824,12 @@ export default function OpportunitiesPage() {
     </div>
   );
 }
+  type ConvertFormState = {
+    agentNotes: string;
+    tempPassword: string;
+    intendedSetupType: "ADVANCED" | "SIMPLE" | "NONE";
+    intendedServicePackage: "self-managed" | "shortlisting" | "full-service" | "executive-search" | "rpo" | "NONE";
+    expectedSubscriptionPlan: "PAYG" | "SMALL" | "MEDIUM" | "LARGE" | "ENTERPRISE" | "RPO" | "NONE";
+    expectedFirstPaymentAmount: string;
+    expectedCurrency: string;
+  };

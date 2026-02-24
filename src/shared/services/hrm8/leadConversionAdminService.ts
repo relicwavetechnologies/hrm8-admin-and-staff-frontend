@@ -4,7 +4,7 @@
  */
 
 import { apiClient } from '@/shared/lib/apiClient';
-import { ConversionRequest } from '../leadConversionService';
+import { ConversionRequest, ConversionReviewContext } from '../leadConversionService';
 
 export const leadConversionAdminService = {
     /**
@@ -33,7 +33,17 @@ export const leadConversionAdminService = {
             throw new Error(response.error || 'Failed to fetch conversion request');
         }
 
-        return response.data.request;
+        return response.data.request || response.data;
+    },
+
+    async getReviewContext(id: string): Promise<ConversionReviewContext> {
+        const response = await apiClient.get<any>(`/api/hrm8/conversion-requests/${id}/review-context`);
+
+        if (!response.success) {
+            throw new Error(response.error || 'Failed to fetch conversion review context');
+        }
+
+        return response.data.context || response.data;
     },
 
     /**
@@ -59,6 +69,6 @@ export const leadConversionAdminService = {
             throw new Error(response.error || 'Failed to decline conversion request');
         }
 
-        return response.data.request;
+        return response.data.request || response.data;
     },
 };

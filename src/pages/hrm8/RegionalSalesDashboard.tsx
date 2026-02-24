@@ -37,7 +37,7 @@ import {
 } from '@/shared/components/ui/command';
 import { regionalSalesService, RegionalOpportunity, RegionalPipelineStats } from '@/shared/services/hrm8/regionalSalesService';
 import { formatCurrency } from '@/shared/lib/utils';
-import { TrendingUp, Users, DollarSign, Activity, Target, Check, ChevronsUpDown } from 'lucide-react';
+import { TrendingUp, Users, DollarSign, Activity, Target, Check, ChevronsUpDown, Loader2 } from 'lucide-react';
 import { useHrm8Auth } from '@/contexts/Hrm8AuthContext';
 import { useRegionStore } from '@/shared/stores/useRegionStore';
 import { cn } from '@/shared/lib/utils';

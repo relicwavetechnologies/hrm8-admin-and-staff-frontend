@@ -88,7 +88,6 @@ import ConsultantOverview from './pages/consultant/ConsultantOverview'
 import ConsultantWalletPage from './pages/consultant/ConsultantWalletPage'
 import SalesOpportunityDetailPage from './pages/sales/SalesOpportunityDetailPage'
 import SalesOpportunityNewPage from './pages/sales/SalesOpportunityNewPage'
-import StripeMockOnboarding from './pages/dev/StripeMockOnboarding'
 import LeadsWorkspacePage from './pages/hrm8/leads/LeadsWorkspacePage'
 import LeadsOverviewPage from './pages/hrm8/leads/LeadsOverviewPage'
 import FinanceWorkspacePage from './pages/hrm8/finance/FinanceWorkspacePage'
@@ -247,7 +246,6 @@ function App() {
                 </Route>
 
                 {/* Dev Routes */}
-                <Route path="/dev/stripe-mock-onboarding" element={<StripeMockOnboarding />} />
 
                 {/* Redirects */}
                 <Route path="/" element={<Navigate to="/login" replace />} />

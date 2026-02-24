@@ -82,13 +82,13 @@ export default function Consultant360EarningsPage() {
     const [searchParams] = useSearchParams();
 
     useEffect(() => {
-        if (searchParams.get("stripe_success") === "true") {
-            toast.success("Stripe account connected successfully!");
+        if (searchParams.get("airwallex_success") === "true" || searchParams.get("stripe_success") === "true") {
+            toast.success("Airwallex beneficiary connected successfully!");
             // Remove the query param to prevent double toasts on reload
             const newUrl = window.location.pathname;
             window.history.replaceState({}, "", newUrl);
             loadData();
-        } else if (searchParams.get("stripe_refresh") === "true") {
+        } else if (searchParams.get("airwallex_refresh") === "true" || searchParams.get("stripe_refresh") === "true") {
              // Just reload if they refreshed the onboarding form
              loadData();
         } else {
@@ -360,18 +360,18 @@ export default function Consultant360EarningsPage() {
                         </DialogHeader>
 
                         <div className="space-y-4 py-4">
-                            {/* Stripe Status Check */}
+                            {/* Payout Beneficiary Status Check */}
                             {!stripeStatus?.payoutsEnabled && (
                                 <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
                                     <p className="text-amber-800 font-medium mb-2">
-                                        Stripe Connect Required
+                                        Airwallex Setup Required
                                     </p>
                                     <p className="text-sm text-amber-700 mb-3">
-                                        You need to complete Stripe onboarding to receive payouts.
+                                        You need to complete Airwallex onboarding to receive payouts.
                                     </p>
                                     <Button onClick={handleStripeOnboard} variant="outline" size="sm">
                                         <ExternalLink className="h-4 w-4 mr-2" />
-                                        Complete Stripe Setup
+                                        Complete Airwallex Setup
                                     </Button>
                                 </div>
                             )}
@@ -588,12 +588,12 @@ export default function Consultant360EarningsPage() {
                 </Card>
             </div>
 
-            {/* Stripe Connect Status */}
+            {/* Airwallex Status */}
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <CreditCard className="h-5 w-5" />
-                        Stripe Connect
+                        Airwallex Payouts
                     </CardTitle>
                     <CardDescription>Manage your payout settings</CardDescription>
                 </CardHeader>
@@ -613,7 +613,7 @@ export default function Consultant360EarningsPage() {
                                 <div>
                                     <p className="font-medium">
                                         {stripeStatus.payoutsEnabled
-                                            ? "Stripe Connected"
+                                            ? "Airwallex Connected"
                                             : "Setup Incomplete"}
                                     </p>
                                     <p className="text-sm text-muted-foreground">
@@ -625,7 +625,7 @@ export default function Consultant360EarningsPage() {
                             </div>
                             <Button variant="outline" onClick={handleStripeLogin}>
                                 <ExternalLink className="h-4 w-4 mr-2" />
-                                {stripeStatus.payoutsEnabled ? "Stripe Dashboard" : "Complete Setup"}
+                                {stripeStatus.payoutsEnabled ? "Airwallex Dashboard" : "Complete Setup"}
                             </Button>
                         </div>
                     ) : (
@@ -637,13 +637,13 @@ export default function Consultant360EarningsPage() {
                                 <div>
                                     <p className="font-medium">Not Connected</p>
                                     <p className="text-sm text-muted-foreground">
-                                        Connect Stripe to receive payouts
+                                        Connect Airwallex to receive payouts
                                     </p>
                                 </div>
                             </div>
                             <Button onClick={handleStripeOnboard}>
                                 <ExternalLink className="h-4 w-4 mr-2" />
-                                Connect Stripe
+                                Connect Airwallex
                             </Button>
                         </div>
                     )}

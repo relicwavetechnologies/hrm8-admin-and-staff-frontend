@@ -1,6 +1,6 @@
 /**
- * Stripe Prompt Dialog Component
- * Prompts users to connect Stripe when attempting payments without integration
+ * Payment Integration Prompt Dialog
+ * Prompts users to connect Airwallex when attempting payments without integration
  */
 
 import {
@@ -41,17 +41,17 @@ export function StripePromptDialog({
                         <div className="rounded-full bg-primary/10 p-3">
                             <CreditCard className="h-6 w-6 text-primary" />
                         </div>
-                        <DialogTitle className="text-xl">Connect Stripe to Continue</DialogTitle>
+                        <DialogTitle className="text-xl">Connect Airwallex to Continue</DialogTitle>
                     </div>
                     <DialogDescription className="text-base">
-                        To make payments, you need to connect your Stripe account first.
+                        To make payments, you need to connect your Airwallex account first.
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4 py-4">
                     <div className="rounded-lg bg-muted p-4">
                         <p className="text-sm text-muted-foreground leading-relaxed">
-                            Stripe handles all payment processing securely. You'll be redirected to complete
+                            Airwallex handles payment processing securely. You'll be redirected to complete
                             a quick onboarding process to connect your account.
                         </p>
                     </div>
@@ -60,8 +60,8 @@ export function StripePromptDialog({
                         <p className="text-sm font-medium">What happens next:</p>
                         <ul className="text-sm text-muted-foreground space-y-1 ml-4 list-disc">
                             <li>Navigate to Integrations page</li>
-                            <li>Click "Connect Stripe Account"</li>
-                            <li>Complete Stripe onboarding</li>
+                            <li>Click "Connect Airwallex Account"</li>
+                            <li>Complete Airwallex onboarding</li>
                             <li>Return and complete your payment</li>
                         </ul>
                     </div>

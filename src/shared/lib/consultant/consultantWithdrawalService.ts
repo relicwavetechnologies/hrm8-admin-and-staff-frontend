@@ -64,21 +64,21 @@ class ConsultantWithdrawalService {
             detailsSubmitted?: boolean;
             chargesEnabled?: boolean;
             payoutsEnabled?: boolean;
-        }>('/api/consultant/stripe/status');
+        }>('/api/payouts/status');
     }
 
     /**
      * Initiate Stripe Connect onboarding
      */
     async initiateStripeOnboarding() {
-        return apiClient.post<{ url: string }>('/api/consultant/stripe/onboard', {});
+        return apiClient.post<{ url: string }>('/api/payouts/beneficiaries', {});
     }
 
     /**
      * Get Stripe dashboard login link
      */
     async getStripeLoginLink() {
-        return apiClient.post<{ url: string }>('/api/consultant/stripe/login-link', {});
+        return apiClient.post<{ url: string }>('/api/payouts/login-link', {});
     }
 }
 

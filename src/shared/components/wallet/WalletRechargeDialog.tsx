@@ -45,7 +45,7 @@ export function WalletRechargeDialog({
         mutationFn: async (rechargeAmount: number) => {
             return walletService.rechargeWallet({
                 amount: rechargeAmount,
-                paymentMethod: 'stripe',
+                paymentMethod: 'airwallex',
             });
         },
         onSuccess: (data) => {
@@ -60,9 +60,12 @@ export function WalletRechargeDialog({
             handleClose();
         },
         onError: (error: any) => {
-            // Check if error is due to Stripe not connected (402)
-            if (error.response?.status === 402 || error.errorCode === 'STRIPE_NOT_CONNECTED') {
-                // StripePromptDialog will be shown automatically
+            // Check if error is due to payout/billing integration not connected (402)
+            if (
+                error.response?.status === 402 ||
+                error.errorCode === 'AIRWALLEX_NOT_CONNECTED' ||
+                error.errorCode === 'STRIPE_NOT_CONNECTED'
+            ) {
                 return;
             }
 
@@ -189,7 +192,7 @@ export function WalletRechargeDialog({
                     <Alert>
                         <CreditCard className="h-4 w-4" />
                         <AlertDescription>
-                            Payment will be processed securely via Stripe
+                            Payment will be processed securely via Airwallex
                         </AlertDescription>
                     </Alert>
 

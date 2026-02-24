@@ -184,16 +184,17 @@ class WalletService {
         return response.json();
     }
 
-    // Wallet Recharge
+    // Wallet recharge via Airwallex billing orchestration
     async rechargeWallet(data: {
         amount: number;
         paymentMethod: string;
     }) {
-        const response = await fetch(`${this.apiUrl}/api/integrations/stripe/create-checkout-session`, {
+        const response = await fetch(`${this.apiUrl}/api/billing/checkout`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify({
+                type: 'wallet_recharge',
                 amount: data.amount,
                 description: `Wallet recharge - $${data.amount.toFixed(2)}`,
                 metadata: {
@@ -212,7 +213,7 @@ class WalletService {
 
         const result = await response.json();
 
-        // Redirect to Stripe Checkout
+        // Redirect to provider checkout/success URL
         if (result.data?.url) {
             window.location.href = result.data.url;
         }

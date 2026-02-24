@@ -339,7 +339,7 @@ export const consultant360Service = {
         data?: { accountLink: { url: string } };
         error?: string;
     }> {
-        const response = await apiClient.post<{ accountLink: { url: string } }>('/api/consultant360/stripe/onboard');
+        const response = await apiClient.post<{ accountLink: { url: string } }>('/api/payouts/beneficiaries');
         return response;
     },
 
@@ -351,7 +351,7 @@ export const consultant360Service = {
         data?: StripeAccountStatus;
         error?: string;
     }> {
-        const response = await apiClient.get<StripeAccountStatus>('/api/consultant360/stripe/status');
+        const response = await apiClient.get<StripeAccountStatus>('/api/payouts/status');
         return response;
     },
 
@@ -363,7 +363,7 @@ export const consultant360Service = {
         data?: { url: string };
         error?: string;
     }> {
-        const response = await apiClient.post<{ url: string }>('/api/consultant360/stripe/login-link');
+        const response = await apiClient.post<{ url: string }>('/api/payouts/login-link');
         return response;
     },
 

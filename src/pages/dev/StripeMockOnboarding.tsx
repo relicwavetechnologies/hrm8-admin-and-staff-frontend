@@ -36,24 +36,22 @@ export default function StripeMockOnboarding() {
         // Simulate network delay
         await new Promise(resolve => setTimeout(resolve, 1500));
 
-        // Call backend to approve the mock account
+        // Call backend to create/update payout beneficiary
         try {
-            const response = await apiClient.post('/api/integrations/stripe/approve-mock-account', {
-              accountId: accountId
-            });
+            const response = await apiClient.post('/api/payouts/beneficiaries');
             
             if (!response.success) {
-               console.error('Failed to approve mock account:', response.error);
+               console.error('Failed to create mock beneficiary:', response.error);
             }
         } catch (error) {
-            console.error('Failed to approve mock account:', error);
+            console.error('Failed to create mock beneficiary:', error);
         }
 
         // Redirect back to return URL
         if (returnUrl) {
             window.location.href = decodeURIComponent(returnUrl);
         } else {
-            navigate('/integrations?tab=payments&stripe_success=true');
+            navigate('/integrations?tab=payments&airwallex_success=true');
         }
     };
 
@@ -61,7 +59,7 @@ export default function StripeMockOnboarding() {
         if (refreshUrl) {
             window.location.href = decodeURIComponent(refreshUrl);
         } else {
-            navigate('/integrations?tab=payments&stripe_refresh=true');
+            navigate('/integrations?tab=payments&airwallex_refresh=true');
         }
     };
 

@@ -7,17 +7,19 @@ export interface Interview {
   candidateId: string;
   candidateName: string;
   candidateEmail: string;
+  applicationId?: string;
   interviewerIds: string[];
   interviewerNames: string[];
-  type: 'phone' | 'video' | 'in-person' | 'technical' | 'panel';
+  type: 'phone' | 'video' | 'in-person' | 'technical' | 'panel' | 'VIDEO' | 'LIVE_VIDEO' | 'PHONE' | 'IN_PERSON' | 'TECHNICAL' | 'PANEL';
   round: number;
   scheduledDate: string;
   duration: number; // in minutes
   location?: string;
   meetingLink?: string;
-  status: 'scheduled' | 'completed' | 'cancelled' | 'no-show' | 'rescheduled';
+  status: 'scheduled' | 'completed' | 'cancelled' | 'no-show' | 'rescheduled' | 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW' | 'RESCHEDULED' | 'IN_PROGRESS';
   notes?: string;
   feedback?: any[];
+  interviewFeedbacks?: any[];
   createdAt: string;
   updatedAt: string;
   candidate?: {
@@ -59,7 +61,7 @@ class InterviewService {
     return apiClient.post<Interview>(`/api/interviews/${id}/feedback`, feedback);
   }
 
-  async rescheduleInterview(id: string, newDate: Date, reason: string) {
+  async rescheduleInterview(id: string, newDate: Date | string, reason?: string) {
     return apiClient.post<Interview>(`/api/interviews/${id}/reschedule`, { newDate, reason });
   }
 

@@ -133,7 +133,7 @@ export function RoundInterviewsDrawer({
       });
 
       if (response.success && response.data) {
-        setInterviews(response.data.interviews || []);
+        setInterviews((response.data as any).interviews || response.data || []);
       } else {
         toast.error('Failed to load interviews');
       }
@@ -193,8 +193,8 @@ export function RoundInterviewsDrawer({
 
       fetchPromise
         .then((response) => {
-          if (response.data?.interview) {
-            setFeedbackDetails(response.data.interview as VideoInterview);
+          if ((response.data as any)?.interview) {
+            setFeedbackDetails((response.data as any).interview as VideoInterview);
           }
         })
         .catch((err) => console.error('Failed to fetch interview details:', err))
@@ -450,7 +450,7 @@ export function RoundInterviewsDrawer({
     try {
       const response = await interviewService.markAsNoShow(
         selectedInterview.id,
-        noShowReason || undefined
+        noShowReason || ''
       );
 
       if (response.success) {

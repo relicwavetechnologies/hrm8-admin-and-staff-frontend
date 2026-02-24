@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { licenseeService, RegionalLicensee } from '@/shared/lib/hrm8/licenseeService';
 import { DataTable } from '@/shared/components/tables/DataTable';
 import { Button } from '@/shared/components/ui/button';
-import { Plus, Edit, Ban, ShieldAlert, CheckCircle, History, Loader2, ShieldX } from 'lucide-react';
+import { Plus, Edit, Ban, CheckCircle, History, Loader2, ShieldX } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { toast } from 'sonner';
 import { FormDrawer } from '@/shared/components/ui/form-drawer';

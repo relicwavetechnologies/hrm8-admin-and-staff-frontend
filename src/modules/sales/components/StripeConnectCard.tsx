@@ -32,7 +32,7 @@ export function StripeConnectCard({ onStatusChange }: StripeConnectCardProps) {
                 if (onStatusChange) onStatusChange();
             }
         } catch (error) {
-            console.error("Failed to check Stripe status", error);
+            console.error("Failed to check payout status", error);
         } finally {
             setLoading(false);
         }
@@ -48,7 +48,7 @@ export function StripeConnectCard({ onStatusChange }: StripeConnectCardProps) {
                 toast.error("Failed to generate onboarding link");
             }
         } catch (error) {
-            toast.error("Failed to start Stripe onboarding");
+            toast.error("Failed to start Airwallex onboarding");
         } finally {
             setActionLoading(false);
         }
@@ -65,7 +65,7 @@ export function StripeConnectCard({ onStatusChange }: StripeConnectCardProps) {
                 toast.error("Failed to get login link");
             }
         } catch (error) {
-            toast.error("Failed to access Stripe dashboard");
+            toast.error("Failed to access Airwallex dashboard");
         } finally {
             setActionLoading(false);
         }
@@ -96,7 +96,7 @@ export function StripeConnectCard({ onStatusChange }: StripeConnectCardProps) {
                             {isConnected && isPayoutEnabled && <Badge variant="success" className="bg-green-100 text-green-800 hover:bg-green-100">Active</Badge>}
                         </CardTitle>
                         <CardDescription>
-                            Connect your bank account via Stripe to receive automatic payouts.
+                            Connect your bank account via Airwallex to receive automatic payouts.
                         </CardDescription>
                     </div>
                 </div>
@@ -115,7 +115,7 @@ export function StripeConnectCard({ onStatusChange }: StripeConnectCardProps) {
                                 </div>
                             </div>
                             <Button onClick={handleConnect} disabled={actionLoading}>
-                                {actionLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Connect Stripe"}
+                                {actionLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Connect Airwallex"}
                             </Button>
                         </div>
                     ) : (

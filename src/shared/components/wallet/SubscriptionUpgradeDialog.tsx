@@ -113,9 +113,12 @@ export function SubscriptionUpgradeDialog({
             onClose();
         },
         onError: (error: any) => {
-            // Check if error is due to Stripe not connected (402)
-            if (error.response?.status === 402 || error.errorCode === 'STRIPE_NOT_CONNECTED') {
-                // StripePromptDialog will be shown automatically
+            // Check if error is due to payout/billing integration not connected (402)
+            if (
+                error.response?.status === 402 ||
+                error.errorCode === 'AIRWALLEX_NOT_CONNECTED' ||
+                error.errorCode === 'STRIPE_NOT_CONNECTED'
+            ) {
                 return;
             }
 
@@ -242,7 +245,7 @@ export function SubscriptionUpgradeDialog({
                 </div>
             </DialogContent>
 
-            {/* Stripe Connection Prompt */}
+            {/* Payment Integration Prompt */}
             <StripePromptDialog
                 open={showPrompt}
                 onOpenChange={setShowPrompt}

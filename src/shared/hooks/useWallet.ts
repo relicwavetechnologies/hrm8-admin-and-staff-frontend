@@ -88,7 +88,7 @@ export function useWallet() {
     const stripeStatusQuery = useQuery({
         queryKey: ['wallet', 'stripe', 'status'],
         queryFn: async () => {
-            const response = await apiClient.get<StripeStatus>(`${API_BASE}/stripe/status`);
+            const response = await apiClient.get<StripeStatus>(`/api/payouts/status`);
             if (!response.success) throw new Error(response.error);
             return response.data;
         },
@@ -121,7 +121,7 @@ export function useWallet() {
     const stripeOnboardMutation = useMutation({
         mutationFn: async () => {
             const response = await apiClient.post<{ accountId: string; onboardingUrl: string }>(
-                `${API_BASE}/stripe/onboard`
+                `/api/payouts/beneficiaries`
             );
             if (!response.success) throw new Error(response.error);
             return response.data;
@@ -131,7 +131,7 @@ export function useWallet() {
     // Stripe login mutation
     const stripeLoginMutation = useMutation({
         mutationFn: async () => {
-            const response = await apiClient.post<{ url: string }>(`${API_BASE}/stripe/login`);
+            const response = await apiClient.post<{ url: string }>(`/api/payouts/login-link`);
             if (!response.success) throw new Error(response.error);
             return response.data;
         },

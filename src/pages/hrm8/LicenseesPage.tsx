@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { licenseeService, RegionalLicensee } from '@/shared/lib/hrm8/licenseeService';
 import { DataTable } from '@/shared/components/tables/DataTable';
 import { Button } from '@/shared/components/ui/button';
-import { Plus, Edit, Ban, ShieldAlert, CheckCircle, History, Loader2, ShieldX } from 'lucide-react';
+import { Plus, Edit, Ban, CheckCircle, History, Loader2, ShieldX } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { toast } from 'sonner';
 import { FormDrawer } from '@/shared/components/ui/form-drawer';
@@ -56,7 +56,7 @@ const columns = [
     key: 'revenueSharePercent',
     label: 'Revenue Share %',
     sortable: true,
-    render: (licensee: RegionalLicensee) => `${ licensee.revenueSharePercent }% `,
+    render: (licensee: RegionalLicensee) => `${licensee.revenueSharePercent}% `,
   },
 ];
 
@@ -143,7 +143,7 @@ export default function LicenseesPage() {
         : licenseeService.suspend(selectedLicensee.id));
 
       if (response.success) {
-        toast.success(`Licensee ${ selectedLicensee.status === 'SUSPENDED' ? 'activated' : 'suspended' } successfully`);
+        toast.success(`Licensee ${selectedLicensee.status === 'SUSPENDED' ? 'activated' : 'suspended'} successfully`);
         await loadLicensees();
       }
     } catch (error) {

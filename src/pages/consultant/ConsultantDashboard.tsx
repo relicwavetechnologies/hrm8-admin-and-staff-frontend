@@ -9,7 +9,7 @@ import { consultantService } from '@/shared/lib/consultant/consultantService';
 import { DashboardStatCard } from "@/shared/components/dashboard/DashboardStatCard";
 import { ConsultantDashboardSkeleton } from '@/shared/components/skeletons/ConsultantDashboardSkeleton';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/shared/components/ui/card";
-import { Briefcase, Users, DollarSign, TrendingUp, BarChart3 } from 'lucide-react';
+import { Briefcase, Users, DollarSign, TrendingUp } from 'lucide-react';
 import { ResponsiveContainer, LineChart, BarChart, XAxis, YAxis, Tooltip, Legend, Line, Bar } from 'recharts';
 import { useToast } from '@/shared/hooks/use-toast';
 import { ActiveJobsWidget } from '@/modules/consultant/dashboard/components/widgets/ActiveJobsWidget';

@@ -240,7 +240,7 @@ function LegacyOverview() {
 function OverviewV2() {
   const { hrm8User } = useHrm8Auth();
   const navigate = useNavigate();
-  const { selectedRegionId, regions } = useRegionStore();
+  const { selectedRegionId } = useRegionStore();
   const isGlobalAdmin = hrm8User?.role === 'GLOBAL_ADMIN';
   const regionId = selectedRegionId || 'all';
 

@@ -24,8 +24,6 @@ import {
     Activity
 } from 'lucide-react';
 import {
-    BarChart,
-    Bar,
     XAxis,
     YAxis,
     CartesianGrid,
@@ -35,7 +33,7 @@ import {
     Area
 } from 'recharts';
 import { regionService, type Region } from '@/shared/lib/hrm8/regionService';
-import { formatCurrency } from '@/shared/lib/utils'; // Ensure this utility is available or define locally
+
 
 interface RegionProfileSheetProps {
     regionId: string | null;

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { DashboardStatCard } from "@/shared/components/dashboard/DashboardStatCard";
 import { Card, CardHeader, CardTitle, CardContent } from "@/shared/components/ui/card";
 import { DataTable } from "@/shared/components/tables/DataTable";
-import { DollarSign, Target, Users, Eye, Plus, Building2, Briefcase } from "lucide-react";
+import { DollarSign, Target, Users, Building2 } from "lucide-react";
 import { salesService, SalesDashboardStats } from "@/shared/services/salesService";
 import { useToast } from "@/shared/hooks/use-toast";
 import { useCurrencyFormat } from "@/shared/contexts/CurrencyFormatContext";

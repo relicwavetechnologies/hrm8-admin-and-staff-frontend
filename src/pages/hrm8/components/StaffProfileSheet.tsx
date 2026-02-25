@@ -20,7 +20,6 @@ import {
     Target,
     Trophy,
     TrendingUp,
-    Clock,
     Building2,
     Star,
     DollarSign,

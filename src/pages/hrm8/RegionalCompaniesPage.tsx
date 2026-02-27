@@ -2,39 +2,28 @@ import { useState, useEffect } from "react";
 import { DashboardStatCard } from '@/shared/components/dashboard/DashboardStatCard';
 import { DataTable, Column } from '@/shared/components/tables/DataTable';
 import { Building2, CheckCircle2, DollarSign } from "lucide-react";
-import { RegionalAnalyticsService } from '@/shared/lib/hrm8/regionalAnalyticsService';
+import { companyAdminService, type CompanyListItem } from '@/shared/services/hrm8/companyAdminService';
 import { useHrm8Auth } from "@/contexts/Hrm8AuthContext";
+import { useRegionStore } from "@/shared/stores/useRegionStore";
 import { toast } from "sonner";
 import { Badge } from "@/shared/components/ui/badge";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
-interface Company {
-    id: string;
-    name: string;
-    domain: string;
-    created_at: string;
-    attribution_status: 'OPEN' | 'LOCKED' | 'EXPIRED';
-    open_jobs_count: number;
-    subscription: {
-        plan: string;
-        start_date: string;
-        renewal_date: string;
-    } | null;
-}
+type Company = CompanyListItem;
 
 export default function RegionalCompaniesPage() {
     const { hrm8User } = useHrm8Auth();
     const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
     const [allCompanies, setAllCompanies] = useState<Company[]>([]);
     const [filteredCompanies, setFilteredCompanies] = useState<Company[]>([]);
 
-    const regionId = (hrm8User as any)?.assignedRegionIds?.[0];
+    const { selectedRegionId } = useRegionStore();
+    const regionId = selectedRegionId || (hrm8User as any)?.assignedRegionIds?.[0];
 
     useEffect(() => {
-        if (regionId) {
-            fetchCompanies();
-        }
+        fetchCompanies();
     }, [regionId]);
 
     useEffect(() => {
@@ -42,15 +31,14 @@ export default function RegionalCompaniesPage() {
     }, [allCompanies, searchParams]);
 
     const fetchCompanies = async () => {
-        if (!regionId) return;
         try {
             setIsLoading(true);
-            const response = await RegionalAnalyticsService.getRegionalCompanies(regionId);
-            if (response && response.companies) {
-                setAllCompanies(response.companies);
+            const response = await companyAdminService.getCompanies({ regionId });
+            if (response.success && response.data?.companies) {
+                setAllCompanies(response.data.companies);
             }
         } catch (error) {
-            toast.error("Failed to load regional companies");
+            toast.error("Failed to load companies");
         } finally {
             setIsLoading(false);
         }
@@ -94,7 +82,14 @@ export default function RegionalCompaniesPage() {
             key: "name",
             label: "Company Name",
             sortable: true,
-            render: (company) => <span className="font-medium">{company.name}</span>,
+            render: (company) => (
+                <button
+                    className="font-medium text-primary hover:underline text-left"
+                    onClick={() => navigate(`/hrm8/companies/${company.id}`)}
+                >
+                    {company.name}
+                </button>
+            ),
         },
         {
             key: "domain",
@@ -171,7 +166,7 @@ export default function RegionalCompaniesPage() {
                     <p className="text-muted-foreground">Manage and track companies in your region</p>
                 </div>
 
-                {!regionId && !isLoading ? (
+                {false ? (
                     <div className="p-4 bg-yellow-50 text-yellow-700 rounded-md border border-yellow-200">
                         No region assigned to this user.
                     </div>

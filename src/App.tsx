@@ -93,6 +93,7 @@ import LeadsOverviewPage from './pages/hrm8/leads/LeadsOverviewPage'
 import FinanceWorkspacePage from './pages/hrm8/finance/FinanceWorkspacePage'
 import FinanceOverviewPage from './pages/hrm8/finance/FinanceOverviewPage'
 import Hrm8ChatPage from './pages/hrm8/Hrm8ChatPage'
+import Hrm8CompanyDetailPage from './pages/hrm8/Hrm8CompanyDetailPage'
 
 function App() {
     const { checkAuth } = useAuthStore();
@@ -131,6 +132,7 @@ function App() {
                     <Route path="/hrm8/staff/:id" element={<StaffProfilePage />} />
                     <Route path="/hrm8/consultants/:id" element={<Hrm8ConsultantDetailPage />} />
                     <Route path="/hrm8/companies" element={<RegionalCompaniesPage />} />
+                    <Route path="/hrm8/companies/:companyId" element={<Hrm8CompanyDetailPage />} />
                     <Route path="/hrm8/allocations" element={<Navigate to="/hrm8/jobs/allocation" replace />} />
                     <Route path="/hrm8/jobs/unassigned" element={<UnassignedJobsPage />} />
                     <Route path="/hrm8/job-board" element={<Navigate to="/hrm8/jobs/companies" replace />} />

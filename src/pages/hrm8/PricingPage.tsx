@@ -4,8 +4,10 @@
  */
 
 import { useEffect, useState } from 'react';
-import { hrm8PricingService, Product, PriceBook, PromoCode, ProductCategory } from '@/shared/services/hrm8/pricingService';
+import { hrm8PricingService, Product, PriceBook, PromoCode, ProductCategory, type CountryPricingMapEntry } from '@/shared/services/hrm8/pricingService';
 import { useRegionStore } from '@/shared/stores/useRegionStore';
+import { isFeatureEnabled } from '@/shared/lib/featureFlags';
+import { useHrm8Auth } from '@/contexts/Hrm8AuthContext';
 import { Hrm8PageLayout } from '@/shared/components/layouts/Hrm8PageLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { DataTable } from '@/shared/components/tables/DataTable';
@@ -14,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/shared/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { toast } from 'sonner';
-import { Package, BookOpen, Globe, MapPin, Plus, Trash2, AlertTriangle } from 'lucide-react';
+import { Package, BookOpen, Globe, MapPin, Plus, Trash2, AlertTriangle, Map, ToggleLeft, ToggleRight } from 'lucide-react';
 import { TableSkeleton } from '@/shared/components/tables/TableSkeleton';
 import { Button } from '@/shared/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog';
@@ -97,8 +99,24 @@ export default function PricingPage() {
   const [deleteProductId, setDeleteProductId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const { hrm8User } = useHrm8Auth();
+  const isGlobalAdmin = (hrm8User as any)?.role === 'GLOBAL_ADMIN';
+  const showCountryMap = isFeatureEnabled('FF_COUNTRY_MAP_UI');
+
+  const [countryMapEntries, setCountryMapEntries] = useState<CountryPricingMapEntry[]>([]);
+  const [loadingCountryMap, setLoadingCountryMap] = useState(true);
+  const [countryMapDialogOpen, setCountryMapDialogOpen] = useState(false);
+  const [editingMapEntry, setEditingMapEntry] = useState<CountryPricingMapEntry | null>(null);
+  const [countryMapForm, setCountryMapForm] = useState({
+    country_code: '',
+    country_name: '',
+    pricing_peg: 'USD',
+    billing_currency: 'USD',
+  });
+
   useEffect(() => {
     loadProducts();
+    if (showCountryMap) loadCountryMap();
   }, []);
 
   useEffect(() => {
@@ -367,6 +385,100 @@ export default function PricingPage() {
     }
   };
 
+  const loadCountryMap = async () => {
+    try {
+      setLoadingCountryMap(true);
+      const data = await hrm8PricingService.getCountryPricingMap();
+      if (data.success && data.data?.countryPricingMap) {
+        setCountryMapEntries(data.data.countryPricingMap);
+      }
+    } catch {
+      toast.error('Failed to load country pricing map');
+    } finally {
+      setLoadingCountryMap(false);
+    }
+  };
+
+  const openCountryMapDialog = (entry?: CountryPricingMapEntry) => {
+    if (entry) {
+      setEditingMapEntry(entry);
+      setCountryMapForm({
+        country_code: entry.country_code,
+        country_name: entry.country_name || '',
+        pricing_peg: entry.pricing_peg,
+        billing_currency: entry.billing_currency,
+      });
+    } else {
+      setEditingMapEntry(null);
+      setCountryMapForm({ country_code: '', country_name: '', pricing_peg: 'USD', billing_currency: 'USD' });
+    }
+    setCountryMapDialogOpen(true);
+  };
+
+  const saveCountryMapEntry = async () => {
+    try {
+      if (editingMapEntry) {
+        await hrm8PricingService.updateCountryPricingMap(editingMapEntry.id, countryMapForm);
+      } else {
+        await hrm8PricingService.createCountryPricingMap(countryMapForm);
+      }
+      toast.success('Country map entry saved');
+      setCountryMapDialogOpen(false);
+      loadCountryMap();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to save entry');
+    }
+  };
+
+  const toggleCountryMapEntry = async (id: string) => {
+    try {
+      await hrm8PricingService.toggleCountryPricingMap(id);
+      toast.success('Entry toggled');
+      loadCountryMap();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to toggle entry');
+    }
+  };
+
+  const countryMapColumns = [
+    { key: 'country_code', label: 'Code', sortable: true },
+    { key: 'country_name', label: 'Country', sortable: true },
+    { key: 'pricing_peg', label: 'Pricing Peg', sortable: true },
+    { key: 'billing_currency', label: 'Billing Currency', sortable: true },
+    {
+      key: 'is_active',
+      label: 'Status',
+      render: (e: CountryPricingMapEntry) => (
+        <Badge variant={e.is_active ? 'default' : 'secondary'}>
+          {e.is_active ? 'Active' : 'Inactive'}
+        </Badge>
+      ),
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (e: CountryPricingMapEntry) => (
+        <div className="flex gap-2">
+          {isGlobalAdmin && (
+            <>
+              <Button size="sm" variant="outline" onClick={() => openCountryMapDialog(e)}>
+                Edit
+              </Button>
+              <Button
+                size="sm"
+                variant={e.is_active ? 'secondary' : 'default'}
+                onClick={() => toggleCountryMapEntry(e.id)}
+              >
+                {e.is_active ? <ToggleRight className="h-4 w-4 mr-1" /> : <ToggleLeft className="h-4 w-4 mr-1" />}
+                {e.is_active ? 'Disable' : 'Enable'}
+              </Button>
+            </>
+          )}
+        </div>
+      ),
+    },
+  ];
+
   const productColumns = [
     { key: 'code', label: 'Code', sortable: true },
     { key: 'name', label: 'Name', sortable: true },
@@ -503,6 +615,7 @@ export default function PricingPage() {
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="books">Price Books</TabsTrigger>
             <TabsTrigger value="promos">Promo Codes</TabsTrigger>
+            {showCountryMap && <TabsTrigger value="countryMap">Country Map</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="products">
@@ -585,6 +698,45 @@ export default function PricingPage() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {showCountryMap && (
+            <TabsContent value="countryMap">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <Map className="h-5 w-5" />
+                      Country Pricing Map
+                    </span>
+                    {isGlobalAdmin && (
+                      <Button size="sm" onClick={() => openCountryMapDialog()}>
+                        <Plus className="h-4 w-4 mr-1" />
+                        New Entry
+                      </Button>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {!isGlobalAdmin && (
+                    <div className="mb-4 p-3 bg-muted rounded-md text-sm text-muted-foreground">
+                      You have read-only access. Only global administrators can edit the country pricing map.
+                    </div>
+                  )}
+                  {loadingCountryMap ? (
+                    <TableSkeleton columns={6} />
+                  ) : (
+                    <DataTable
+                      data={countryMapEntries}
+                      columns={countryMapColumns}
+                      searchable
+                      searchKeys={['country_code', 'country_name', 'pricing_peg', 'billing_currency']}
+                      emptyMessage="No country map entries found"
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
         </Tabs>
       </div>
 
@@ -830,6 +982,56 @@ export default function PricingPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setPromoDialogOpen(false)}>Cancel</Button>
             <Button onClick={savePromo}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Country Map Dialog */}
+      <Dialog open={countryMapDialogOpen} onOpenChange={setCountryMapDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingMapEntry ? 'Edit Country Map Entry' : 'New Country Map Entry'}</DialogTitle>
+            <DialogDescription>Map a country to its pricing peg and billing currency.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label>Country Code (ISO 3166-1 alpha-2)</Label>
+              <Input
+                value={countryMapForm.country_code}
+                onChange={(e) => setCountryMapForm({ ...countryMapForm, country_code: e.target.value.toUpperCase() })}
+                maxLength={2}
+                placeholder="AU"
+                disabled={!!editingMapEntry}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>Country Name</Label>
+              <Input
+                value={countryMapForm.country_name}
+                onChange={(e) => setCountryMapForm({ ...countryMapForm, country_name: e.target.value })}
+                placeholder="Australia"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>Pricing Peg</Label>
+              <Input
+                value={countryMapForm.pricing_peg}
+                onChange={(e) => setCountryMapForm({ ...countryMapForm, pricing_peg: e.target.value.toUpperCase() })}
+                placeholder="AUD"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>Billing Currency</Label>
+              <Input
+                value={countryMapForm.billing_currency}
+                onChange={(e) => setCountryMapForm({ ...countryMapForm, billing_currency: e.target.value.toUpperCase() })}
+                placeholder="AUD"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCountryMapDialogOpen(false)}>Cancel</Button>
+            <Button onClick={saveCountryMapEntry}>Save</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

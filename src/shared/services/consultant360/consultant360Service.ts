@@ -149,6 +149,9 @@ export interface StripeAccountStatus {
     requiresAction: boolean;
 }
 
+/** Provider-neutral alias for StripeAccountStatus */
+export type PayoutAccountStatus = StripeAccountStatus;
+
 export interface Message {
     id: string;
     conversationId: string;
@@ -332,9 +335,9 @@ export const consultant360Service = {
     },
 
     /**
-     * Start Stripe Connect onboarding
+     * Start payout provider onboarding
      */
-    async stripeOnboard(): Promise<{
+    async onboardPayoutProvider(): Promise<{
         success: boolean;
         data?: { accountLink: { url: string } };
         error?: string;
@@ -344,9 +347,20 @@ export const consultant360Service = {
     },
 
     /**
-     * Get Stripe account status
+     * @deprecated Use onboardPayoutProvider instead
      */
-    async getStripeStatus(): Promise<{
+    async stripeOnboard(): Promise<{
+        success: boolean;
+        data?: { accountLink: { url: string } };
+        error?: string;
+    }> {
+        return this.onboardPayoutProvider();
+    },
+
+    /**
+     * Get payout account status
+     */
+    async getPayoutStatus(): Promise<{
         success: boolean;
         data?: StripeAccountStatus;
         error?: string;
@@ -356,15 +370,37 @@ export const consultant360Service = {
     },
 
     /**
-     * Get Stripe dashboard login link
+     * @deprecated Use getPayoutStatus instead
      */
-    async getStripeLoginLink(): Promise<{
+    async getStripeStatus(): Promise<{
+        success: boolean;
+        data?: StripeAccountStatus;
+        error?: string;
+    }> {
+        return this.getPayoutStatus();
+    },
+
+    /**
+     * Get payout provider dashboard link
+     */
+    async getPayoutDashboardLink(): Promise<{
         success: boolean;
         data?: { url: string };
         error?: string;
     }> {
         const response = await apiClient.post<{ url: string }>('/api/payouts/login-link');
         return response;
+    },
+
+    /**
+     * @deprecated Use getPayoutDashboardLink instead
+     */
+    async getStripeLoginLink(): Promise<{
+        success: boolean;
+        data?: { url: string };
+        error?: string;
+    }> {
+        return this.getPayoutDashboardLink();
     },
 
     /**

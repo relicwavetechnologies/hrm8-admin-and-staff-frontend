@@ -47,6 +47,11 @@ export interface PriceBook {
   is_global: boolean;
   region_id?: string | null;
   currency: string;
+  billing_currency?: string;
+  pricing_peg?: string;
+  effective_from?: string;
+  is_approved?: boolean;
+  version?: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -68,6 +73,17 @@ export interface PromoCode {
   end_date?: string | null;
   max_uses?: number | null;
   used_count: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CountryPricingMap {
+  id: string;
+  country_code: string;
+  country_name: string;
+  pricing_peg: string;
+  billing_currency: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -145,6 +161,37 @@ class Hrm8PricingService {
 
   async deletePromoCode(id: string) {
     return apiClient.delete(`/api/hrm8/pricing/promo-codes/${id}`);
+  }
+
+  async getCountryPricingMap() {
+    return apiClient.get<{ countryPricingMap: CountryPricingMap[] }>('/api/hrm8/pricing/country-map');
+  }
+
+  async createCountryPricingMap(data: {
+    countryCode: string;
+    countryName: string;
+    pricingPeg: string;
+    billingCurrency: string;
+    isActive?: boolean;
+  }) {
+    return apiClient.post<{ countryPricing: CountryPricingMap }>('/api/hrm8/pricing/country-map', data);
+  }
+
+  async updateCountryPricingMap(
+    id: string,
+    data: Partial<{
+      countryCode: string;
+      countryName: string;
+      pricingPeg: string;
+      billingCurrency: string;
+      isActive: boolean;
+    }>
+  ) {
+    return apiClient.put<{ countryPricing: CountryPricingMap }>(`/api/hrm8/pricing/country-map/${id}`, data);
+  }
+
+  async toggleCountryPricingMap(id: string, isActive: boolean) {
+    return apiClient.put<{ countryPricing: CountryPricingMap }>(`/api/hrm8/pricing/country-map/${id}/toggle`, { isActive });
   }
 
   async validatePromoCode(code: string) {

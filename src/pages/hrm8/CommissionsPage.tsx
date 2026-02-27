@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { commissionService, Commission } from '@/shared/services/hrm8/commissionService';
+import { useNavigate } from 'react-router-dom';
+import { commissionService, Commission, CommissionReviewContext } from '@/shared/services/hrm8/commissionService';
 import { DataTable } from '@/shared/components/tables/DataTable';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
@@ -15,8 +16,10 @@ import { DisputeCommissionDialog } from '@/shared/components/hrm8/DisputeCommiss
 import { ResolveDisputeDialog } from '@/shared/components/hrm8/ResolveDisputeDialog';
 import { Hrm8PageLayout } from '@/shared/components/layouts/Hrm8PageLayout';
 import { TableSkeleton } from '@/shared/components/tables/TableSkeleton';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/shared/components/ui/sheet';
 
 const getColumns = (
+  onReview: (id: string) => void,
   onApprove: (id: string) => void,
   onDispute: (id: string) => void,
   onResolve: (id: string) => void,
@@ -79,6 +82,16 @@ const getColumns = (
       label: 'Actions',
       render: (commission: Commission) => (
         <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={(e) => {
+              e.stopPropagation();
+              onReview(commission.id);
+            }}
+          >
+            Review
+          </Button>
           {commission.status === 'PENDING' && (
             <Button
               size="sm"
@@ -131,12 +144,16 @@ const getColumns = (
   ];
 
 export default function CommissionsPage() {
+  const navigate = useNavigate();
   const [commissions, setCommissions] = useState<Commission[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [selectedCommissions, setSelectedCommissions] = useState<Commission[]>([]);
   const [approvingId, setApprovingId] = useState<string | null>(null);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewContext, setReviewContext] = useState<CommissionReviewContext | null>(null);
 
   // Dispute Dialogs
   const [disputeId, setDisputeId] = useState<string | null>(null);
@@ -200,6 +217,38 @@ export default function CommissionsPage() {
 
   const totalPending = commissions.filter(c => c.status === 'PENDING').reduce((sum, c) => sum + c.amount, 0);
   const totalPaid = commissions.filter(c => c.status === 'PAID').reduce((sum, c) => sum + c.amount, 0);
+
+  const formatDateTime = (value?: string | null) => {
+    if (!value) return 'Not available yet';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return 'Not available yet';
+    return d.toLocaleString();
+  };
+
+  const formatAmount = (amount?: number | null, currency?: string | null) => {
+    if (amount === null || amount === undefined) return 'Not available yet';
+    return `${currency || ''} ${Number(amount).toLocaleString()}`.trim();
+  };
+
+  const handleOpenReview = async (id: string) => {
+    try {
+      setReviewOpen(true);
+      setReviewLoading(true);
+      setReviewContext(null);
+      const response = await commissionService.getReviewContext(id);
+      if (!response.success) {
+        toast.error(response.error || 'Failed to load commission review context');
+        setReviewOpen(false);
+        return;
+      }
+      setReviewContext(response.data?.context || null);
+    } catch (error) {
+      toast.error('Failed to load commission review context');
+      setReviewOpen(false);
+    } finally {
+      setReviewLoading(false);
+    }
+  };
 
   return (
     <Hrm8PageLayout
@@ -269,6 +318,7 @@ export default function CommissionsPage() {
               <DataTable
                 data={commissions}
                 columns={getColumns(
+                  handleOpenReview,
                   handleApproveCommission,
                   (id) => setDisputeId(id),
                   (id) => setResolveId(id),
@@ -277,10 +327,117 @@ export default function CommissionsPage() {
                 searchable
                 searchKeys={['consultant_id', 'type']}
                 emptyMessage="No commissions found"
+                onRowClick={(item) => handleOpenReview(item.id)}
               />
             )}
           </CardContent>
         </Card>
+
+        <Sheet open={reviewOpen} onOpenChange={setReviewOpen}>
+          <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
+            <SheetHeader>
+              <SheetTitle>Commission Review</SheetTitle>
+              <SheetDescription>
+                Deep company and conversion context before commission approval.
+              </SheetDescription>
+            </SheetHeader>
+
+            {reviewLoading ? (
+              <div className="py-6 text-sm text-muted-foreground">Loading review context...</div>
+            ) : reviewContext ? (
+              <div className="space-y-6 py-4">
+                <Card className="p-4 space-y-3">
+                  <h3 className="font-semibold">Commission Details</h3>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <div className="text-muted-foreground">Commission ID</div>
+                      <div>{reviewContext.commission?.id || 'Not available yet'}</div>
+                    </div>
+                    <div>
+                      <div className="text-muted-foreground">Type</div>
+                      <div>{reviewContext.commission?.type || 'Not available yet'}</div>
+                    </div>
+                    <div>
+                      <div className="text-muted-foreground">Amount</div>
+                      <div>{formatAmount(reviewContext.commission?.amount, reviewContext.commission?.currency)}</div>
+                    </div>
+                    <div>
+                      <div className="text-muted-foreground">Status</div>
+                      <div>{reviewContext.commission?.status || 'Not available yet'}</div>
+                    </div>
+                    <div>
+                      <div className="text-muted-foreground">Created</div>
+                      <div>{formatDateTime(reviewContext.commission?.createdAt)}</div>
+                    </div>
+                    <div>
+                      <div className="text-muted-foreground">Consultant</div>
+                      <div>{reviewContext.commission?.consultantId || 'Not available yet'}</div>
+                    </div>
+                  </div>
+                </Card>
+
+                <Card className="p-4 space-y-3">
+                  <h3 className="font-semibold">Company and Conversion Context</h3>
+                  {reviewContext.companyContext?.id ? (
+                    <div className="flex justify-end">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => navigate(`/hrm8/companies/${reviewContext.companyContext?.id}`)}
+                      >
+                        Open Company Detail
+                      </Button>
+                    </div>
+                  ) : null}
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <div className="text-muted-foreground">Company</div>
+                      <div>{reviewContext.companyContext?.name || reviewContext.conversionContext?.request?.company_name || 'Not available yet'}</div>
+                    </div>
+                    <div>
+                      <div className="text-muted-foreground">Website</div>
+                      <div>{reviewContext.companyContext?.website || reviewContext.conversionContext?.request?.website || 'Not available yet'}</div>
+                    </div>
+                    <div>
+                      <div className="text-muted-foreground">Lead Confirmed</div>
+                      <div>{formatDateTime(reviewContext.conversionContext?.leadMilestones?.lead_confirmed_at)}</div>
+                    </div>
+                    <div>
+                      <div className="text-muted-foreground">First Job Posted</div>
+                      <div>{formatDateTime(reviewContext.commercialEvidence?.firstJobEvidence?.posted_at)}</div>
+                    </div>
+                    <div>
+                      <div className="text-muted-foreground">Setup Flow</div>
+                      <div>{reviewContext.commercialEvidence?.firstJobEvidence?.setup_type || 'Not available yet'}</div>
+                    </div>
+                    <div>
+                      <div className="text-muted-foreground">Service</div>
+                      <div>{reviewContext.commercialEvidence?.firstJobEvidence?.service_package || reviewContext.commercialEvidence?.firstJobEvidence?.hiring_mode || 'Not available yet'}</div>
+                    </div>
+                    <div>
+                      <div className="text-muted-foreground">Subscription</div>
+                      <div>{reviewContext.commercialEvidence?.subscriptionAtFirstJob?.name || reviewContext.commercialEvidence?.subscriptionAtFirstJob?.plan_type || 'Not available yet'}</div>
+                    </div>
+                    <div>
+                      <div className="text-muted-foreground">First Payment</div>
+                      <div>{formatAmount(reviewContext.commercialEvidence?.firstPaymentEvidence?.amount, reviewContext.commercialEvidence?.firstPaymentEvidence?.currency)}</div>
+                    </div>
+                    <div>
+                      <div className="text-muted-foreground">Payment Date</div>
+                      <div>{formatDateTime(reviewContext.commercialEvidence?.firstPaymentEvidence?.paid_at)}</div>
+                    </div>
+                    <div className="col-span-2">
+                      <div className="text-muted-foreground">Commission Readiness</div>
+                      <div>{reviewContext.commercialEvidence?.commissionReadiness?.reason || 'Not available yet'}</div>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            ) : (
+              <div className="py-6 text-sm text-muted-foreground">No review context available.</div>
+            )}
+          </SheetContent>
+        </Sheet>
 
         <CommissionPaymentDialog
           open={paymentDialogOpen}

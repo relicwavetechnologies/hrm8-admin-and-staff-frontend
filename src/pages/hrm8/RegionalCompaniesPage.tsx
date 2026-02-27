@@ -1,230 +1,217 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { DashboardStatCard } from '@/shared/components/dashboard/DashboardStatCard';
-import { DataTable, Column } from '@/shared/components/tables/DataTable';
-import { Building2, CheckCircle2, DollarSign } from "lucide-react";
-import { RegionalAnalyticsService } from '@/shared/lib/hrm8/regionalAnalyticsService';
-import { useHrm8Auth } from "@/contexts/Hrm8AuthContext";
-import { toast } from "sonner";
-import { Badge } from "@/shared/components/ui/badge";
-import { useSearchParams } from "react-router-dom";
+import { DataTable, type Column } from '@/shared/components/tables/DataTable';
+import { Building2, CheckCircle2, DollarSign } from 'lucide-react';
+import { toast } from 'sonner';
+import { Badge } from '@/shared/components/ui/badge';
+import { useRegionStore } from '@/shared/stores/useRegionStore';
+import {
+  companyAdminService,
+  type CompanyListItem,
+  type CompanyStatusFilter,
+} from '@/shared/services/hrm8/companyAdminService';
 
-interface Company {
-    id: string;
-    name: string;
-    domain: string;
-    created_at: string;
-    attribution_status: 'OPEN' | 'LOCKED' | 'EXPIRED';
-    open_jobs_count: number;
-    subscription: {
-        plan: string;
-        start_date: string;
-        renewal_date: string;
-    } | null;
+function normalizeStatus(value: string | null): CompanyStatusFilter | undefined {
+  if (!value) return undefined;
+  const lowered = value.toLowerCase();
+  if (lowered === 'active') return 'ACTIVE';
+  if (lowered === 'inactive') return 'INACTIVE';
+  if (lowered === 'new') return 'NEW';
+  return undefined;
 }
 
 export default function RegionalCompaniesPage() {
-    const { hrm8User } = useHrm8Auth();
-    const [searchParams] = useSearchParams();
-    const [isLoading, setIsLoading] = useState(true);
-    const [allCompanies, setAllCompanies] = useState<Company[]>([]);
-    const [filteredCompanies, setFilteredCompanies] = useState<Company[]>([]);
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { selectedRegionId } = useRegionStore();
+  const effectiveRegionFilter = selectedRegionId === 'all' || !selectedRegionId ? undefined : selectedRegionId;
+  const [isLoading, setIsLoading] = useState(true);
+  const [companies, setCompanies] = useState<CompanyListItem[]>([]);
 
-    const regionId = (hrm8User as any)?.assignedRegionIds?.[0];
+  const statusFilter = normalizeStatus(searchParams.get('status'));
+  const sortParam = searchParams.get('sort');
 
-    useEffect(() => {
-        if (regionId) {
-            fetchCompanies();
-        }
-    }, [regionId]);
+  useEffect(() => {
+    fetchCompanies();
+  }, [statusFilter]);
 
-    useEffect(() => {
-        filterCompanies();
-    }, [allCompanies, searchParams]);
+  const fetchCompanies = async () => {
+    try {
+      setIsLoading(true);
+      const response = await companyAdminService.getCompanies({
+        status: statusFilter,
+        page: 1,
+        limit: 200,
+      });
 
-    const fetchCompanies = async () => {
-        if (!regionId) return;
-        try {
-            setIsLoading(true);
-            const response = await RegionalAnalyticsService.getRegionalCompanies(regionId);
-            if (response && response.companies) {
-                setAllCompanies(response.companies);
-            }
-        } catch (error) {
-            toast.error("Failed to load regional companies");
-        } finally {
-            setIsLoading(false);
-        }
-    };
+      if (!response.success || !response.data) {
+        toast.error(response.error || 'Failed to load companies');
+        return;
+      }
 
-    const filterCompanies = () => {
-        let result = [...allCompanies];
-        const statusParam = searchParams.get('status');
-        const sortParam = searchParams.get('sort');
+      setCompanies(response.data.companies || []);
+    } catch {
+      toast.error('Failed to load companies');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-        if (statusParam === 'active') {
-            result = result.filter(c => c.open_jobs_count > 0);
-        } else if (statusParam === 'inactive') {
-            result = result.filter(c => c.open_jobs_count === 0);
-        } else if (statusParam === 'new') {
-            const now = new Date();
-            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-            result = result.filter(c => {
-                const d = c.created_at ? new Date(c.created_at) : null;
-                return d && !isNaN(d.getTime()) && d >= startOfMonth;
-            });
-        }
-
-        if (sortParam === 'newest') {
-            result.sort((a, b) => {
-                const da = a.created_at ? new Date(a.created_at).getTime() : 0;
-                const db = b.created_at ? new Date(b.created_at).getTime() : 0;
-                return db - da;
-            });
-        }
-
-        setFilteredCompanies(result);
-    };
-
-    const totalCompanies = allCompanies.length;
-    const activeSubscriptions = allCompanies.filter(c => c.subscription !== null).length;
-    const lockedAttributions = allCompanies.filter(c => c.attribution_status === 'LOCKED').length;
-
-    const companyColumns: Column<Company>[] = [
-        {
-            key: "name",
-            label: "Company Name",
-            sortable: true,
-            render: (company) => <span className="font-medium">{company.name}</span>,
-        },
-        {
-            key: "domain",
-            label: "Domain",
-            sortable: true,
-            render: (company) => (
-                <a
-                    href={`https://${company.domain}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline"
-                >
-                    {company.domain}
-                </a>
-            ),
-        },
-        {
-            key: "attribution_status",
-            label: "Attribution",
-            sortable: true,
-            render: (company) => {
-                const status = company.attribution_status;
-                const variantMap = {
-                    OPEN: 'secondary',
-                    LOCKED: 'success',
-                    EXPIRED: 'destructive'
-                };
-                return (
-                    // @ts-ignore
-                    <Badge variant={variantMap[status]}>
-                        {status}
-                    </Badge>
-                );
-            },
-        },
-        {
-            key: "subscription",
-            label: "Subscription",
-            render: (company) => {
-                const sub = company.subscription;
-                if (!sub) {
-                    return <Badge variant="outline">No Subscription</Badge>;
-                }
-                // @ts-ignore
-                return <Badge variant="success">{sub.plan}</Badge>;
-            },
-        },
-        {
-            key: "created_at",
-            label: "Created Date",
-            sortable: true,
-            render: (company) => {
-                const d = company.created_at ? new Date(company.created_at) : null;
-                return d && !isNaN(d.getTime()) ? d.toLocaleDateString() : '—';
-            },
-        },
-        {
-            key: "open_jobs_count",
-            label: "Open Jobs",
-            sortable: true,
-            render: (company) => (
-                <Badge variant={company.open_jobs_count > 0 ? "secondary" : "outline"}>
-                    {company.open_jobs_count} Jobs
-                </Badge>
-            ),
-        },
-    ];
-
-    return (
-        
-            <div className="p-6 space-y-6">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Region Companies</h1>
-                    <p className="text-muted-foreground">Manage and track companies in your region</p>
-                </div>
-
-                {!regionId && !isLoading ? (
-                    <div className="p-4 bg-yellow-50 text-yellow-700 rounded-md border border-yellow-200">
-                        No region assigned to this user.
-                    </div>
-                ) : (
-                    <>
-                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                            <DashboardStatCard
-                                title="Total Companies"
-                                value={totalCompanies.toString()}
-                                description={`${lockedAttributions} locked`}
-                                trend="up"
-                                icon={<Building2 className="h-5 w-5" />}
-                                variant="neutral"
-                            />
-
-                            <DashboardStatCard
-                                title="Active Subscriptions"
-                                value={activeSubscriptions.toString()}
-                                description={`${totalCompanies - activeSubscriptions} inactive`}
-                                trend={activeSubscriptions > 0 ? "up" : undefined}
-                                icon={<CheckCircle2 className="h-5 w-5" />}
-                                variant="success"
-                            />
-
-                            <DashboardStatCard
-                                title="Attributed"
-                                value={lockedAttributions.toString()}
-                                description="Locked attributions"
-                                trend="up"
-                                icon={<DollarSign className="h-5 w-5" />}
-                                variant="primary"
-                            />
-                        </div>
-
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow border">
-                            <div className="p-6">
-                                <h3 className="text-lg font-semibold mb-4">Companies List</h3>
-                                {isLoading ? (
-                                    <div className="text-center py-8">Loading companies...</div>
-                                ) : (
-                                    <DataTable
-                                        columns={companyColumns}
-                                        data={filteredCompanies}
-                                        searchable={true}
-                                        searchKeys={['name', 'domain']}
-                                        emptyMessage="No companies found"
-                                    />
-                                )}
-                            </div>
-                        </div>
-                    </>
-                )}
-            </div>
-        
+  const filteredCompanies = useMemo(() => {
+    const result = [...companies].filter((company) =>
+      effectiveRegionFilter ? company.region_id === effectiveRegionFilter : true
     );
+
+    if (sortParam === 'newest') {
+      result.sort((a, b) => {
+        const da = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const db = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return db - da;
+      });
+    }
+
+    return result;
+  }, [companies, sortParam, effectiveRegionFilter]);
+
+  const totalCompanies = companies.length;
+  const activeSubscriptions = companies.filter((c) => c.subscription !== null).length;
+  const lockedAttributions = companies.filter((c) => c.attribution_status === 'LOCKED').length;
+
+  const columns: Column<CompanyListItem>[] = [
+    {
+      key: 'name',
+      label: 'Company Name',
+      sortable: true,
+      render: (company) => <span className="font-medium">{company.name}</span>,
+    },
+    {
+      key: 'domain',
+      label: 'Website/Domain',
+      sortable: true,
+      render: (company) => {
+        const url = company.website || (company.domain ? `https://${company.domain}` : null);
+        const label = company.website || company.domain;
+        if (!url || !label) return <span className="text-muted-foreground">—</span>;
+        return (
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:underline"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {label}
+          </a>
+        );
+      },
+    },
+    {
+      key: 'region',
+      label: 'Region',
+      sortable: true,
+      render: (company) => <span>{company.region?.name || 'Not assigned'}</span>,
+    },
+    {
+      key: 'billing_currency',
+      label: 'Currency',
+      sortable: true,
+      render: (company) => company.billing_currency || '—',
+    },
+    {
+      key: 'attribution_status',
+      label: 'Attribution',
+      sortable: true,
+      render: (company) => (
+        <Badge variant={company.attribution_status === 'LOCKED' ? 'default' : 'secondary'}>
+          {company.attribution_status}
+        </Badge>
+      ),
+    },
+    {
+      key: 'subscription',
+      label: 'Subscription',
+      render: (company) => {
+        if (!company.subscription) {
+          return <Badge variant="outline">No Subscription</Badge>;
+        }
+        return <Badge>{company.subscription.plan_type || company.subscription.name}</Badge>;
+      },
+    },
+    {
+      key: 'open_jobs_count',
+      label: 'Open Jobs',
+      sortable: true,
+      render: (company) => (
+        <Badge variant={company.open_jobs_count > 0 ? 'secondary' : 'outline'}>
+          {company.open_jobs_count} Jobs
+        </Badge>
+      ),
+    },
+    {
+      key: 'created_at',
+      label: 'Created Date',
+      sortable: true,
+      render: (company) => {
+        const d = company.created_at ? new Date(company.created_at) : null;
+        return d && !Number.isNaN(d.getTime()) ? d.toLocaleDateString() : '—';
+      },
+    },
+  ];
+
+  return (
+    <div className="p-6 space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Companies</h1>
+        <p className="text-muted-foreground">Customer list with subscriptions, activity and pricing context access.</p>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <DashboardStatCard
+          title="Total Companies"
+          value={String(totalCompanies)}
+          description={`${lockedAttributions} attribution locked`}
+          trend="up"
+          icon={<Building2 className="h-5 w-5" />}
+          variant="neutral"
+        />
+
+        <DashboardStatCard
+          title="Active Subscriptions"
+          value={String(activeSubscriptions)}
+          description={`${totalCompanies - activeSubscriptions} inactive`}
+          trend={activeSubscriptions > 0 ? 'up' : undefined}
+          icon={<CheckCircle2 className="h-5 w-5" />}
+          variant="success"
+        />
+
+        <DashboardStatCard
+          title="Attributed"
+          value={String(lockedAttributions)}
+          description="Locked attributions"
+          trend="up"
+          icon={<DollarSign className="h-5 w-5" />}
+          variant="primary"
+        />
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow border">
+        <div className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Companies List</h3>
+          {isLoading ? (
+            <div className="text-center py-8">Loading companies...</div>
+          ) : (
+            <DataTable
+              columns={columns}
+              data={filteredCompanies}
+              searchable
+              searchKeys={['name', 'website', 'domain', 'billing_currency']}
+              emptyMessage="No companies found"
+              onRowClick={(company) => navigate(`/hrm8/companies/${company.id}`)}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }

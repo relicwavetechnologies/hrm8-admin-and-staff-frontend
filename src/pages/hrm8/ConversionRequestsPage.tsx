@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { useToast } from "@/shared/hooks/use-toast";
@@ -11,9 +12,11 @@ import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { DataTable, Column } from "@/shared/components/tables/DataTable";
 import { Card } from "@/shared/components/ui/card";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/shared/components/ui/sheet";
 
 export default function ConversionRequestsPage() {
     const { toast } = useToast();
+    const navigate = useNavigate();
     const [requests, setRequests] = useState<ConversionRequest[]>([]);
     const [statusFilter, setStatusFilter] = useState<string>('PENDING');
     
@@ -28,6 +31,21 @@ export default function ConversionRequestsPage() {
     
     // Credentials display
     const [credentials, setCredentials] = useState<{ email: string; password?: string; companyName: string } | null>(null);
+    const [reviewOpen, setReviewOpen] = useState(false);
+    const [reviewLoading, setReviewLoading] = useState(false);
+    const [reviewContext, setReviewContext] = useState<any | null>(null);
+
+    const formatDateTime = (value?: string | null) => {
+        if (!value) return 'Not available yet';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return 'Not available yet';
+        return format(date, 'MMM dd, yyyy HH:mm');
+    };
+
+    const formatMoney = (amount?: number | null, currency?: string | null) => {
+        if (amount === null || amount === undefined) return 'Not available yet';
+        return `${currency || ''} ${Number(amount).toLocaleString()}`.trim();
+    };
 
     useEffect(() => {
         loadRequests();
@@ -115,6 +133,25 @@ export default function ConversionRequestsPage() {
         setDeclineReason('');
     };
 
+    const openReview = async (request: ConversionRequest) => {
+        try {
+            setReviewOpen(true);
+            setReviewLoading(true);
+            setReviewContext(null);
+            const context = await leadConversionAdminService.getReviewContext(request.id);
+            setReviewContext(context);
+        } catch (error: any) {
+            toast({
+                title: 'Error',
+                description: error.message || 'Failed to load review context',
+                variant: 'destructive'
+            });
+            setReviewOpen(false);
+        } finally {
+            setReviewLoading(false);
+        }
+    };
+
     const getStatusBadge = (status: string) => {
         switch (status) {
             case 'PENDING':
@@ -166,12 +203,25 @@ export default function ConversionRequestsPage() {
             label: "Actions",
             render: (item) => (
                 <div className="flex gap-2">
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            openReview(item);
+                        }}
+                    >
+                        View Details
+                    </Button>
                     {item.status === 'PENDING' ? (
                         <>
                             <Button
                                 size="sm"
                                 variant="default"
-                                onClick={() => openDialog(item, 'approve')}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    openDialog(item, 'approve');
+                                }}
                                 className="bg-green-600 hover:bg-green-700"
                             >
                                 <CheckCircle className="h-4 w-4 mr-1" />
@@ -180,7 +230,10 @@ export default function ConversionRequestsPage() {
                             <Button
                                 size="sm"
                                 variant="destructive"
-                                onClick={() => openDialog(item, 'decline')}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    openDialog(item, 'decline');
+                                }}
                             >
                                 <XCircle className="h-4 w-4 mr-1" />
                                 Decline
@@ -238,8 +291,113 @@ export default function ConversionRequestsPage() {
                     data={requests}
                     searchable={true} 
                     searchKeys={["company_name", "email"]}
+                    onRowClick={openReview}
                 />
             </Card>
+
+            <Sheet open={reviewOpen} onOpenChange={setReviewOpen}>
+                <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
+                    <SheetHeader>
+                        <SheetTitle>Conversion Request Review</SheetTitle>
+                        <SheetDescription>
+                            Full company and commercial context for approval.
+                        </SheetDescription>
+                    </SheetHeader>
+
+                    {reviewLoading ? (
+                        <div className="py-6 text-sm text-muted-foreground">Loading review context...</div>
+                    ) : reviewContext ? (
+                        <div className="space-y-6 py-4">
+                            <Card className="p-4 space-y-3">
+                                <h3 className="font-semibold">Approval Essentials</h3>
+                                {reviewContext.companyContext?.id ? (
+                                    <div className="flex justify-end">
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => navigate(`/hrm8/companies/${reviewContext.companyContext.id}`)}
+                                        >
+                                            Open Company Detail
+                                        </Button>
+                                    </div>
+                                ) : null}
+                                <div className="grid grid-cols-2 gap-3 text-sm">
+                                    <div>
+                                        <div className="text-muted-foreground">Company</div>
+                                        <div>{reviewContext.request?.company_name || reviewContext.companyContext?.name || 'Not available yet'}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-muted-foreground">Website</div>
+                                        <div>{reviewContext.request?.website || reviewContext.companyContext?.website || 'Not available yet'}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-muted-foreground">Email</div>
+                                        <div>{reviewContext.request?.email || 'Not available yet'}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-muted-foreground">Phone</div>
+                                        <div>{reviewContext.request?.phone || 'Not available yet'}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-muted-foreground">Lead Confirmed</div>
+                                        <div>{formatDateTime(reviewContext.leadMilestones?.lead_confirmed_at)}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-muted-foreground">Submitted</div>
+                                        <div>{formatDateTime(reviewContext.request?.created_at)}</div>
+                                    </div>
+                                    <div className="col-span-2">
+                                        <div className="text-muted-foreground">Intent Snapshot</div>
+                                        <pre className="mt-1 rounded bg-muted p-2 text-xs overflow-auto whitespace-pre-wrap">
+{JSON.stringify(reviewContext.request?.intent_snapshot || {}, null, 2)}
+                                        </pre>
+                                    </div>
+                                    <div className="col-span-2">
+                                        <div className="text-muted-foreground">Agent Notes</div>
+                                        <div>{reviewContext.request?.agent_notes || 'Not available yet'}</div>
+                                    </div>
+                                </div>
+                            </Card>
+
+                            <Card className="p-4 space-y-3">
+                                <h3 className="font-semibold">Post-Conversion Revenue Evidence</h3>
+                                <div className="grid grid-cols-2 gap-3 text-sm">
+                                    <div>
+                                        <div className="text-muted-foreground">First Job Posted</div>
+                                        <div>{formatDateTime(reviewContext.firstJobEvidence?.posted_at)}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-muted-foreground">Flow</div>
+                                        <div>{reviewContext.firstJobEvidence?.setup_type || 'Not available yet'}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-muted-foreground">Service</div>
+                                        <div>{reviewContext.firstJobEvidence?.service_package || reviewContext.firstJobEvidence?.hiring_mode || 'Not available yet'}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-muted-foreground">Subscription</div>
+                                        <div>{reviewContext.subscriptionAtFirstJob?.name || reviewContext.subscriptionAtFirstJob?.plan_type || 'Not available yet'}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-muted-foreground">First Payment</div>
+                                        <div>{formatMoney(reviewContext.firstPaymentEvidence?.amount, reviewContext.firstPaymentEvidence?.currency)}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-muted-foreground">Payment Date</div>
+                                        <div>{formatDateTime(reviewContext.firstPaymentEvidence?.paid_at)}</div>
+                                    </div>
+                                    <div className="col-span-2">
+                                        <div className="text-muted-foreground">Commission Readiness</div>
+                                        <div>{reviewContext.commissionReadiness?.reason || 'Not available yet'}</div>
+                                    </div>
+                                </div>
+                            </Card>
+                        </div>
+                    ) : (
+                        <div className="py-6 text-sm text-muted-foreground">No review context available.</div>
+                    )}
+                </SheetContent>
+            </Sheet>
 
             {/* Action Dialog */}
             <Dialog open={!!selectedRequest} onOpenChange={(open) => !open && closeDialog()}>

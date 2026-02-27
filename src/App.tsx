@@ -29,6 +29,7 @@ import LicenseesWorkspacePage from './pages/hrm8/licensees/LicenseesWorkspacePag
 import LicenseesOverviewPage from './pages/hrm8/licensees/LicenseesOverviewPage'
 import ConsultantDashboard from './pages/consultant/ConsultantDashboard'
 import RegionalCompaniesPage from './pages/hrm8/RegionalCompaniesPage'
+import Hrm8CompanyDetailPage from './pages/hrm8/Hrm8CompanyDetailPage'
 import JobAllocationPage from './pages/hrm8/JobAllocationPage'
 import SalesDashboardPage from './pages/sales/SalesDashboardPage'
 import Consultant360Dashboard from './pages/consultant360/Consultant360Dashboard'
@@ -132,6 +133,7 @@ function App() {
                     <Route path="/hrm8/staff/:id" element={<StaffProfilePage />} />
                     <Route path="/hrm8/consultants/:id" element={<Hrm8ConsultantDetailPage />} />
                     <Route path="/hrm8/companies" element={<RegionalCompaniesPage />} />
+                    <Route path="/hrm8/companies/:companyId" element={<Hrm8CompanyDetailPage />} />
                     <Route path="/hrm8/allocations" element={<Navigate to="/hrm8/jobs/allocation" replace />} />
                     <Route path="/hrm8/jobs/unassigned" element={<UnassignedJobsPage />} />
                     <Route path="/hrm8/job-board" element={<Navigate to="/hrm8/jobs/companies" replace />} />

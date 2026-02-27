@@ -24,6 +24,116 @@ export interface Commission {
   updated_at: string;
 }
 
+export interface CommissionReviewContext {
+  commission: {
+    id: string;
+    consultantId: string;
+    regionId: string;
+    type: string;
+    amount: number;
+    currency?: string | null;
+    status: string;
+    description?: string | null;
+    createdAt?: string;
+    confirmedAt?: string | null;
+    paidAt?: string | null;
+    linkedJob?: {
+      id?: string;
+      title?: string;
+      setupType?: string | null;
+      managementType?: string | null;
+      servicePackage?: string | null;
+      hiringMode?: string | null;
+      paymentStatus?: string | null;
+      paymentAmount?: number | null;
+      paymentCurrency?: string | null;
+      postedAt?: string | null;
+    } | null;
+    linkedSubscription?: {
+      id?: string;
+      name?: string;
+      planType?: string;
+      basePrice?: number;
+      currency?: string | null;
+      billingCycle?: string;
+      createdAt?: string;
+    } | null;
+  };
+  companyContext?: {
+    id?: string;
+    name?: string;
+    website?: string | null;
+    billing_currency?: string | null;
+    pricing_peg?: string | null;
+    created_at?: string | null;
+  } | null;
+  conversionContext?: {
+    request?: {
+      id?: string;
+      status?: string;
+      company_name?: string;
+      email?: string;
+      phone?: string | null;
+      website?: string | null;
+      country?: string;
+      city?: string | null;
+      created_at?: string;
+      reviewed_at?: string | null;
+      converted_at?: string | null;
+      intent_snapshot?: Record<string, unknown> | null;
+    } | null;
+    leadMilestones?: {
+      lead_created_at?: string | null;
+      lead_confirmed_at?: string | null;
+      lead_status?: string | null;
+      lead_source?: string | null;
+    };
+    conversionMilestones?: {
+      request_submitted_at?: string | null;
+      reviewed_at?: string | null;
+      converted_at?: string | null;
+    };
+  };
+  commercialEvidence?: {
+    firstJobEvidence?: {
+      job_id?: string;
+      posted_at?: string | null;
+      setup_type?: string | null;
+      management_type?: string | null;
+      service_package?: string | null;
+      hiring_mode?: string | null;
+      payment_status?: string | null;
+    } | null;
+    subscriptionAtFirstJob?: {
+      subscription_id?: string;
+      plan_type?: string;
+      name?: string;
+      base_price?: number;
+      currency?: string | null;
+      billing_cycle?: string;
+      created_at?: string;
+      matchStrategy?: string;
+    } | null;
+    firstPaymentEvidence?: {
+      source?: string;
+      amount?: number;
+      currency?: string | null;
+      paid_at?: string;
+      reference_id?: string | null;
+    } | null;
+    commissionReadiness?: {
+      eligible?: boolean;
+      reason?: string;
+      existing_commission_id?: string;
+      existing_commission_status?: string;
+    };
+  };
+  dataCompleteness?: {
+    preApprovalComplete?: boolean;
+    postPaymentAvailable?: boolean;
+  };
+}
+
 class CommissionService {
   async getAll(filters?: {
     consultant_id?: string;
@@ -47,6 +157,10 @@ class CommissionService {
 
   async getById(id: string) {
     return apiClient.get<{ commission: Commission }>(`/api/hrm8/commissions/${id}`);
+  }
+
+  async getReviewContext(id: string) {
+    return apiClient.get<{ context: CommissionReviewContext }>(`/api/hrm8/commissions/${id}/review-context`);
   }
 
   async create(data: {

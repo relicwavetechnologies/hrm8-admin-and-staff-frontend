@@ -120,6 +120,7 @@ function generateDescription(label: string, category: string): string {
         'Regions': 'Manage geographical regions',
         'Licensees': 'Manage licensees',
         'Leads': 'Manage sales leads',
+        'Companies': 'View customer companies, activity and pricing context',
         'Pipeline': 'View sales pipeline',
         'Withdrawals': 'Manage withdrawal requests',
         'Refund Requests': 'Handle refund requests',

@@ -29,6 +29,7 @@ import LicenseesWorkspacePage from './pages/hrm8/licensees/LicenseesWorkspacePag
 import LicenseesOverviewPage from './pages/hrm8/licensees/LicenseesOverviewPage'
 import ConsultantDashboard from './pages/consultant/ConsultantDashboard'
 import RegionalCompaniesPage from './pages/hrm8/RegionalCompaniesPage'
+import Hrm8CompanyDetailPage from './pages/hrm8/Hrm8CompanyDetailPage'
 import JobAllocationPage from './pages/hrm8/JobAllocationPage'
 import SalesDashboardPage from './pages/sales/SalesDashboardPage'
 import Consultant360Dashboard from './pages/consultant360/Consultant360Dashboard'

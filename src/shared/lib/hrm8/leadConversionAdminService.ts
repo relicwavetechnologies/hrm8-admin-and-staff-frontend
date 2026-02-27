@@ -6,6 +6,80 @@
 import { apiClient } from '../api';
 import { ConversionRequest } from '../sales/leadConversionService';
 
+export interface ConversionReviewContext {
+    request: {
+        id: string;
+        status: string;
+        company_name: string;
+        email: string;
+        phone?: string | null;
+        website?: string | null;
+        country?: string;
+        city?: string | null;
+        region_id?: string;
+        created_at?: string;
+        reviewed_at?: string | null;
+        converted_at?: string | null;
+        agent_notes?: string | null;
+        intent_snapshot?: Record<string, unknown> | null;
+    };
+    leadMilestones?: {
+        lead_created_at?: string | null;
+        lead_confirmed_at?: string | null;
+        lead_status?: string | null;
+        lead_source?: string | null;
+    };
+    conversionMilestones?: {
+        request_submitted_at?: string | null;
+        reviewed_at?: string | null;
+        converted_at?: string | null;
+    };
+    firstJobEvidence?: {
+        job_id?: string;
+        posted_at?: string | null;
+        setup_type?: string | null;
+        management_type?: string | null;
+        service_package?: string | null;
+        hiring_mode?: string | null;
+        payment_status?: string | null;
+    } | null;
+    subscriptionAtFirstJob?: {
+        subscription_id?: string;
+        plan_type?: string;
+        name?: string;
+        base_price?: number;
+        currency?: string | null;
+        billing_cycle?: string;
+        created_at?: string;
+        matchStrategy?: string;
+    } | null;
+    firstPaymentEvidence?: {
+        source?: string;
+        amount?: number;
+        currency?: string | null;
+        paid_at?: string;
+        reference_id?: string | null;
+    } | null;
+    commissionReadiness?: {
+        eligible?: boolean;
+        reason?: string;
+        existing_commission_id?: string;
+        existing_commission_status?: string;
+    };
+    dataCompleteness?: {
+        preApprovalComplete?: boolean;
+        postPaymentAvailable?: boolean;
+    };
+    companyContext?: {
+        id?: string;
+        name?: string;
+        website?: string | null;
+        billing_currency?: string | null;
+        pricing_peg?: string | null;
+        created_at?: string | null;
+    } | null;
+}
+
 export const leadConversionAdminService = {
     /**
      * Get all conversion requests (with regional filtering)
@@ -34,6 +108,16 @@ export const leadConversionAdminService = {
         }
 
         return response.data.request;
+    },
+
+    async getReviewContext(id: string): Promise<ConversionReviewContext> {
+        const response = await apiClient.get<any>(`/api/hrm8/conversion-requests/${id}/review-context`);
+
+        if (!response.success) {
+            throw new Error(response.error || 'Failed to fetch conversion review context');
+        }
+
+        return response.data.context;
     },
 
     /**

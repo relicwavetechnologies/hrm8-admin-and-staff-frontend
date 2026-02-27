@@ -56,7 +56,7 @@ const columns = [
     key: 'revenueSharePercent',
     label: 'Revenue Share %',
     sortable: true,
-    render: (licensee: RegionalLicensee) => `${ licensee.revenueSharePercent }% `,
+    render: (licensee: RegionalLicensee) => `${licensee.revenueSharePercent}% `,
   },
 ];
 
@@ -143,7 +143,7 @@ export default function LicenseesPage() {
         : licenseeService.suspend(selectedLicensee.id));
 
       if (response.success) {
-        toast.success(`Licensee ${ selectedLicensee.status === 'SUSPENDED' ? 'activated' : 'suspended' } successfully`);
+        toast.success(`Licensee ${selectedLicensee.status === 'SUSPENDED' ? 'activated' : 'suspended'} successfully`);
         await loadLicensees();
       }
     } catch (error) {

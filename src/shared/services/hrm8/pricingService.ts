@@ -203,39 +203,7 @@ class Hrm8PricingService {
     }>('/api/hrm8/pricing/promo-codes/validate', { code });
   }
 
-  async getCountryPricingMap() {
-    return apiClient.get<{ countryPricingMap: CountryPricingMapEntry[] }>('/api/hrm8/pricing/country-map');
-  }
-
-  async createCountryPricingMap(data: CountryPricingMapCreate) {
-    return apiClient.post<{ countryPricing: CountryPricingMapEntry }>('/api/hrm8/pricing/country-map', data);
-  }
-
-  async updateCountryPricingMap(id: string, data: Partial<CountryPricingMapCreate>) {
-    return apiClient.put<{ countryPricing: CountryPricingMapEntry }>(`/api/hrm8/pricing/country-map/${id}`, data);
-  }
-
-  async toggleCountryPricingMap(id: string) {
-    return apiClient.put<{ countryPricing: CountryPricingMapEntry }>(`/api/hrm8/pricing/country-map/${id}/toggle`);
-  }
 }
 
-export interface CountryPricingMapEntry {
-  id: string;
-  country_code: string;
-  country_name?: string;
-  pricing_peg: string;
-  billing_currency: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CountryPricingMapCreate {
-  country_code: string;
-  country_name?: string;
-  pricing_peg: string;
-  billing_currency: string;
-}
 
 export const hrm8PricingService = new Hrm8PricingService();

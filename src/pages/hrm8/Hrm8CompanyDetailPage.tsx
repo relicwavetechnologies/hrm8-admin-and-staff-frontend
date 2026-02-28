@@ -382,82 +382,160 @@ export default function Hrm8CompanyDetailPage() {
               </Card>
 
               {/* Stats Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <StatCard
-                  icon={<Briefcase className="h-5 w-5 text-blue-600" />}
-                  label="Open Jobs"
-                  value={String(overview.stats.open_jobs_count)}
-                />
-                <StatCard
-                  icon={<Users className="h-5 w-5 text-violet-600" />}
-                  label="Total Applications"
-                  value={String(overview.stats.applications_count)}
-                />
-                <StatCard
-                  icon={<DollarSign className="h-5 w-5 text-emerald-600" />}
-                  label="Wallet Balance"
-                  value={overview.wallet ? fmtCurrency(Number(overview.wallet.balance), overview.company.billing_currency || 'USD') : '—'}
-                />
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <StatCard icon={<Briefcase className="h-5 w-5 text-blue-600" />} label="Open Jobs" value={String(overview.stats.open_jobs_count)} />
+                <StatCard icon={<Briefcase className="h-5 w-5 text-sky-600" />} label="Total Jobs" value={String(overview.stats.total_jobs_count)} />
+                <StatCard icon={<Users className="h-5 w-5 text-violet-600" />} label="Applications" value={String(overview.stats.applications_count)} />
+                <StatCard icon={<DollarSign className="h-5 w-5 text-emerald-600" />} label="Wallet Balance" value={overview.wallet ? fmtCurrency(Number(overview.wallet.balance), overview.company.billing_currency || 'USD') : '—'} />
               </div>
 
-              {/* Subscription Card */}
+              {/* Wallet + Subscription row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader><CardTitle className="text-lg">Active Subscription</CardTitle></CardHeader>
+                  <CardContent>
+                    {overview.activeSubscription ? (
+                      <dl className="grid grid-cols-2 gap-3 text-sm">
+                        <div><dt className="text-muted-foreground">Plan</dt><dd className="font-medium">{overview.activeSubscription.name || overview.activeSubscription.plan_type || '—'}</dd></div>
+                        <div><dt className="text-muted-foreground">Status</dt><dd><Badge className={`text-xs ${statusColor(overview.activeSubscription.status)}`}>{overview.activeSubscription.status}</Badge></dd></div>
+                        <div><dt className="text-muted-foreground">Jobs Used</dt><dd className="font-medium">{overview.activeSubscription.jobs_used ?? 0}{overview.activeSubscription.job_quota != null && ` / ${overview.activeSubscription.job_quota}`}</dd></div>
+                        <div><dt className="text-muted-foreground">Renewal</dt><dd className="font-medium">{fmtDate(overview.activeSubscription.renewal_date)}</dd></div>
+                        <div><dt className="text-muted-foreground">Start</dt><dd className="font-medium">{fmtDate(overview.activeSubscription.start_date)}</dd></div>
+                      </dl>
+                    ) : (<p className="text-sm text-muted-foreground">No active subscription</p>)}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader><CardTitle className="text-lg">Wallet</CardTitle></CardHeader>
+                  <CardContent>
+                    {overview.wallet ? (
+                      <dl className="grid grid-cols-2 gap-3 text-sm">
+                        <div><dt className="text-muted-foreground">Balance</dt><dd className="font-medium text-lg">{fmtCurrency(Number(overview.wallet.balance), overview.company.billing_currency || 'USD')}</dd></div>
+                        <div><dt className="text-muted-foreground">Status</dt><dd><Badge className={`text-xs ${statusColor(overview.wallet.status)}`}>{overview.wallet.status}</Badge></dd></div>
+                        <div><dt className="text-muted-foreground">Total Credits</dt><dd className="font-medium">{fmtCurrency(Number(overview.wallet.total_credits), overview.company.billing_currency || 'USD')}</dd></div>
+                        <div><dt className="text-muted-foreground">Total Debits</dt><dd className="font-medium">{fmtCurrency(Number(overview.wallet.total_debits), overview.company.billing_currency || 'USD')}</dd></div>
+                      </dl>
+                    ) : (<p className="text-sm text-muted-foreground">No wallet found</p>)}
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Attribution */}
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Active Subscription</CardTitle>
-                </CardHeader>
+                <CardHeader><CardTitle className="text-lg">Attribution & Billing</CardTitle></CardHeader>
                 <CardContent>
-                  {overview.activeSubscription ? (
-                    <dl className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <dt className="text-muted-foreground">Plan</dt>
-                        <dd className="font-medium">{overview.activeSubscription.name || overview.activeSubscription.plan_type || '—'}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-muted-foreground">Jobs Used</dt>
-                        <dd className="font-medium">
-                          {overview.activeSubscription.jobs_used ?? 0}
-                          {overview.activeSubscription.job_quota != null && ` / ${overview.activeSubscription.job_quota}`}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-muted-foreground">Renewal Date</dt>
-                        <dd className="font-medium">{fmtDate(overview.activeSubscription.renewal_date)}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-muted-foreground">Status</dt>
-                        <dd>
-                          <Badge className={`text-xs ${statusColor(overview.activeSubscription.status)}`}>
-                            {overview.activeSubscription.status}
-                          </Badge>
-                        </dd>
-                      </div>
-                    </dl>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">No active subscription</p>
-                  )}
+                  <dl className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div><dt className="text-muted-foreground">Billing Currency</dt><dd className="font-medium">{overview.company.billing_currency || '—'}</dd></div>
+                    <div><dt className="text-muted-foreground">Pricing Peg</dt><dd className="font-medium">{overview.company.pricing_peg || '—'}</dd></div>
+                    <div><dt className="text-muted-foreground">Attribution</dt><dd><Badge className={`text-xs ${overview.company.attribution_locked ? 'bg-red-100 text-red-800' : 'bg-emerald-100 text-emerald-800'}`}>{overview.company.attribution_locked ? 'Locked' : 'Open'}</Badge></dd></div>
+                    <div><dt className="text-muted-foreground">Currency Lock</dt><dd className="font-medium">{overview.company.currency_locked_at ? fmtDate(overview.company.currency_locked_at) : 'Unlocked'}</dd></div>
+                    <div><dt className="text-muted-foreground">Price Book</dt><dd className="font-medium">{overview.company.price_book?.name || '—'}</dd></div>
+                    <div><dt className="text-muted-foreground">Region</dt><dd className="font-medium">{overview.company.region?.name || '—'}</dd></div>
+                    <div><dt className="text-muted-foreground">Users</dt><dd className="font-medium">{overview.stats.users_count}</dd></div>
+                  </dl>
                 </CardContent>
               </Card>
 
-              {/* Commercial Evidence */}
+              {/* Commercial Evidence — full detail */}
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Commercial Evidence</CardTitle>
-                </CardHeader>
+                <CardHeader><CardTitle className="text-lg">Lead & Conversion Milestones</CardTitle></CardHeader>
                 <CardContent>
-                  <dl className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                    <div>
-                      <dt className="text-muted-foreground">Commission Readiness</dt>
-                      <dd className="font-medium">{String(overview.commercialEvidence.commissionReadiness ?? '—')}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-muted-foreground">First Job Evidence</dt>
-                      <dd className="font-medium">{overview.commercialEvidence.firstJobEvidence ? 'Yes' : 'No'}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-muted-foreground">First Payment Evidence</dt>
-                      <dd className="font-medium">{overview.commercialEvidence.firstPaymentEvidence ? 'Yes' : 'No'}</dd>
-                    </div>
+                  <dl className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div><dt className="text-muted-foreground">Lead Created</dt><dd className="font-medium">{fmtDate(overview.commercialEvidence.leadMilestones?.lead_created_at)}</dd></div>
+                    <div><dt className="text-muted-foreground">Lead Confirmed</dt><dd className="font-medium">{fmtDate(overview.commercialEvidence.leadMilestones?.lead_confirmed_at)}</dd></div>
+                    <div><dt className="text-muted-foreground">Lead Source</dt><dd className="font-medium">{overview.commercialEvidence.leadMilestones?.lead_source || '—'}</dd></div>
+                    <div><dt className="text-muted-foreground">Lead Status</dt><dd className="font-medium">{overview.commercialEvidence.leadMilestones?.lead_status || '—'}</dd></div>
+                    <div><dt className="text-muted-foreground">Conversion Requested</dt><dd className="font-medium">{fmtDate(overview.commercialEvidence.conversionMilestones?.request_submitted_at)}</dd></div>
+                    <div><dt className="text-muted-foreground">Reviewed</dt><dd className="font-medium">{fmtDate(overview.commercialEvidence.conversionMilestones?.reviewed_at)}</dd></div>
+                    <div><dt className="text-muted-foreground">Converted</dt><dd className="font-medium">{fmtDate(overview.commercialEvidence.conversionMilestones?.converted_at)}</dd></div>
                   </dl>
+                </CardContent>
+              </Card>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader><CardTitle className="text-lg">First Job Evidence</CardTitle></CardHeader>
+                  <CardContent>
+                    {overview.commercialEvidence.firstJobEvidence ? (
+                      <dl className="grid grid-cols-2 gap-3 text-sm">
+                        <div><dt className="text-muted-foreground">Title</dt><dd className="font-medium">{overview.commercialEvidence.firstJobEvidence.title || '—'}</dd></div>
+                        <div><dt className="text-muted-foreground">Posted</dt><dd className="font-medium">{fmtDate(overview.commercialEvidence.firstJobEvidence.posted_at)}</dd></div>
+                        <div><dt className="text-muted-foreground">Setup Type</dt><dd className="font-medium">{overview.commercialEvidence.firstJobEvidence.setup_type || '—'}</dd></div>
+                        <div><dt className="text-muted-foreground">Service</dt><dd className="font-medium">{overview.commercialEvidence.firstJobEvidence.service_package || overview.commercialEvidence.firstJobEvidence.hiring_mode || '—'}</dd></div>
+                        <div><dt className="text-muted-foreground">Payment Status</dt><dd className="font-medium">{overview.commercialEvidence.firstJobEvidence.payment_status || '—'}</dd></div>
+                        {overview.commercialEvidence.firstJobEvidence.payment_amount != null && (
+                          <div><dt className="text-muted-foreground">Payment Amount</dt><dd className="font-medium">{fmtCurrency(overview.commercialEvidence.firstJobEvidence.payment_amount, overview.commercialEvidence.firstJobEvidence.payment_currency || overview.company.billing_currency || 'USD')}</dd></div>
+                        )}
+                      </dl>
+                    ) : (<p className="text-sm text-muted-foreground">No job posted yet</p>)}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader><CardTitle className="text-lg">First Payment Evidence</CardTitle></CardHeader>
+                  <CardContent>
+                    {overview.commercialEvidence.firstPaymentEvidence ? (
+                      <dl className="grid grid-cols-2 gap-3 text-sm">
+                        <div><dt className="text-muted-foreground">Amount</dt><dd className="font-medium">{fmtCurrency(overview.commercialEvidence.firstPaymentEvidence.amount ?? 0, overview.commercialEvidence.firstPaymentEvidence.currency || overview.company.billing_currency || 'USD')}</dd></div>
+                        <div><dt className="text-muted-foreground">Paid At</dt><dd className="font-medium">{fmtDate(overview.commercialEvidence.firstPaymentEvidence.paid_at)}</dd></div>
+                        <div><dt className="text-muted-foreground">Source</dt><dd className="font-medium">{overview.commercialEvidence.firstPaymentEvidence.source || '—'}</dd></div>
+                      </dl>
+                    ) : (<p className="text-sm text-muted-foreground">No payment recorded yet</p>)}
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader><CardTitle className="text-lg">Subscription at First Job</CardTitle></CardHeader>
+                  <CardContent>
+                    {overview.commercialEvidence.subscriptionAtFirstJob ? (
+                      <dl className="grid grid-cols-2 gap-3 text-sm">
+                        <div><dt className="text-muted-foreground">Plan</dt><dd className="font-medium">{overview.commercialEvidence.subscriptionAtFirstJob.name || overview.commercialEvidence.subscriptionAtFirstJob.plan_type || '—'}</dd></div>
+                        <div><dt className="text-muted-foreground">Price</dt><dd className="font-medium">{overview.commercialEvidence.subscriptionAtFirstJob.base_price != null ? fmtCurrency(overview.commercialEvidence.subscriptionAtFirstJob.base_price, overview.commercialEvidence.subscriptionAtFirstJob.currency || overview.company.billing_currency || 'USD') : '—'}</dd></div>
+                        <div><dt className="text-muted-foreground">Billing Cycle</dt><dd className="font-medium">{overview.commercialEvidence.subscriptionAtFirstJob.billing_cycle || '—'}</dd></div>
+                        <div><dt className="text-muted-foreground">Created</dt><dd className="font-medium">{fmtDate(overview.commercialEvidence.subscriptionAtFirstJob.created_at)}</dd></div>
+                      </dl>
+                    ) : (<p className="text-sm text-muted-foreground">No subscription at first job</p>)}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader><CardTitle className="text-lg">Commission Readiness</CardTitle></CardHeader>
+                  <CardContent>
+                    <dl className="space-y-3 text-sm">
+                      <div className="flex items-center gap-2">
+                        <dt className="text-muted-foreground">Eligible:</dt>
+                        <dd><Badge className={`text-xs ${overview.commercialEvidence.commissionReadiness?.eligible ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>{overview.commercialEvidence.commissionReadiness?.eligible ? 'Yes' : 'No'}</Badge></dd>
+                      </div>
+                      <div><dt className="text-muted-foreground">Reason</dt><dd className="font-medium mt-0.5">{overview.commercialEvidence.commissionReadiness?.reason || '—'}</dd></div>
+                      {overview.commercialEvidence.commissionReadiness?.existing_commission_id && (
+                        <div><dt className="text-muted-foreground">Existing Commission</dt><dd className="font-mono text-xs mt-0.5">{overview.commercialEvidence.commissionReadiness.existing_commission_status} ({overview.commercialEvidence.commissionReadiness.existing_commission_id})</dd></div>
+                      )}
+                    </dl>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Data Completeness */}
+              <Card>
+                <CardHeader><CardTitle className="text-lg">Data Completeness</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="flex gap-4 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground">Pre-approval:</span>
+                      <Badge className={`text-xs ${overview.dataCompleteness?.preApprovalComplete ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                        {overview.dataCompleteness?.preApprovalComplete ? 'Complete' : 'Incomplete'}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground">Post-payment evidence:</span>
+                      <Badge className={`text-xs ${overview.dataCompleteness?.postPaymentAvailable ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                        {overview.dataCompleteness?.postPaymentAvailable ? 'Available' : 'Not yet'}
+                      </Badge>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </>
@@ -708,10 +786,11 @@ export default function Hrm8CompanyDetailPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Source Price Book</TableHead>
-                    <TableHead>Tiers</TableHead>
+                    <TableHead>Price Book</TableHead>
+                    <TableHead>Effective From</TableHead>
+                    <TableHead>Effective To</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Notes</TableHead>
                     <TableHead>Created</TableHead>
                     {isGlobalAdmin && <TableHead className="text-right">Actions</TableHead>}
                   </TableRow>
@@ -719,14 +798,15 @@ export default function Hrm8CompanyDetailPage() {
                 <TableBody>
                   {overrides.map((o) => (
                     <TableRow key={o.id}>
-                      <TableCell className="font-medium">{o.name}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{o.sourcePriceBookName}</TableCell>
-                      <TableCell>{o.tier_count}</TableCell>
+                      <TableCell className="font-medium">{o.price_book?.name || o.price_book_id || '—'}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{fmtDate(o.effective_from)}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{o.effective_to ? fmtDate(o.effective_to) : 'No end'}</TableCell>
                       <TableCell>
                         <Badge className={`text-xs ${o.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-800'}`}>
                           {o.is_active ? 'Active' : 'Inactive'}
                         </Badge>
                       </TableCell>
+                      <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{o.notes || '—'}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{fmtDate(o.created_at)}</TableCell>
                       {isGlobalAdmin && (
                         <TableCell className="text-right">

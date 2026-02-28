@@ -94,7 +94,6 @@ import LeadsOverviewPage from './pages/hrm8/leads/LeadsOverviewPage'
 import FinanceWorkspacePage from './pages/hrm8/finance/FinanceWorkspacePage'
 import FinanceOverviewPage from './pages/hrm8/finance/FinanceOverviewPage'
 import Hrm8ChatPage from './pages/hrm8/Hrm8ChatPage'
-import Hrm8CompanyDetailPage from './pages/hrm8/Hrm8CompanyDetailPage'
 
 function App() {
     const { checkAuth } = useAuthStore();

@@ -55,14 +55,55 @@ export interface CompanyOverviewDTO {
     status: string;
   } | null;
   commercialEvidence: {
-    leadMilestones: unknown;
-    conversionMilestones: unknown;
-    firstJobEvidence: unknown;
-    subscriptionAtFirstJob: unknown;
-    firstPaymentEvidence: unknown;
-    commissionReadiness: unknown;
+    leadMilestones: {
+      lead_created_at?: string | null;
+      lead_confirmed_at?: string | null;
+      lead_status?: string | null;
+      lead_source?: string | null;
+    };
+    conversionMilestones: {
+      request_submitted_at?: string | null;
+      reviewed_at?: string | null;
+      converted_at?: string | null;
+    };
+    firstJobEvidence: {
+      job_id?: string;
+      title?: string;
+      posted_at?: string | null;
+      setup_type?: string | null;
+      hiring_mode?: string | null;
+      service_package?: string | null;
+      payment_status?: string | null;
+      payment_amount?: number | null;
+      payment_currency?: string | null;
+    } | null;
+    subscriptionAtFirstJob: {
+      subscription_id?: string;
+      plan_type?: string;
+      name?: string;
+      base_price?: number;
+      currency?: string | null;
+      billing_cycle?: string;
+      created_at?: string;
+    } | null;
+    firstPaymentEvidence: {
+      source?: string;
+      amount?: number;
+      currency?: string | null;
+      paid_at?: string;
+      reference_id?: string | null;
+    } | null;
+    commissionReadiness: {
+      eligible?: boolean;
+      reason?: string;
+      existing_commission_id?: string;
+      existing_commission_status?: string;
+    };
   };
-  dataCompleteness: unknown;
+  dataCompleteness: {
+    preApprovalComplete?: boolean;
+    postPaymentAvailable?: boolean;
+  };
 }
 
 export interface CompanyActivityEventDTO {
@@ -110,14 +151,24 @@ export interface CompanyPricingContextDTO {
 
 export interface CompanyPricingOverrideDTO {
   id: string;
-  name: string;
-  sourcePriceBookId: string;
-  sourcePriceBookName: string;
+  company_id: string;
+  price_book_id: string;
   is_active: boolean;
-  activated_at?: string | null;
-  deactivated_at?: string | null;
+  scope?: string[] | null;
+  notes?: string | null;
+  effective_from?: string | null;
+  effective_to?: string | null;
   created_at: string;
-  tier_count: number;
+  updated_at?: string;
+  created_by?: string | null;
+  approved_by?: string | null;
+  price_book?: {
+    id: string;
+    name: string;
+    currency: string;
+    is_global?: boolean;
+    region?: { id: string; name: string; code?: string } | null;
+  } | null;
 }
 
 class CompanyAdminService {

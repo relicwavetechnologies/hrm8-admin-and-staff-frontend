@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { hrm8PricingService, Product, PriceBook, PromoCode, ProductCategory, type CountryPricingMapEntry } from '@/shared/services/hrm8/pricingService';
+import { hrm8PricingService, Product, PriceBook, PromoCode, ProductCategory, type CountryPricingMap } from '@/shared/services/hrm8/pricingService';
 import { useRegionStore } from '@/shared/stores/useRegionStore';
 import { isFeatureEnabled } from '@/shared/lib/featureFlags';
 import { useHrm8Auth } from '@/contexts/Hrm8AuthContext';
@@ -103,10 +103,10 @@ export default function PricingPage() {
   const isGlobalAdmin = (hrm8User as any)?.role === 'GLOBAL_ADMIN';
   const showCountryMap = isFeatureEnabled('FF_COUNTRY_MAP_UI');
 
-  const [countryMapEntries, setCountryMapEntries] = useState<CountryPricingMapEntry[]>([]);
+  const [countryMapEntries, setCountryMapEntries] = useState<CountryPricingMap[]>([]);
   const [loadingCountryMap, setLoadingCountryMap] = useState(true);
   const [countryMapDialogOpen, setCountryMapDialogOpen] = useState(false);
-  const [editingMapEntry, setEditingMapEntry] = useState<CountryPricingMapEntry | null>(null);
+  const [editingMapEntry, setEditingMapEntry] = useState<CountryPricingMap | null>(null);
   const [countryMapForm, setCountryMapForm] = useState({
     country_code: '',
     country_name: '',
@@ -399,7 +399,7 @@ export default function PricingPage() {
     }
   };
 
-  const openCountryMapDialog = (entry?: CountryPricingMapEntry) => {
+  const openCountryMapDialog = (entry?: CountryPricingMap) => {
     if (entry) {
       setEditingMapEntry(entry);
       setCountryMapForm({
@@ -417,10 +417,17 @@ export default function PricingPage() {
 
   const saveCountryMapEntry = async () => {
     try {
+      const payload = {
+        countryCode: countryMapForm.country_code,
+        countryName: countryMapForm.country_name,
+        pricingPeg: countryMapForm.pricing_peg,
+        billingCurrency: countryMapForm.billing_currency,
+      };
+
       if (editingMapEntry) {
-        await hrm8PricingService.updateCountryPricingMap(editingMapEntry.id, countryMapForm);
+        await hrm8PricingService.updateCountryPricingMap(editingMapEntry.id, payload);
       } else {
-        await hrm8PricingService.createCountryPricingMap(countryMapForm);
+        await hrm8PricingService.createCountryPricingMap(payload);
       }
       toast.success('Country map entry saved');
       setCountryMapDialogOpen(false);
@@ -432,7 +439,9 @@ export default function PricingPage() {
 
   const toggleCountryMapEntry = async (id: string) => {
     try {
-      await hrm8PricingService.toggleCountryPricingMap(id);
+      const entry = countryMapEntries.find(e => e.id === id);
+      if (!entry) return;
+      await hrm8PricingService.toggleCountryPricingMap(id, !entry.is_active);
       toast.success('Entry toggled');
       loadCountryMap();
     } catch (error: any) {
@@ -448,7 +457,7 @@ export default function PricingPage() {
     {
       key: 'is_active',
       label: 'Status',
-      render: (e: CountryPricingMapEntry) => (
+      render: (e: CountryPricingMap) => (
         <Badge variant={e.is_active ? 'default' : 'secondary'}>
           {e.is_active ? 'Active' : 'Inactive'}
         </Badge>
@@ -457,7 +466,7 @@ export default function PricingPage() {
     {
       key: 'actions',
       label: 'Actions',
-      render: (e: CountryPricingMapEntry) => (
+      render: (e: CountryPricingMap) => (
         <div className="flex gap-2">
           {isGlobalAdmin && (
             <>

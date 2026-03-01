@@ -120,16 +120,6 @@ export const leadConversionAdminService = {
         return response.data.context || response.data;
     },
 
-    async getReviewContext(id: string): Promise<ConversionReviewContext> {
-        const response = await apiClient.get<any>(`/api/hrm8/conversion-requests/${id}/review-context`);
-
-        if (!response.success) {
-            throw new Error(response.error || 'Failed to fetch conversion review context');
-        }
-
-        return response.data.context;
-    },
-
     /**
      * Approve a conversion request (auto-converts lead)
      */

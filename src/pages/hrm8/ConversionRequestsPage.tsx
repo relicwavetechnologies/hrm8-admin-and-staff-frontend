@@ -19,7 +19,8 @@ import {
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog";
 import { useToast } from "@/shared/hooks/use-toast";
 import { leadConversionAdminService } from "@/shared/services/hrm8/leadConversionAdminService";
-import { ConversionRequest, ConversionReviewContext } from "@/shared/services/leadConversionService";
+import { ConversionRequest } from "@/shared/services/leadConversionService";
+import { ConversionReviewContext } from "@/shared/services/hrm8/leadConversionAdminService";
 
 const formatDate = (value?: string | null) => {
     if (!value) return "Not available";
@@ -274,8 +275,8 @@ export default function ConversionRequestsPage() {
                                                 <div><span className="text-muted-foreground">Company:</span> <span className="font-medium">{reviewContext.request.company_name}</span></div>
                                                 <div><span className="text-muted-foreground">Website:</span> <span className="font-medium">{reviewContext.request.website || "Not provided"}</span></div>
                                                 <div><span className="text-muted-foreground">Requested:</span> <span className="font-medium">{formatDate(reviewContext.request.created_at)}</span></div>
-                                                <div><span className="text-muted-foreground">Lead Confirmed:</span> <span className="font-medium">{formatDate(reviewContext.leadMilestones.lead_confirmed_at)}</span></div>
-                                                <div><span className="text-muted-foreground">Lead Source:</span> <span className="font-medium">{reviewContext.leadMilestones.lead_source || "Unknown"}</span></div>
+                                                <div><span className="text-muted-foreground">Lead Confirmed:</span> <span className="font-medium">{formatDate(reviewContext.leadMilestones?.lead_confirmed_at)}</span></div>
+                                                <div><span className="text-muted-foreground">Lead Source:</span> <span className="font-medium">{reviewContext.leadMilestones?.lead_source || "Unknown"}</span></div>
                                                 <div><span className="text-muted-foreground">Status:</span> {getStatusBadge(reviewContext.request.status)}</div>
                                             </div>
                                             <div>
@@ -287,9 +288,9 @@ export default function ConversionRequestsPage() {
                                             <div>
                                                 <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Intent Snapshot</p>
                                                 <div className="rounded-xl border bg-muted/20 p-3 text-sm space-y-1">
-                                                    <div>Setup Flow: <span className="font-medium">{reviewContext.request.intent_snapshot?.intendedSetupType || "Not specified"}</span></div>
-                                                    <div>Service: <span className="font-medium">{reviewContext.request.intent_snapshot?.intendedServicePackage || "Not specified"}</span></div>
-                                                    <div>Expected Plan: <span className="font-medium">{reviewContext.request.intent_snapshot?.expectedSubscriptionPlan || "Not specified"}</span></div>
+                                                    <div>Setup Flow: <span className="font-medium">{String(reviewContext.request.intent_snapshot?.intendedSetupType || "Not specified")}</span></div>
+                                                    <div>Service: <span className="font-medium">{String(reviewContext.request.intent_snapshot?.intendedServicePackage || "Not specified")}</span></div>
+                                                    <div>Expected Plan: <span className="font-medium">{String(reviewContext.request.intent_snapshot?.expectedSubscriptionPlan || "Not specified")}</span></div>
                                                     <div>Expected First Payment: <span className="font-medium">
                                                         {reviewContext.request.intent_snapshot?.expectedFirstPaymentAmount
                                                             ? `${reviewContext.request.intent_snapshot?.expectedCurrency || ""} ${reviewContext.request.intent_snapshot.expectedFirstPaymentAmount}`
@@ -331,11 +332,11 @@ export default function ConversionRequestsPage() {
                                             </div>
 
                                             <div className="rounded-xl border bg-muted/20 p-3 text-sm space-y-1">
-                                                <div>Commission Eligible: <span className="font-medium">{reviewContext.commissionReadiness.eligible ? "Yes" : "No"}</span></div>
-                                                <div>Reason: <span className="font-medium">{reviewContext.commissionReadiness.reason}</span></div>
-                                                {reviewContext.commissionReadiness.existing_commission_id && (
+                                                <div>Commission Eligible: <span className="font-medium">{reviewContext.commissionReadiness?.eligible ? "Yes" : "No"}</span></div>
+                                                <div>Reason: <span className="font-medium">{reviewContext.commissionReadiness?.reason}</span></div>
+                                                {reviewContext.commissionReadiness?.existing_commission_id && (
                                                     <div>
-                                                        Existing Commission: <span className="font-medium">{reviewContext.commissionReadiness.existing_commission_status} ({reviewContext.commissionReadiness.existing_commission_id})</span>
+                                                        Existing Commission: <span className="font-medium">{reviewContext.commissionReadiness?.existing_commission_status} ({reviewContext.commissionReadiness?.existing_commission_id})</span>
                                                     </div>
                                                 )}
                                             </div>

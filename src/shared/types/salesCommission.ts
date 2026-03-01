@@ -12,6 +12,7 @@ export interface SalesCommission {
   dealValue: number;
   commissionRate: number; // percentage
   commissionAmount: number;
+  currency?: string;
   status: CommissionStatus;
   
   calculatedAt: string;

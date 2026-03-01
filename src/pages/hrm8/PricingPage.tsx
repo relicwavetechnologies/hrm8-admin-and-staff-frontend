@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { hrm8PricingService, Product, PriceBook, PromoCode, ProductCategory, type CountryPricingMapEntry } from '@/shared/services/hrm8/pricingService';
+import { hrm8PricingService, Product, PriceBook, PromoCode, ProductCategory, type CountryPricingMap } from '@/shared/services/hrm8/pricingService';
 import { useRegionStore } from '@/shared/stores/useRegionStore';
 import { isFeatureEnabled } from '@/shared/lib/featureFlags';
 import { useHrm8Auth } from '@/contexts/Hrm8AuthContext';
@@ -103,15 +103,15 @@ export default function PricingPage() {
   const isGlobalAdmin = (hrm8User as any)?.role === 'GLOBAL_ADMIN';
   const showCountryMap = isFeatureEnabled('FF_COUNTRY_MAP_UI');
 
-  const [countryMapEntries, setCountryMapEntries] = useState<CountryPricingMapEntry[]>([]);
+  const [countryMapEntries, setCountryMapEntries] = useState<CountryPricingMap[]>([]);
   const [loadingCountryMap, setLoadingCountryMap] = useState(true);
   const [countryMapDialogOpen, setCountryMapDialogOpen] = useState(false);
-  const [editingMapEntry, setEditingMapEntry] = useState<CountryPricingMapEntry | null>(null);
+  const [editingMapEntry, setEditingMapEntry] = useState<CountryPricingMap | null>(null);
   const [countryMapForm, setCountryMapForm] = useState({
-    country_code: '',
-    country_name: '',
-    pricing_peg: 'USD',
-    billing_currency: 'USD',
+    countryCode: '',
+    countryName: '',
+    pricingPeg: 'USD',
+    billingCurrency: 'USD',
   });
 
   useEffect(() => {
@@ -399,18 +399,18 @@ export default function PricingPage() {
     }
   };
 
-  const openCountryMapDialog = (entry?: CountryPricingMapEntry) => {
+  const openCountryMapDialog = (entry?: CountryPricingMap) => {
     if (entry) {
       setEditingMapEntry(entry);
       setCountryMapForm({
-        country_code: entry.country_code,
-        country_name: entry.country_name || '',
-        pricing_peg: entry.pricing_peg,
-        billing_currency: entry.billing_currency,
+        countryCode: entry.country_code,
+        countryName: entry.country_name || '',
+        pricingPeg: entry.pricing_peg,
+        billingCurrency: entry.billing_currency,
       });
     } else {
       setEditingMapEntry(null);
-      setCountryMapForm({ country_code: '', country_name: '', pricing_peg: 'USD', billing_currency: 'USD' });
+      setCountryMapForm({ countryCode: '', countryName: '', pricingPeg: 'USD', billingCurrency: 'USD' });
     }
     setCountryMapDialogOpen(true);
   };
@@ -430,9 +430,9 @@ export default function PricingPage() {
     }
   };
 
-  const toggleCountryMapEntry = async (id: string) => {
+  const toggleCountryMapEntry = async (id: string, currentlyActive: boolean) => {
     try {
-      await hrm8PricingService.toggleCountryPricingMap(id);
+      await hrm8PricingService.toggleCountryPricingMap(id, !currentlyActive);
       toast.success('Entry toggled');
       loadCountryMap();
     } catch (error: any) {
@@ -448,7 +448,7 @@ export default function PricingPage() {
     {
       key: 'is_active',
       label: 'Status',
-      render: (e: CountryPricingMapEntry) => (
+      render: (e: CountryPricingMap) => (
         <Badge variant={e.is_active ? 'default' : 'secondary'}>
           {e.is_active ? 'Active' : 'Inactive'}
         </Badge>
@@ -457,7 +457,7 @@ export default function PricingPage() {
     {
       key: 'actions',
       label: 'Actions',
-      render: (e: CountryPricingMapEntry) => (
+      render: (e: CountryPricingMap) => (
         <div className="flex gap-2">
           {isGlobalAdmin && (
             <>
@@ -467,7 +467,7 @@ export default function PricingPage() {
               <Button
                 size="sm"
                 variant={e.is_active ? 'secondary' : 'default'}
-                onClick={() => toggleCountryMapEntry(e.id)}
+                onClick={() => toggleCountryMapEntry(e.id, e.is_active)}
               >
                 {e.is_active ? <ToggleRight className="h-4 w-4 mr-1" /> : <ToggleLeft className="h-4 w-4 mr-1" />}
                 {e.is_active ? 'Disable' : 'Enable'}
@@ -997,8 +997,8 @@ export default function PricingPage() {
             <div className="space-y-1">
               <Label>Country Code (ISO 3166-1 alpha-2)</Label>
               <Input
-                value={countryMapForm.country_code}
-                onChange={(e) => setCountryMapForm({ ...countryMapForm, country_code: e.target.value.toUpperCase() })}
+                value={countryMapForm.countryCode}
+                onChange={(e) => setCountryMapForm({ ...countryMapForm, countryCode: e.target.value.toUpperCase() })}
                 maxLength={2}
                 placeholder="AU"
                 disabled={!!editingMapEntry}
@@ -1007,24 +1007,24 @@ export default function PricingPage() {
             <div className="space-y-1">
               <Label>Country Name</Label>
               <Input
-                value={countryMapForm.country_name}
-                onChange={(e) => setCountryMapForm({ ...countryMapForm, country_name: e.target.value })}
+                value={countryMapForm.countryName}
+                onChange={(e) => setCountryMapForm({ ...countryMapForm, countryName: e.target.value })}
                 placeholder="Australia"
               />
             </div>
             <div className="space-y-1">
               <Label>Pricing Peg</Label>
               <Input
-                value={countryMapForm.pricing_peg}
-                onChange={(e) => setCountryMapForm({ ...countryMapForm, pricing_peg: e.target.value.toUpperCase() })}
+                value={countryMapForm.pricingPeg}
+                onChange={(e) => setCountryMapForm({ ...countryMapForm, pricingPeg: e.target.value.toUpperCase() })}
                 placeholder="AUD"
               />
             </div>
             <div className="space-y-1">
               <Label>Billing Currency</Label>
               <Input
-                value={countryMapForm.billing_currency}
-                onChange={(e) => setCountryMapForm({ ...countryMapForm, billing_currency: e.target.value.toUpperCase() })}
+                value={countryMapForm.billingCurrency}
+                onChange={(e) => setCountryMapForm({ ...countryMapForm, billingCurrency: e.target.value.toUpperCase() })}
                 placeholder="AUD"
               />
             </div>

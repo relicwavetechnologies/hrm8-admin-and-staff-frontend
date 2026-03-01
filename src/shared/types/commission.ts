@@ -48,6 +48,11 @@ export interface Commission {
   // Additional Info
   splitWith?: string[]; // Other consultant IDs if commission is split
   splitPercentage?: number;
+  payoutCurrency?: string;
+  payoutAmount?: number;
+  fxRate?: number;
+  fxRateLockedAt?: string;
+  fxSource?: string;
 }
 
 export interface CommissionStructureConfig {

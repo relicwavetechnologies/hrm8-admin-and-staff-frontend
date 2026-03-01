@@ -22,6 +22,11 @@ export interface Commission {
   description?: string;
   created_at: string;
   updated_at: string;
+  payoutCurrency?: string;
+  payoutAmount?: number;
+  fxRate?: number;
+  fxRateLockedAt?: string;
+  fxSource?: string;
 }
 
 export interface CommissionReviewContext {

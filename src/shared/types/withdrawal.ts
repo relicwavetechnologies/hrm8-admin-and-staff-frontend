@@ -37,6 +37,11 @@ export interface CommissionWithdrawal {
     rejectedAt?: string;
     rejectedBy?: string;
     notes?: string;
+    payoutCurrency?: string;
+    payoutAmount?: number;
+    fxRateUsed?: number;
+    airwallexTransferId?: string;
+    xeroBillId?: string;
     createdAt: string;
     updatedAt: string;
 }

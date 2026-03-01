@@ -32,6 +32,11 @@ export interface Commission {
   created_at?: string;
   updatedAt?: string;
   updated_at?: string;
+  payoutCurrency?: string;
+  payoutAmount?: number;
+  fxRate?: number;
+  fxRateLockedAt?: string;
+  fxSource?: string;
 }
 
 export interface CommissionReviewContext {
@@ -181,6 +186,11 @@ const normalizeCommission = (raw: any): Commission => ({
   created_at: raw.createdAt ?? raw.created_at ?? '',
   updatedAt: raw.updatedAt ?? raw.updated_at ?? undefined,
   updated_at: raw.updatedAt ?? raw.updated_at ?? undefined,
+  payoutCurrency: raw.payoutCurrency ?? raw.payout_currency ?? undefined,
+  payoutAmount: raw.payoutAmount != null ? Number(raw.payoutAmount) : (raw.payout_amount != null ? Number(raw.payout_amount) : undefined),
+  fxRate: raw.fxRate != null ? Number(raw.fxRate) : (raw.fx_rate != null ? Number(raw.fx_rate) : undefined),
+  fxRateLockedAt: raw.fxRateLockedAt ?? raw.fx_rate_locked_at ?? undefined,
+  fxSource: raw.fxSource ?? raw.fx_source ?? undefined,
 });
 
 class CommissionService {

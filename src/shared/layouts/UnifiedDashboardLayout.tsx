@@ -45,7 +45,17 @@ export function UnifiedDashboardLayout({ children }: UnifiedDashboardLayoutProps
             return undefined;
         }
 
-        return undefined;
+        // toggle-ai-panel — used by header button
+        const handleToggle = () => setIsAiPanelOpen((prev) => !prev);
+        // open-ai-panel — used by publishAiReference; always opens, never closes
+        const handleOpen = () => setIsAiPanelOpen(true);
+
+        window.addEventListener("toggle-ai-panel", handleToggle);
+        window.addEventListener("open-ai-panel", handleOpen);
+        return () => {
+            window.removeEventListener("toggle-ai-panel", handleToggle);
+            window.removeEventListener("open-ai-panel", handleOpen);
+        };
     }, [showAiPanel]);
 
     return (

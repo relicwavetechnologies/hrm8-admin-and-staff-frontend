@@ -200,7 +200,7 @@ export default function FinanceOverviewPage() {
     const fetchOverview = async () => {
         try {
             setLoading(true);
-            const url = selectedRegionId
+            const url = selectedRegionId && selectedRegionId !== 'all'
                 ? `/api/hrm8/finance/overview?regionId=${selectedRegionId}`
                 : '/api/hrm8/finance/overview';
             const response = await apiClient.get<FinanceOverview>(url);

@@ -1,5 +1,5 @@
-
 import { useState, useEffect } from 'react';
+import { useRegionStore } from '@/shared/stores/useRegionStore';
 import { useHrm8Auth } from "@/contexts/Hrm8AuthContext";
 import { settlementService, Settlement } from '@/shared/services/hrm8/settlementService';
 import { DataTable, Column } from '@/shared/components/tables/DataTable';
@@ -16,6 +16,7 @@ import { format } from 'date-fns';
 
 export default function SettlementsPage() {
   const { hrm8User, isLoading } = useHrm8Auth();
+  const { selectedRegionId } = useRegionStore();
   const { formatCurrency } = useCurrencyFormat();
   const { toast } = useToast();
 
@@ -34,13 +35,16 @@ export default function SettlementsPage() {
     if (!isLoading && hrm8User) {
       loadSettlements();
     }
-  }, [statusFilter, hrm8User, isLoading]);
+  }, [statusFilter, selectedRegionId, hrm8User, isLoading]);
 
   const loadSettlements = async () => {
     try {
       const filters: Record<string, string> = {};
       if (statusFilter !== 'all') {
         filters.status = statusFilter;
+      }
+      if (selectedRegionId && selectedRegionId !== 'all') {
+        filters.regionId = selectedRegionId;
       }
 
       const response = await settlementService.getAll(filters);

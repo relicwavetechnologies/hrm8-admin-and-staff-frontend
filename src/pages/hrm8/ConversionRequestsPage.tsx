@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useRegionStore } from "@/shared/stores/useRegionStore";
 import { format } from "date-fns";
 import { CheckCircle, Eye, Loader2, Wallet, XCircle } from "lucide-react";
 
@@ -38,6 +39,7 @@ const compactDate = (value?: string | null) => {
 
 export default function ConversionRequestsPage() {
     const { toast } = useToast();
+    const { selectedRegionId } = useRegionStore();
     const [requests, setRequests] = useState<ConversionRequest[]>([]);
     const [statusFilter, setStatusFilter] = useState<string>("PENDING");
     const [selectedRequest, setSelectedRequest] = useState<ConversionRequest | null>(null);
@@ -52,7 +54,8 @@ export default function ConversionRequestsPage() {
     const loadRequests = async () => {
         try {
             const data = await leadConversionAdminService.getAll(
-                statusFilter === "ALL" ? undefined : statusFilter
+                statusFilter === "ALL" ? undefined : statusFilter,
+                selectedRegionId ?? undefined
             );
             setRequests(data || []);
         } catch (error: any) {
@@ -66,7 +69,7 @@ export default function ConversionRequestsPage() {
 
     useEffect(() => {
         void loadRequests();
-    }, [statusFilter]);
+    }, [statusFilter, selectedRegionId]);
 
     const loadReviewContext = async (request: ConversionRequest) => {
         setSelectedRequest(request);
@@ -217,6 +220,11 @@ export default function ConversionRequestsPage() {
                 <p className="text-muted-foreground">
                     Review conversion requests with full lifecycle and payment evidence before approval.
                 </p>
+                <div className="mt-3 rounded-lg border border-sky-200 bg-sky-50 dark:border-sky-900/50 dark:bg-sky-950/30 px-4 py-2">
+                    <p className="text-sm text-sky-800 dark:text-sky-200">
+                        <strong>Regional scope:</strong> You only see conversion requests for leads created in your region(s). You can approve or decline these requests; commissions and consultant earnings for approved leads in your region will be visible to you.
+                    </p>
+                </div>
             </div>
 
             <Card className="p-4 space-y-4 rounded-2xl">

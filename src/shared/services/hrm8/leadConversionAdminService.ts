@@ -84,10 +84,12 @@ export const leadConversionAdminService = {
     /**
      * Get all conversion requests (with regional filtering)
      */
-    async getAll(status?: string): Promise<ConversionRequest[]> {
-        const endpoint = status
-            ? `/api/hrm8/conversion-requests?status=${status}`
-            : '/api/hrm8/conversion-requests';
+    async getAll(status?: string, regionId?: string | null): Promise<ConversionRequest[]> {
+        const params = new URLSearchParams();
+        if (status) params.append('status', status);
+        if (regionId && regionId !== 'all') params.append('regionId', regionId);
+        const query = params.toString();
+        const endpoint = `/api/hrm8/conversion-requests${query ? `?${query}` : ''}`;
         const response = await apiClient.get<any>(endpoint);
 
         if (!response.success) {

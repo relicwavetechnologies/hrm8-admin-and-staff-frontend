@@ -29,11 +29,18 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
-    const { login, isAuthenticated, userType } = useAuth();
+    const { login, isAuthenticated, userType, user } = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (isAuthenticated && userType) {
+        if (isAuthenticated && userType && user) {
+            const raw = user.rawUser as { requiresCurrencySetup?: boolean };
+            const needsCurrencySetup = userType !== 'ADMIN' && raw?.requiresCurrencySetup === true;
+
+            if (needsCurrencySetup) {
+                navigate('/currency-setup', { replace: true });
+                return;
+            }
             switch (userType) {
                 case 'ADMIN':
                     navigate('/hrm8/dashboard');
@@ -51,7 +58,7 @@ export default function LoginPage() {
                     navigate('/hrm8/dashboard');
             }
         }
-    }, [isAuthenticated, userType, navigate]);
+    }, [isAuthenticated, userType, user, navigate]);
 
     const {
         register,

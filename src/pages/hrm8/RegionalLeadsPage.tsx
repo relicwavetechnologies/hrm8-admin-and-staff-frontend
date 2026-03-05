@@ -58,13 +58,15 @@ export default function RegionalLeadsPage() {
 
   // Watch for region changes from sidebar
   useEffect(() => {
-    if (selectedRegionId) {
+    if (selectedRegionId && selectedRegionId !== 'all') {
       fetchLeads(selectedRegionId);
       fetchConsultants(selectedRegionId);
-      // Update URL params
       const params = new URLSearchParams(searchParams);
       params.set('region', selectedRegionId);
       setSearchParams(params);
+    } else {
+      setLeads([]);
+      setConsultants([]);
     }
   }, [selectedRegionId]);
 

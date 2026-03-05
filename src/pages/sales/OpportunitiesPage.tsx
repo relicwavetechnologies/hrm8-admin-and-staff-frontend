@@ -71,6 +71,14 @@ const SUBSCRIPTION_PLAN_OPTIONS = [
   { value: "NONE", label: "Not sure yet" },
 ];
 
+const CURRENCY_OPTIONS = [
+  { value: "USD", label: "USD - US Dollar" },
+  { value: "INR", label: "INR - Indian Rupee" },
+  { value: "EUR", label: "EUR - Euro" },
+  { value: "GBP", label: "GBP - British Pound" },
+  { value: "AUD", label: "AUD - Australian Dollar" },
+];
+
 const QUALIFICATION_STEPS = [
   { id: 1, label: "Initiating lead intake workflow", icon: Send },
   { id: 2, label: "Analyzing lead data with AI", icon: Brain },
@@ -95,6 +103,7 @@ export default function OpportunitiesPage() {
   const [convertDialogOpen, setConvertDialogOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [processing, setProcessing] = useState(false);
+  const [myRegion, setMyRegion] = useState<{ id: string; name: string } | null>(null);
 
   // Forms State (region is pre-selected from consultant's assigned region – sales agents can only create leads in their region)
   const [createForm, setCreateForm] = useState({
@@ -133,6 +142,26 @@ export default function OpportunitiesPage() {
   useEffect(() => {
     fetchLeads();
   }, [fetchLeads]);
+
+  // Fetch region when Add Lead dialog opens (sales/360 can create leads in their region only)
+  useEffect(() => {
+    if (!createDialogOpen) return;
+    const fetchRegion = async () => {
+      try {
+        const response = is360
+          ? await consultant360Service.getMyRegion()
+          : await salesService.getMyRegion();
+        if (response.success && response.data?.region) {
+          setMyRegion(response.data.region);
+        } else {
+          setMyRegion(null);
+        }
+      } catch {
+        setMyRegion(null);
+      }
+    };
+    void fetchRegion();
+  }, [createDialogOpen, is360]);
 
   const isValidEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -422,7 +451,18 @@ export default function OpportunitiesPage() {
             <DialogDescription>Enter the company details to create a new lead.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <p className="text-sm text-muted-foreground">Leads will be created in your assigned region.</p>
+            <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-950/30 px-4 py-3">
+              <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
+                Regional restriction
+              </p>
+              <p className="text-sm text-amber-800 dark:text-amber-200 mt-1">
+                {myRegion ? (
+                  <>You can only create leads in your region: <strong>{myRegion.name}</strong>. This lead will be assigned to your regional admin for conversion approval.</>
+                ) : (
+                  <>Leads will be created in your assigned region. Your regional admin will review conversion requests.</>
+                )}
+              </p>
+            </div>
             <div className="space-y-2">
               <Label>Company Name</Label>
               <Input
@@ -672,14 +712,14 @@ export default function OpportunitiesPage() {
 
       {/* Convert Lead Dialog */}
       <Dialog open={convertDialogOpen} onOpenChange={setConvertDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col gap-0">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>Request Lead Conversion</DialogTitle>
             <DialogDescription>
               Submit a conversion request for {selectedLead?.company_name}. Your regional admin will review and approve this request.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="flex-1 overflow-y-auto min-h-0 space-y-4 py-4 pr-2">
             <div className="space-y-2">
               <Label>Company Name</Label>
               <Input value={selectedLead?.company_name || ""} disabled />
@@ -796,12 +836,19 @@ export default function OpportunitiesPage() {
 
               <div className="space-y-2">
                 <Label>Expected Currency</Label>
-                <Input
-                  value={convertForm.expectedCurrency}
-                  onChange={(e) => setConvertForm({ ...convertForm, expectedCurrency: e.target.value.toUpperCase() })}
-                  placeholder="USD / INR / EUR"
-                  maxLength={8}
-                />
+                <Select
+                  value={convertForm.expectedCurrency || ""}
+                  onValueChange={(value) => setConvertForm({ ...convertForm, expectedCurrency: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select currency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CURRENCY_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -812,7 +859,7 @@ export default function OpportunitiesPage() {
               </p>
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex-shrink-0 pt-4">
             <Button variant="outline" onClick={() => setConvertDialogOpen(false)} disabled={processing}>Cancel</Button>
             <Button onClick={handleRequestConversion} disabled={processing}>
               {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

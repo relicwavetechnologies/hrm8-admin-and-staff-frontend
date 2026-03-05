@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { useRegionStore } from '@/shared/stores/useRegionStore';
 import { commissionService, Commission, CommissionReviewContext } from '@/shared/services/hrm8/commissionService';
 import { DataTable, Column } from '@/shared/components/tables/DataTable';
 import { Button } from '@/shared/components/ui/button';
@@ -153,6 +154,7 @@ const getColumns = (
 ];
 
 export default function CommissionsPage() {
+  const { selectedRegionId } = useRegionStore();
   const [commissions, setCommissions] = useState<Commission[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -171,13 +173,14 @@ export default function CommissionsPage() {
 
   useEffect(() => {
     void loadCommissions();
-  }, [statusFilter]);
+  }, [statusFilter, selectedRegionId]);
 
   const loadCommissions = async () => {
     try {
       setLoading(true);
       const filters: Record<string, string> = {};
       if (statusFilter !== 'all') filters.status = statusFilter;
+      if (selectedRegionId && selectedRegionId !== 'all') filters.region_id = selectedRegionId;
 
       const response = await commissionService.getAll(filters);
       if (!response.success) {
@@ -279,6 +282,11 @@ export default function CommissionsPage() {
       }
     >
       <div className="p-6 space-y-6">
+        <div className="rounded-lg border border-sky-200 bg-sky-50 dark:border-sky-900/50 dark:bg-sky-950/30 px-4 py-2">
+          <p className="text-sm text-sky-800 dark:text-sky-200">
+            <strong>Regional scope:</strong> As a regional admin, you only see commissions for sales agents and consultant earnings from leads/companies in your assigned region(s). Use the region filter to narrow results.
+          </p>
+        </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <DashboardStatCard
             title="Total Pending"

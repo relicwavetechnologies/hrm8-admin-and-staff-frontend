@@ -20,11 +20,11 @@ export default function RegionalCompaniesPage() {
     const [filteredCompanies, setFilteredCompanies] = useState<Company[]>([]);
 
     const { selectedRegionId } = useRegionStore();
-    const regionId = selectedRegionId || (hrm8User as any)?.assignedRegionIds?.[0];
+    const effectiveRegionId = selectedRegionId && selectedRegionId !== 'all' ? selectedRegionId : undefined;
 
     useEffect(() => {
         fetchCompanies();
-    }, [regionId]);
+    }, [selectedRegionId]);
 
     useEffect(() => {
         filterCompanies();
@@ -33,7 +33,7 @@ export default function RegionalCompaniesPage() {
     const fetchCompanies = async () => {
         try {
             setIsLoading(true);
-            const response = await companyAdminService.getCompanies({ regionId });
+            const response = await companyAdminService.getCompanies({ regionId: effectiveRegionId });
             if (response.success && response.data?.companies) {
                 setAllCompanies(response.data.companies);
             }

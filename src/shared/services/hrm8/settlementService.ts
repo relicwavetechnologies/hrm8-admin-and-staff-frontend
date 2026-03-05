@@ -40,12 +40,14 @@ class SettlementService {
    */
   async getAll(filters?: {
     licensee_id?: string;
+    regionId?: string;
     status?: string;
     period_start?: string;
     period_end?: string;
   }) {
     const queryParams = new URLSearchParams();
     if (filters?.licensee_id) queryParams.append('licensee_id', filters.licensee_id);
+    if (filters?.regionId) queryParams.append('regionId', filters.regionId);
     if (filters?.status) queryParams.append('status', filters.status);
     if (filters?.period_start) queryParams.append('period_start', filters.period_start);
     if (filters?.period_end) queryParams.append('period_end', filters.period_end);

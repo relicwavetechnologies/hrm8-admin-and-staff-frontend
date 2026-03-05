@@ -153,6 +153,14 @@ export interface StripeAccountStatus {
 
 export const consultant360Service = {
     /**
+     * Get current consultant's assigned region
+     */
+    async getMyRegion(): Promise<{ success: boolean; data?: { region: { id: string; name: string } | null }; error?: string }> {
+        const response = await apiClient.get<{ region: { id: string; name: string } | null }>('/api/consultant360/me/region');
+        return response;
+    },
+
+    /**
      * Get unified dashboard data
      */
     async getDashboard(): Promise<{ success: boolean; data?: DashboardData; error?: string }> {

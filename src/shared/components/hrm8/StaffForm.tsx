@@ -17,6 +17,8 @@ import { regionService } from '@/shared/services/hrm8/regionService';
 import { toast } from 'sonner';
 import { Loader2, Mail } from 'lucide-react';
 
+const SUPPORTED_CURRENCIES = ['USD', 'GBP', 'EUR', 'AUD', 'INR', 'NZD', 'SGD', 'CAD'] as const;
+
 export const staffSchema = z.object({
   email: z.string().email('Invalid email'),
   password: z.string().min(8, 'Password must be at least 8 characters').optional(),
@@ -26,6 +28,7 @@ export const staffSchema = z.object({
   role: z.enum(['RECRUITER', 'SALES_AGENT', 'CONSULTANT_360']),
   regionId: z.string().min(1, 'Region is required'),
   defaultCommissionRate: z.number().min(0).max(100).optional(),
+  defaultCurrency: z.enum(SUPPORTED_CURRENCIES).default('USD'),
 });
 
 export type StaffFormData = z.infer<typeof staffSchema>;
@@ -55,6 +58,7 @@ export function StaffForm({ consultantId, onSave, onCancel }: StaffFormProps) {
       role: 'RECRUITER',
       regionId: '',
       defaultCommissionRate: 10,
+      defaultCurrency: 'USD',
     },
   });
 
@@ -80,6 +84,7 @@ export function StaffForm({ consultantId, onSave, onCancel }: StaffFormProps) {
         setValue('role', consultant.role);
         setValue('regionId', consultant.regionId || '');
         setValue('defaultCommissionRate', consultant.defaultCommissionRate ?? 10);
+        setValue('defaultCurrency', (consultant as { defaultCurrency?: string }).defaultCurrency ?? 'USD');
       }
     } catch (error) {
       toast.error('Failed to load staff member');
@@ -147,7 +152,7 @@ export function StaffForm({ consultantId, onSave, onCancel }: StaffFormProps) {
 
       if (consultantId) {
         // Update - don't send password
-        const { password, ...updateData } = data;
+        const { password, ...updateData } = { ...data, defaultCurrency: data.defaultCurrency ?? 'USD' };
         const response = await staffService.update(consultantId, updateData);
         if (response.success) {
           toast.success('Staff member updated successfully');
@@ -172,7 +177,8 @@ export function StaffForm({ consultantId, onSave, onCancel }: StaffFormProps) {
           role: data.role,
           password: data.password,
           phone: data.phone,
-          defaultCommissionRate: data.defaultCommissionRate ?? 10
+          defaultCommissionRate: data.defaultCommissionRate ?? 10,
+          defaultCurrency: data.defaultCurrency ?? 'USD',
         };
 
         const response = await staffService.create(createData);
@@ -316,6 +322,26 @@ export function StaffForm({ consultantId, onSave, onCancel }: StaffFormProps) {
         {errors.regionId && <p className="text-sm text-destructive">{errors.regionId.message}</p>}
         <p className="text-xs text-muted-foreground">
           Consultants must be assigned to a region for job assignment to work
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="defaultCurrency">Default Payout Currency *</Label>
+        <Select
+          value={watch('defaultCurrency') || 'USD'}
+          onValueChange={(value) => setValue('defaultCurrency', value as typeof SUPPORTED_CURRENCIES[number])}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {SUPPORTED_CURRENCIES.map((c) => (
+              <SelectItem key={c} value={c}>{c}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground">
+          Staff will confirm or change this on first login; commissions are converted to this currency
         </p>
       </div>
 

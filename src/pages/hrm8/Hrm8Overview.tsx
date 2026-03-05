@@ -160,7 +160,11 @@ function LegacyOverview() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!selectedRegionId) return;
+    if (!selectedRegionId || selectedRegionId === 'all') {
+      setStats(null);
+      setError(null);
+      return;
+    }
     (async () => {
       try {
         setError(null);

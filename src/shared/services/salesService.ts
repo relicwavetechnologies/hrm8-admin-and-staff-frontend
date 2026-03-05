@@ -199,6 +199,11 @@ export const salesService = {
     return await apiClient.get<SalesDashboardStats>('/api/sales/dashboard/stats');
   },
 
+  // Profile / Region
+  getMyRegion: async () => {
+    return await apiClient.get<{ region: { id: string; name: string } | null }>('/api/sales/me/region');
+  },
+
   // Leads
   getLeads: async () => {
     return await apiClient.get<{ leads: Lead[] }>('/api/sales/leads');

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useRegionStore } from '@/shared/stores/useRegionStore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
@@ -51,23 +52,27 @@ interface TopCompany {
 }
 
 export default function AnalyticsDashboard() {
+  const { selectedRegionId } = useRegionStore();
   const [loading, setLoading] = useState(true);
   const [overview, setOverview] = useState<AnalyticsOverview | null>(null);
   const [, setTrends] = useState<TrendData[]>([]);
   const [topCompanies, setTopCompanies] = useState<TopCompany[]>([]);
   const [period, setPeriod] = useState('30d');
 
+  const regionId = selectedRegionId && selectedRegionId !== 'all' ? selectedRegionId : undefined;
+  const regionQuery = regionId ? `regionId=${encodeURIComponent(regionId)}` : '';
+
   useEffect(() => {
     loadAnalytics();
-  }, [period]);
+  }, [period, selectedRegionId]); // Immediate refetch when toggler changes
 
   const loadAnalytics = async () => {
     setLoading(true);
     try {
       const [overviewRes, trendsRes, companiesRes] = await Promise.all([
-        apiClient.get<AnalyticsOverview>('/api/hrm8/analytics/overview'),
-        apiClient.get<{ trends: TrendData[] }>(`/api/hrm8/analytics/trends?period=${period}`),
-        apiClient.get<TopCompany[]>('/api/hrm8/analytics/top-companies?limit=10'),
+        apiClient.get<AnalyticsOverview>(`/api/hrm8/analytics/overview${regionQuery ? `?${regionQuery}` : ''}`),
+        apiClient.get<{ trends: TrendData[] }>(`/api/hrm8/analytics/trends?period=${period}${regionQuery ? `&${regionQuery}` : ''}`),
+        apiClient.get<TopCompany[]>(`/api/hrm8/analytics/top-companies?limit=10${regionQuery ? `&${regionQuery}` : ''}`),
       ]);
 
       console.debug('[AnalyticsDashboard] overviewRes', overviewRes);

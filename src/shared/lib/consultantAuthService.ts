@@ -12,6 +12,9 @@ export interface ConsultantUser {
   lastName: string;
   role: 'RECRUITER' | 'SALES_AGENT' | 'CONSULTANT_360';
   status: string;
+  defaultCurrency?: string;
+  payoutCurrency?: string | null;
+  requiresCurrencySetup?: boolean;
 }
 
 export interface ConsultantLoginRequest {
@@ -35,6 +38,13 @@ class ConsultantAuthService {
 
   async getCurrentConsultant() {
     return apiClient.get<{ consultant: ConsultantUser }>('/api/consultant/auth/me');
+  }
+
+  async updateCurrencyPreference(payoutCurrency: string) {
+    return apiClient.patch<{ consultant: { payoutCurrency: string; requiresCurrencySetup: boolean } }>(
+      '/api/consultant/profile/currency-preference',
+      { payoutCurrency }
+    );
   }
 }
 

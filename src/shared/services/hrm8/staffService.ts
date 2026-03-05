@@ -31,6 +31,9 @@ export interface StaffMember {
   currentJobs: number;
   commissionStructure?: string;
   defaultCommissionRate?: number;
+  defaultCurrency?: string;
+  payoutCurrency?: string | null;
+  payoutCurrencyConfirmedAt?: string | null;
   totalCommissionsPaid: number;
   pendingCommissions: number;
   totalPlacements: number;
@@ -138,6 +141,8 @@ class StaffService {
     photo?: string;
     role: 'RECRUITER' | 'SALES_AGENT' | 'CONSULTANT_360';
     regionId?: string;
+    defaultCommissionRate?: number;
+    defaultCurrency?: string;
   }) {
     return apiClient.post<StaffCreateResponse>('/api/hrm8/consultants', data);
   }

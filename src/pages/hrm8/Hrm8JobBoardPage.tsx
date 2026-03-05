@@ -55,9 +55,9 @@ export default function Hrm8JobBoardPage() {
     }, [searchQuery]);
 
     useEffect(() => {
-        setCurrentPage(1); // Reset to first page when region changes
+        setCurrentPage(1);
         loadCompanies(1);
-    }, [selectedRegionId]);
+    }, [selectedRegionId]); // Immediate refetch when toggler changes
 
     const loadCompanies = async (page: number = currentPage, size: number = pageSize) => {
         try {
@@ -71,8 +71,8 @@ export default function Hrm8JobBoardPage() {
                 params.append('search', searchQuery);
             }
 
-            // Add region filter if selected
-            if (selectedRegionId) {
+            // Add region filter only when a specific region is selected (not 'all')
+            if (selectedRegionId && selectedRegionId !== 'all') {
                 params.append('region', selectedRegionId);
             }
 

@@ -12,7 +12,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 type Company = CompanyListItem;
 
 export default function RegionalCompaniesPage() {
-    const { hrm8User } = useHrm8Auth();
+    useHrm8Auth();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);

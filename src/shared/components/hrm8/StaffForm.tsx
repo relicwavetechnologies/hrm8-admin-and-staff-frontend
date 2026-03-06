@@ -84,7 +84,9 @@ export function StaffForm({ consultantId, onSave, onCancel }: StaffFormProps) {
         setValue('role', consultant.role);
         setValue('regionId', consultant.regionId || '');
         setValue('defaultCommissionRate', consultant.defaultCommissionRate ?? 10);
-        setValue('defaultCurrency', (consultant as { defaultCurrency?: string }).defaultCurrency ?? 'USD');
+        const raw = (consultant as { defaultCurrency?: string }).defaultCurrency ?? 'USD';
+        const currency: (typeof SUPPORTED_CURRENCIES)[number] = SUPPORTED_CURRENCIES.includes(raw as (typeof SUPPORTED_CURRENCIES)[number]) ? (raw as (typeof SUPPORTED_CURRENCIES)[number]) : 'USD';
+        setValue('defaultCurrency', currency);
       }
     } catch (error) {
       toast.error('Failed to load staff member');

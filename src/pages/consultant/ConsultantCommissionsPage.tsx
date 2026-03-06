@@ -222,8 +222,9 @@ export default function ConsultantCommissionsPage() {
       key: 'amount',
       label: 'Amount',
       render: (commission: Commission) => {
-        const amt = commission.payoutAmount ?? commission.payout_amount ?? commission.amount ?? 0;
-        const curr = commission.payoutCurrency ?? commission.payout_currency ?? commission.currency ?? staffCurrency;
+        const c = commission as Commission & { payout_amount?: number; payout_currency?: string };
+        const amt = commission.payoutAmount ?? c.payout_amount ?? commission.amount ?? 0;
+        const curr = commission.payoutCurrency ?? c.payout_currency ?? commission.currency ?? staffCurrency;
         return (
           <span className="text-sm font-semibold">
             {formatCurrency(Number(amt), curr)}

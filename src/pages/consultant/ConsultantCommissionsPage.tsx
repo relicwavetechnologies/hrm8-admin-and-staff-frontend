@@ -550,7 +550,7 @@ export default function ConsultantCommissionsPage() {
           <DialogHeader>
             <DialogTitle>Request Withdrawal</DialogTitle>
             <DialogDescription>
-              Select commissions to withdraw. Available balance: ${(balance?.availableBalance ?? 0).toFixed(2)}
+              Select commissions to withdraw. Available balance: {formatCurrency(balance?.availableBalance ?? 0, staffCurrency)}
             </DialogDescription>
           </DialogHeader>
 
@@ -565,7 +565,7 @@ export default function ConsultantCommissionsPage() {
                       onCheckedChange={() => toggleCommissionSelection(commission.id)}
                     />
                     <div className="flex-1">
-                      <div className="text-sm font-medium">${(commission.amount ?? 0).toFixed(2)}</div>
+                      <div className="text-sm font-medium">{formatCurrency(commission.amount ?? 0, staffCurrency)}</div>
                       <div className="text-xs text-muted-foreground">{commission.description}</div>
                     </div>
                     <div className="text-xs text-muted-foreground">
@@ -579,7 +579,7 @@ export default function ConsultantCommissionsPage() {
             <div>
               <Label>Total Amount</Label>
               <Input
-                value={`$${(calculateSelectedAmount() ?? 0).toFixed(2)}`}
+                value={formatCurrency(calculateSelectedAmount() ?? 0, staffCurrency)}
                 disabled
                 className="mt-1.5"
               />

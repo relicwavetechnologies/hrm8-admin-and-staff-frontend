@@ -354,8 +354,7 @@ export default function Consultant360EarningsPage() {
                         <DialogHeader>
                             <DialogTitle>Request Withdrawal</DialogTitle>
                             <DialogDescription>
-                                Select the commissions you want to withdraw. Total available: $
-                                {formatCurrency(combined?.availableBalance ?? 0, combined?.currency ?? 'USD')}
+                                Select the commissions you want to withdraw. Total available: {formatCurrency(combined?.availableBalance ?? 0, combined?.currency ?? 'USD')}
                             </DialogDescription>
                         </DialogHeader>
 

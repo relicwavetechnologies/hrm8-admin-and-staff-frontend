@@ -1,0 +1,27 @@
+
+> hrm8-admin-staff@0.1.0 build /Users/anugragupta/Desktop/hrm8/hrm8-admin-and-staff-frontend
+> tsc -b && vite build
+
+vite v6.4.1 building for production...
+transforming...
+✓ 4040 modules transformed.
+rendering chunks...
+[plugin vite:reporter] 
+(!) /Users/anugragupta/Desktop/hrm8/hrm8-admin-and-staff-frontend/src/shared/lib/api/jobRoundService.ts is dynamically imported by /Users/anugragupta/Desktop/hrm8/hrm8-admin-and-staff-frontend/src/shared/components/applications/CreateRoundDialog.tsx but also statically imported by /Users/anugragupta/Desktop/hrm8/hrm8-admin-and-staff-frontend/src/shared/components/applications/ApplicationPipeline.tsx, dynamic import will not move module into another chunk.
+
+computing gzip size...
+dist/index.html                              0.48 kB │ gzip:   0.32 kB
+dist/assets/icon-mark-B8matLD3.png          11.81 kB
+dist/assets/logo-dark-uOCPfJb1.png          38.96 kB
+dist/assets/logo-light-DDWlDQWT.png         41.65 kB
+dist/assets/index--OrJo65w.css             154.90 kB │ gzip:  23.41 kB
+dist/assets/purify.es-B9ZVCkUG.js           22.64 kB │ gzip:   8.71 kB
+dist/assets/index.es-fZOIa_bX.js           159.38 kB │ gzip:  53.26 kB
+dist/assets/html2canvas.esm-QH1iLAAe.js    202.38 kB │ gzip:  47.71 kB
+dist/assets/index-BU4iuQyI.js            3,640.13 kB │ gzip: 994.81 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 6.43s

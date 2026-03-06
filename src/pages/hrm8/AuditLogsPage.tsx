@@ -1,0 +1,261 @@
+import { useState, useEffect } from 'react';
+import { auditLogService, AuditLogEntry, AuditLogStats } from '@/shared/lib/hrm8/auditLogService';
+import { DataTable, Column } from '@/shared/components/tables/DataTable';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import { Badge } from '@/shared/components/ui/badge';
+import { toast } from 'sonner';
+import { DashboardStatCard } from '@/shared/components/dashboard/DashboardStatCard';
+import { TableSkeleton } from '@/shared/components/tables/TableSkeleton';
+import { Skeleton } from '@/shared/components/ui/skeleton';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
+import { Label } from '@/shared/components/ui/label';
+import { FileText, Activity, Clock, User } from 'lucide-react';
+import { format } from 'date-fns';
+import { Hrm8PageLayout } from '@/shared/components/layouts/Hrm8PageLayout';
+
+const ACTION_COLORS: Record<string, string> = {
+  CREATE: 'bg-green-100 text-green-800',
+  UPDATE: 'bg-blue-100 text-blue-800',
+  DELETE: 'bg-red-100 text-red-800',
+  SUSPEND: 'bg-yellow-100 text-yellow-800',
+  REACTIVATE: 'bg-emerald-100 text-emerald-800',
+  TRANSFER: 'bg-purple-100 text-purple-800',
+  ASSIGN: 'bg-indigo-100 text-indigo-800',
+};
+
+export default function AuditLogsPage() {
+  const [logs, setLogs] = useState<AuditLogEntry[]>([]);
+  const [stats, setStats] = useState<AuditLogStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [entityTypeFilter, setEntityTypeFilter] = useState<string>('all');
+  const [actionFilter, setActionFilter] = useState<string>('all');
+  const [total, setTotal] = useState(0);
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  useEffect(() => {
+    loadLogs();
+    loadStats();
+  }, [entityTypeFilter, actionFilter]);
+
+  const loadLogs = async () => {
+    try {
+      setLoading(true);
+      const response = await auditLogService.getRecent({
+        entityType: entityTypeFilter !== 'all' ? entityTypeFilter : undefined,
+        action: actionFilter !== 'all' ? actionFilter : undefined,
+        limit: 100,
+      });
+      if (!response.success && 'error' in response) {
+        toast.error((response as { error?: string }).error || 'Failed to load audit logs');
+        setLogs([]);
+        setTotal(0);
+        return;
+      }
+      if (response.success && response.data) {
+        setLogs(Array.isArray(response.data.logs) ? response.data.logs : []);
+        setTotal(typeof response.data.total === 'number' ? response.data.total : 0);
+      }
+    } catch (error) {
+      toast.error('Failed to load audit logs');
+      setLogs([]);
+      setTotal(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadStats = async () => {
+    try {
+      setStatsLoading(true);
+      const response = await auditLogService.getStats();
+      if (!response.success && 'error' in response) {
+        toast.error((response as { error?: string }).error || 'Failed to load audit stats');
+        return;
+      }
+      if (response.success && response.data) {
+        setStats(response.data);
+      }
+    } catch (error) {
+      toast.error('Failed to load audit stats');
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
+  const columns: Column<AuditLogEntry>[] = [
+    {
+      key: 'performedAt',
+      label: 'Time',
+      render: (log: AuditLogEntry) => {
+        const d = log.performed_at ? new Date(log.performed_at) : null;
+        return (
+          <span className="text-sm text-muted-foreground">
+            {d && !isNaN(d.getTime()) ? format(d, 'MMM d, yyyy HH:mm') : '—'}
+          </span>
+        );
+      },
+    },
+    {
+      key: 'action',
+      label: 'Action',
+      render: (log: AuditLogEntry) => (
+        <Badge className={ACTION_COLORS[log.action] || 'bg-gray-100 text-gray-800'}>
+          {log.action}
+        </Badge>
+      ),
+    },
+    {
+      key: 'entityType',
+      label: 'Entity',
+      render: (log: AuditLogEntry) => (
+        <div>
+          <span className="font-medium">{log.entity_type}</span>
+          <span className="text-xs text-muted-foreground block">
+            {log.entity_id ? `${log.entity_id.substring(0, 8)}...` : 'N/A'}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: 'description',
+      label: 'Description',
+      render: (log: AuditLogEntry) => (
+        <span className="text-sm">{log.description || '-'}</span>
+      ),
+    },
+    {
+      key: 'performedByEmail',
+      label: 'Performed By',
+      render: (log: AuditLogEntry) => {
+        const roleLabel = (log.performed_by_role || 'UNKNOWN').replace(/_/g, ' ');
+        return (
+          <div>
+            <span className="text-sm">{log.performed_by_email || '-'}</span>
+            <span className="text-xs text-muted-foreground block">
+              {roleLabel}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      key: 'ipAddress',
+      label: 'IP',
+      render: (log: AuditLogEntry) => (
+        <span className="text-xs text-muted-foreground">
+          {log.ip_address || '-'}
+        </span>
+      ),
+    },
+  ];
+
+  return (
+    <Hrm8PageLayout
+      title="Audit Logs"
+      subtitle="Track all administrative actions across the platform"
+      actions={
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Label>Entity:</Label>
+            <Select value={entityTypeFilter} onValueChange={setEntityTypeFilter}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="Region">Region</SelectItem>
+                <SelectItem value="Licensee">Licensee</SelectItem>
+                <SelectItem value="Consultant">Consultant</SelectItem>
+                <SelectItem value="Job">Job</SelectItem>
+                <SelectItem value="Company">Company</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-2">
+            <Label>Action:</Label>
+            <Select value={actionFilter} onValueChange={setActionFilter}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="CREATE">Create</SelectItem>
+                <SelectItem value="UPDATE">Update</SelectItem>
+                <SelectItem value="DELETE">Delete</SelectItem>
+                <SelectItem value="SUSPEND">Suspend</SelectItem>
+                <SelectItem value="TRANSFER">Transfer</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      }
+    >
+      <div className="p-6 space-y-6">
+        {/* Stats Cards */}
+        {statsLoading ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {[1, 2, 3, 4].map((i) => (
+              <Card key={i}>
+                <CardHeader className="space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-8 w-20" />
+                </CardHeader>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <DashboardStatCard
+              title="Total Logs"
+              value={stats?.total_logs?.toLocaleString() || '0'}
+              description="All time"
+              icon={<FileText className="h-6 w-6" />}
+              variant="neutral"
+            />
+            <DashboardStatCard
+              title="Today's Activity"
+              value={stats?.today_logs?.toLocaleString() || '0'}
+              description="Last 24 hours"
+              icon={<Activity className="h-6 w-6" />}
+              variant="success"
+            />
+            <DashboardStatCard
+              title="Showing"
+              value={logs.length.toString()}
+              description={`of ${total} total`}
+              icon={<Clock className="h-6 w-6" />}
+              variant="neutral"
+            />
+            <DashboardStatCard
+              title="Top Action"
+              value={stats?.top_actions?.[0]?.action || '-'}
+              description={stats?.top_actions?.[0]?.count ? `${stats.top_actions[0].count} times` : ''}
+              icon={<User className="h-6 w-6" />}
+              variant="neutral"
+            />
+          </div>
+        )}
+
+        {/* Logs Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Activity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <TableSkeleton columns={6} />
+            ) : (
+              <DataTable
+                data={logs}
+                columns={columns}
+                searchable
+                searchKeys={['performed_by_email', 'entity_type', 'action', 'description']}
+                emptyMessage="No audit logs found"
+              />
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </Hrm8PageLayout>
+  );
+}

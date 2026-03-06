@@ -1,0 +1,156 @@
+/**
+ * Job Allocation Service
+ * API service for job allocation management
+ */
+
+import { apiClient } from '../api';
+import { JobPipelineStatus } from '@/shared/types/job';
+
+export interface JobForAllocation {
+  id: string;
+  title: string;
+  location: string;
+  companyId: string;
+  companyName?: string;
+  regionId?: string;
+  category?: string;
+  status: string;
+  createdAt: string;
+  assignmentMode?: 'AUTO' | 'MANUAL';
+  assignmentSource?: string;
+  assignedConsultantId?: string;
+  assignedConsultantName?: string;
+}
+
+export type UnassignedJob = JobForAllocation; // Alias for backward compatibility
+
+export interface ConsultantForAssignment {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+  status: string;
+  availability: string;
+  regionId?: string;
+  currentJobs: number;
+  maxJobs: number;
+  industryExpertise?: string[];
+  languages?: string[];
+}
+
+export interface JobAssignmentInfo {
+  job: {
+    id: string;
+    title: string;
+    assignedConsultantId?: string;
+    assignmentSource?: string;
+    assignmentMode?: 'AUTO' | 'MANUAL';
+    regionId?: string;
+  };
+  consultants: Array<{
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  }>;
+  pipeline?: JobPipelineStatus;
+}
+
+class JobAllocationService {
+  async getStats() {
+    return apiClient.get<{ total: number; unassigned: number; assigned: number }>('/api/hrm8/job-allocation/stats');
+  }
+
+  async assignConsultant(jobId: string, consultantId: string, assignmentSource?: string, reason?: string) {
+    return apiClient.post(`/api/hrm8/jobs/${jobId}/assign-consultant`, {
+      consultantId,
+      assignmentSource,
+      reason,
+    });
+  }
+
+  async assignRegion(jobId: string, regionId: string) {
+    return apiClient.post(`/api/hrm8/jobs/${jobId}/assign-region`, { regionId });
+  }
+
+  async unassign(jobId: string) {
+    return apiClient.post(`/api/hrm8/jobs/${jobId}/unassign`);
+  }
+
+  async getJobConsultants(jobId: string) {
+    return apiClient.get<{ consultants: Array<{ id: string; firstName: string; lastName: string; email: string }> }>(
+      `/api/hrm8/jobs/${jobId}/consultants`
+    );
+  }
+
+  async getJobsForAllocation(filters?: {
+    regionId?: string;
+    companyId?: string;
+    company?: string;
+    companySearch?: string;
+    industry?: string;
+    assignmentStatus?: 'UNASSIGNED' | 'ASSIGNED' | 'ALL';
+    consultantId?: string;
+    search?: string;
+    limit?: number;
+    offset?: number;
+  }) {
+    const queryParams = new URLSearchParams();
+    if (filters?.regionId && filters.regionId !== 'all') queryParams.append('regionId', filters.regionId);
+    if (filters?.companyId) queryParams.append('companyId', filters.companyId);
+    if (filters?.companySearch) queryParams.append('company', filters.companySearch);
+    else if (filters?.company) queryParams.append('company', filters.company);
+    if (filters?.industry) queryParams.append('industry', filters.industry);
+    if (filters?.assignmentStatus) queryParams.append('assignmentStatus', filters.assignmentStatus);
+    if (filters?.consultantId && filters.consultantId !== 'all') queryParams.append('consultantId', filters.consultantId);
+    if (filters?.search) queryParams.append('search', filters.search);
+    if (filters?.limit) queryParams.append('limit', String(filters.limit));
+    if (filters?.offset) queryParams.append('offset', String(filters.offset));
+
+    const query = queryParams.toString();
+    return apiClient.get<{ jobs: JobForAllocation[]; total?: number }>(
+      `/api/hrm8/jobs/allocation${query ? `?${query}` : ''}`
+    );
+  }
+
+  // Alias for backward compatibility
+  async getUnassignedJobs(filters?: { regionId?: string; companyId?: string }) {
+    return this.getJobsForAllocation({ ...filters, assignmentStatus: 'UNASSIGNED' });
+  }
+
+  async getAssignmentInfo(jobId: string) {
+    return apiClient.get<JobAssignmentInfo>(`/api/hrm8/jobs/${jobId}/assignment-info`);
+  }
+
+  async autoAssign(jobId: string, reason?: string) {
+    return apiClient.post<{ consultantId?: string; job: any; consultants: any[] }>(
+      `/api/hrm8/jobs/${jobId}/auto-assign`,
+      reason ? { reason } : undefined
+    );
+  }
+
+  async getConsultantsForAssignment(filters: {
+    regionId: string;
+    role?: string;
+    availability?: string;
+    industry?: string;
+    language?: string;
+    search?: string;
+  }) {
+    console.debug('[jobAllocationService] getConsultantsForAssignment', filters);
+    const queryParams = new URLSearchParams();
+    queryParams.append('regionId', filters.regionId);
+    if (filters.role) queryParams.append('role', filters.role);
+    if (filters.availability) queryParams.append('availability', filters.availability);
+    if (filters.industry) queryParams.append('industry', filters.industry);
+    if (filters.language) queryParams.append('language', filters.language);
+    if (filters.search) queryParams.append('search', filters.search);
+
+    return apiClient.get<{ consultants: ConsultantForAssignment[] }>(
+      `/api/hrm8/consultants/for-assignment?${queryParams.toString()}`
+    );
+  }
+}
+
+export const jobAllocationService = new JobAllocationService();

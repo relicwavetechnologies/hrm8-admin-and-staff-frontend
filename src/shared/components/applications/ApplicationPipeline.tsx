@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors, useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy, horizontalListSortingStrategy, useSortable, arrayMove } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -65,6 +66,7 @@ function SortableRoundColumn({
   onConfigureOffer,
   onExecuteOffer,
   onOpenAssessmentDrawer,
+  pendingApplicationIds,
 }: {
   round: JobRound;
   applications: Application[];
@@ -85,6 +87,7 @@ function SortableRoundColumn({
   onExecuteOffer?: (roundId: string) => void;
   onOpenAssessmentDrawer?: (round: JobRound) => void;
   dragHandleProps?: any;
+  pendingApplicationIds?: Set<string>;
 }) {
   const {
     attributes,
@@ -126,6 +129,7 @@ function SortableRoundColumn({
         onExecuteOffer={onExecuteOffer}
         onOpenAssessmentDrawer={onOpenAssessmentDrawer}
         dragHandleProps={!round.isFixed ? { ...attributes, ...listeners } : undefined}
+        pendingApplicationIds={pendingApplicationIds}
       />
     </div>
   );
@@ -152,6 +156,7 @@ function StageColumn({
   onExecuteOffer,
   onOpenAssessmentDrawer,
   dragHandleProps,
+  pendingApplicationIds,
 }: {
   round: JobRound;
   applications: Application[];
@@ -172,6 +177,7 @@ function StageColumn({
   onExecuteOffer?: (roundId: string) => void;
   onOpenAssessmentDrawer?: (round: JobRound) => void;
   dragHandleProps?: any;
+  pendingApplicationIds?: Set<string>;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: round.id,
@@ -364,6 +370,7 @@ function StageColumn({
                       onToggleSelect={onToggleSelect}
                       showOnlyReview={true}
                       onViewInterviews={onViewInterviews}
+                      isPendingApproval={pendingApplicationIds?.has(application.id)}
                     />
                     {/* Round Dropdown - Alternative to drag-drop */}
                     <div className="absolute bottom-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
@@ -426,6 +433,27 @@ export function ApplicationPipeline({
 }: ApplicationPipelineProps) {
   // Service layer - switches between employer and consultant APIs
   const appService = isConsultantView ? ConsultantCandidateService : applicationService;
+
+  const queryClient = useQueryClient();
+
+  // Consultant view: fetch pending decision requests for "Awaiting approval" badge
+  const { data: decisionRequestsData } = useQuery({
+    queryKey: ['consultant-decision-requests', 'PENDING'],
+    queryFn: async () => {
+      const res = await ConsultantCandidateService.listDecisionRequests('PENDING');
+      if (!res.success || !res.data) return [];
+      return res.data.requests || [];
+    },
+    enabled: isConsultantView && !!jobId,
+  });
+  const pendingApplicationIds = useMemo(() => {
+    if (!isConsultantView || !jobId || !decisionRequestsData) return undefined;
+    const ids = (decisionRequestsData as any[])
+      .filter((r: any) => r.job_id === jobId || r.jobId === jobId)
+      .map((r: any) => r.application_id || r.applicationId);
+    return new Set(ids);
+  }, [isConsultantView, jobId, decisionRequestsData]);
+
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeRoundId, setActiveRoundId] = useState<string | null>(null);
   const [applications, setApplications] = useState<Application[]>([]);
@@ -889,6 +917,16 @@ export function ApplicationPipeline({
       // Move application to round via API (using actual round ID)
       const response = await appService.moveToRound(applicationId, actualRoundId);
 
+      if (response.success && response.data?.requiresApproval) {
+        // HRM8-managed: consultant requested approval - no move executed yet
+        queryClient.invalidateQueries({ queryKey: ['consultant-decision-requests'] });
+        toast.info('Awaiting HR approval', {
+          description: response.data?.message || 'HR will review and you will be notified.',
+        });
+        onApplicationMoved?.();
+        return;
+      }
+
       if (response.success) {
         // Reload rounds first in case backend created a new fixed round
         await loadRounds();
@@ -1314,6 +1352,7 @@ export function ApplicationPipeline({
                       onConfigureOffer={handleConfigureOffer}
                       onExecuteOffer={handleExecuteOffer}
                       onOpenAssessmentDrawer={handleOpenAssessmentReview}
+                      pendingApplicationIds={pendingApplicationIds}
                     />
                   </div>
                 );

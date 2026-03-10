@@ -86,10 +86,29 @@ export const ConsultantCandidateService = {
     },
 
     /**
-     * Move application to a specific round (for drag-drop pipeline)
+     * Move application to a specific round (for drag-drop pipeline).
+     * For HRM8-managed jobs, OFFER/REJECT may return requiresApproval: true (approval requested from HR).
      */
-    moveToRound: async (applicationId: string, roundId: string): Promise<{ success: boolean; data?: any; error?: string }> => {
-        const response = await apiClient.post<any>(`/api/consultant/candidates/${applicationId}/move-to-round`, { roundId });
+    moveToRound: async (
+        applicationId: string,
+        roundId: string,
+        reason?: string
+    ): Promise<{ success: boolean; data?: { requiresApproval?: boolean; requestId?: string; message?: string }; error?: string }> => {
+        const response = await apiClient.post<any>(`/api/consultant/candidates/${applicationId}/move-to-round`, {
+            roundId,
+            reason,
+        });
+        return response;
+    },
+
+    /**
+     * List consultant's decision requests (for pending approval display)
+     */
+    listDecisionRequests: async (
+        status?: 'PENDING' | 'APPROVED' | 'REJECTED'
+    ): Promise<{ success: boolean; data?: { requests: Array<{ id: string; application_id: string; job_id: string }> }; error?: string }> => {
+        const params = status ? `?status=${status}` : '';
+        const response = await apiClient.get<{ requests: any[] }>(`/api/consultant/decision-requests${params}`);
         return response;
     },
 

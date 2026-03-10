@@ -50,6 +50,7 @@ interface ApplicationCardProps {
   onScoreUpdate?: (applicationId: string, newScore: number) => void; // New prop for score updates
   onRankUpdate?: (applicationId: string, newRank: number) => void; // New prop for rank updates
   onShortlistChange?: (applicationId: string, shortlisted: boolean) => void; // New prop for shortlist changes
+  isPendingApproval?: boolean; // Consultant view: awaiting HR approval for OFFER/REJECT
 }
 
 export function ApplicationCard({
@@ -63,7 +64,8 @@ export function ApplicationCard({
   onStageChange,
   onScoreUpdate,
   onRankUpdate,
-  onShortlistChange
+  onShortlistChange,
+  isPendingApproval = false,
 }: ApplicationCardProps) {
   // const navigate = useNavigate();
   const { toast } = useToast();
@@ -258,9 +260,26 @@ export function ApplicationCard({
           </Avatar>
 
           <div className="flex-1 min-w-0">
-            <h4 className={`text-sm font-semibold truncate ${!application.isRead ? 'font-bold' : ''}`}>
-              {application.candidateName}
-            </h4>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <h4 className={`text-sm font-semibold truncate ${!application.isRead ? 'font-bold' : ''}`}>
+                {application.candidateName}
+              </h4>
+              {isPendingApproval && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 gap-0.5 border-amber-500 text-amber-700 dark:text-amber-400">
+                        <Clock className="h-2.5 w-2.5" />
+                        Pending
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Awaiting HR approval for OFFER/REJECT</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground truncate leading-tight">
               {application.jobTitle}
             </p>

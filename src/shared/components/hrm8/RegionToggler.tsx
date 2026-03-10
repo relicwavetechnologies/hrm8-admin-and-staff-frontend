@@ -16,6 +16,7 @@ import { useRegionStore } from '@/shared/stores/useRegionStore';
 import { regionService } from '@/shared/lib/hrm8/regionService';
 import { cn } from '@/shared/lib/utils';
 import { useHrm8Auth } from '@/contexts/Hrm8AuthContext';
+import { isAllRegionsSelected } from '@/shared/lib/regionScope';
 
 interface RegionTogglerProps {
   isExpanded?: boolean;
@@ -41,6 +42,10 @@ export function RegionToggler({ isExpanded = true }: RegionTogglerProps) {
         setRegions(fetchedRegions as any);
 
         const hasSelected = fetchedRegions.some((r) => r.id === selectedRegionId);
+        if (isAllRegionsSelected(selectedRegionId)) {
+          return;
+        }
+
         if (!hasSelected && fetchedRegions.length > 0) {
           setSelectedRegion(fetchedRegions[0].id);
         }

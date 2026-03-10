@@ -20,6 +20,7 @@ import { ComplianceAlertsWidget } from '@/shared/components/hrm8/ComplianceAlert
 import { useRegionStore } from '@/shared/stores/useRegionStore';
 import { Skeleton } from '@/shared/components/ui/skeleton';
 import { DashboardStatCard } from '@/shared/components/dashboard/DashboardStatCard';
+import { isAllRegionsSelected } from '@/shared/lib/regionScope';
 
 type TabKey = 'operations' | 'pipeline' | 'revenue' | 'risk';
 type TrendPoint = { name: string; value: number };
@@ -156,6 +157,7 @@ function LegacyOverview() {
   const navigate = useNavigate();
   const { selectedRegionId, regions } = useRegionStore();
   const isGlobalAdmin = hrm8User?.role === 'GLOBAL_ADMIN';
+  const canViewGlobalSummary = isGlobalAdmin && isAllRegionsSelected(selectedRegionId);
   const [stats, setStats] = useState<RegionalOperationalStats | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -180,7 +182,7 @@ function LegacyOverview() {
     <div className="p-6 space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">{isGlobalAdmin ? 'Global system overview' : 'Regional operational overview'}</p>
+        <p className="text-muted-foreground">{canViewGlobalSummary ? 'Global system overview' : 'Regional operational overview'}</p>
       </div>
       {error && (
         <Alert variant="destructive">
@@ -236,7 +238,7 @@ function LegacyOverview() {
           <CardTitle>{selectedRegionId === 'all' ? 'Global Overview' : `Regional Overview: ${regions.find((r) => r.id === selectedRegionId)?.name || 'Unknown'}`}</CardTitle>
         </CardHeader>
       </Card>
-      {isGlobalAdmin && <ComplianceAlertsWidget />}
+      {canViewGlobalSummary && <ComplianceAlertsWidget />}
     </div>
   );
 }
@@ -246,6 +248,7 @@ function OverviewV2() {
   const navigate = useNavigate();
   const { selectedRegionId } = useRegionStore();
   const isGlobalAdmin = hrm8User?.role === 'GLOBAL_ADMIN';
+  const canViewGlobalSummary = isGlobalAdmin && isAllRegionsSelected(selectedRegionId);
   const regionId = selectedRegionId || 'all';
 
   const [period, setPeriod] = useState<'7d' | '30d' | '90d'>('30d');
@@ -492,7 +495,7 @@ function OverviewV2() {
         <div>
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground mt-1 text-sm md:text-base">
-            {isGlobalAdmin ? 'Global ecosystem summary' : 'Regional ecosystem summary'}
+            {canViewGlobalSummary ? 'Global ecosystem summary' : 'Regional ecosystem summary'}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -1143,7 +1146,7 @@ function OverviewV2() {
         </TabsContent>
       </Tabs>
 
-      {isGlobalAdmin && <ComplianceAlertsWidget />}
+      {canViewGlobalSummary && <ComplianceAlertsWidget />}
     </div>
   );
 }

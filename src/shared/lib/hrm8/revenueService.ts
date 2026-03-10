@@ -64,13 +64,16 @@ class RevenueService {
     return apiClient.put<{ revenue: RegionalRevenue }>(`/api/hrm8/revenue/${id}/pay`);
   }
 
-  async getCompanyRevenueBreakdown() {
-    return apiClient.get<{ companies: any[] }>('/api/hrm8/revenue/companies');
+  async getCompanyRevenueBreakdown(filters?: { regionId?: string }) {
+    const queryParams = new URLSearchParams();
+    if (filters?.regionId) queryParams.append('regionId', filters.regionId);
+
+    const query = queryParams.toString();
+    return apiClient.get<{ companies: any[] }>(`/api/hrm8/revenue/companies${query ? `?${query}` : ''}`);
   }
 }
 
 
 export const revenueService = new RevenueService();
-
 
 

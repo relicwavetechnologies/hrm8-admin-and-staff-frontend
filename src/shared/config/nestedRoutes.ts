@@ -12,6 +12,7 @@ export interface NestedRoute {
     path: string;
     icon: LucideIcon;
     parentPath?: string;
+    requiresAllRegions?: boolean;
     roles?: string[]; // Optional role filtering
 }
 
@@ -120,6 +121,7 @@ export const licenseesNestedRoutes: NestedRoute[] = [
         path: '/hrm8/licensees/overview',
         icon: LayoutDashboard,
         parentPath: '/hrm8/licensees',
+        requiresAllRegions: true,
     },
     {
         id: 'licensees-list',
@@ -140,6 +142,7 @@ export const regionsNestedRoutes: NestedRoute[] = [
         path: '/hrm8/regions/overview',
         icon: LayoutDashboard,
         parentPath: '/hrm8/regions',
+        requiresAllRegions: true,
     },
     {
         id: 'regions-list',

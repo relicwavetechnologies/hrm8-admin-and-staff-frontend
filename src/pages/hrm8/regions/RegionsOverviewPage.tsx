@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Skeleton } from '@/shared/components/ui/skeleton';
@@ -18,6 +19,8 @@ import {
   YAxis,
 } from 'recharts';
 import { RegionProfileSheet } from '../components/RegionProfileSheet';
+import { useRegionStore } from '@/shared/stores/useRegionStore';
+import { isAllRegionsSelected } from '@/shared/lib/regionScope';
 
 const OWNERSHIP_COLORS: Record<string, string> = {
   HRM8: '#6366f1',
@@ -72,10 +75,15 @@ function RegionsOverviewSkeleton() {
 }
 
 export default function RegionsOverviewPage() {
+  const { selectedRegionId: activeRegionId } = useRegionStore();
   const [loading, setLoading] = useState(true);
   const [overview, setOverview] = useState<RegionsOverviewData | null>(null);
   const [profileSheetOpen, setProfileSheetOpen] = useState(false);
   const [selectedRegionId, setSelectedRegionId] = useState<string | null>(null);
+
+  if (!isAllRegionsSelected(activeRegionId)) {
+    return <Navigate to="/hrm8/regions/list" replace />;
+  }
 
   useEffect(() => {
     const loadOverview = async () => {

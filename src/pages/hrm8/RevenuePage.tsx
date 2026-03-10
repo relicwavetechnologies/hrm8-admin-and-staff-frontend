@@ -15,6 +15,7 @@ import { Label } from '@/shared/components/ui/label';
 import { TableSkeleton } from '@/shared/components/tables/TableSkeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { CompanyRevenueTable } from '@/shared/components/hrm8/CompanyRevenueTable';
+import { getScopedRegionId, isAllRegionsSelected } from '@/shared/lib/regionScope';
 
 const columns = [
   {
@@ -86,14 +87,21 @@ export default function RevenuePage() {
 
   // Regional admins can only see company breakdown
   const isGlobalAdmin = hrm8User?.role === 'GLOBAL_ADMIN';
-  const [activeTab, setActiveTab] = useState(isGlobalAdmin ? 'overview' : 'companies');
+  const canViewOverview = isGlobalAdmin && isAllRegionsSelected(selectedRegionId);
+  const [activeTab, setActiveTab] = useState(canViewOverview ? 'overview' : 'companies');
 
   useEffect(() => {
-    if (isGlobalAdmin) {
+    if (!canViewOverview && activeTab !== 'companies') {
+      setActiveTab('companies');
+    }
+  }, [activeTab, canViewOverview]);
+
+  useEffect(() => {
+    if (canViewOverview) {
       loadRevenues();
     }
     loadCompanyRevenues();
-  }, [statusFilter, effectiveRegionFilter, isGlobalAdmin]);
+  }, [statusFilter, effectiveRegionFilter, canViewOverview]);
 
   useEffect(() => {
     if (activeTab === 'companies') {
@@ -126,7 +134,9 @@ export default function RevenuePage() {
   const loadCompanyRevenues = async () => {
     try {
       setCompanyLoading(true);
-      const response = await revenueService.getCompanyRevenueBreakdown();
+      const response = await revenueService.getCompanyRevenueBreakdown({
+        regionId: getScopedRegionId(selectedRegionId),
+      });
       if (response.success && response.data?.companies) {
         setCompanyRevenues(response.data.companies);
       }
@@ -197,7 +207,7 @@ export default function RevenuePage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        {isGlobalAdmin ? (
+        {canViewOverview ? (
           <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
             <TabsTrigger value="overview">Revenue Overview</TabsTrigger>
             <TabsTrigger value="companies">Company Breakdown</TabsTrigger>
@@ -208,7 +218,7 @@ export default function RevenuePage() {
           </TabsList>
         )}
 
-        {isGlobalAdmin && (
+        {canViewOverview && (
           <TabsContent value="overview" className="mt-6">
             <Card>
               <CardHeader>

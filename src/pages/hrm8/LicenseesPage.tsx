@@ -13,6 +13,8 @@ import { TableSkeleton } from '@/shared/components/tables/TableSkeleton';
 import { AuditHistoryDrawer } from '@/shared/components/hrm8/AuditHistoryDrawer';
 import { Input } from '@/shared/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
+import { useRegionStore } from '@/shared/stores/useRegionStore';
+import { getScopedRegionId } from '@/shared/lib/regionScope';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -61,6 +63,7 @@ const columns = [
 ];
 
 export default function LicenseesPage() {
+  const { selectedRegionId } = useRegionStore();
 
   const [licensees, setLicensees] = useState<RegionalLicensee[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,12 +91,14 @@ export default function LicenseesPage() {
 
   useEffect(() => {
     loadLicensees();
-  }, []);
+  }, [selectedRegionId]);
 
   const loadLicensees = async () => {
     try {
       setLoading(true);
-      const response = await licenseeService.getAll();
+      const response = await licenseeService.getAll({
+        regionId: getScopedRegionId(selectedRegionId),
+      });
       if (response.success && response.data?.licensees) {
         setLicensees(response.data.licensees);
       }

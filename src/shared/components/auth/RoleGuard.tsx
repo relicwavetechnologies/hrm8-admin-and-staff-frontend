@@ -54,7 +54,7 @@ export function RoleGuard({ allowedTypes, allowedRoles, children }: RoleGuardPro
     // This prevents race conditions where guards fire before auth hydration completes
     if (isLoading || (isAuthenticated && !user)) {
         return (
-            <div className="h-screen w-screen flex items-center justify-center">
+            <div className="h-screen w-screen flex items-center justify-center bg-background">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         );

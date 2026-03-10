@@ -91,16 +91,18 @@ export interface LicenseeOverviewData {
 }
 
 class LicenseeService {
-  async getAll(filters?: { status?: string }) {
+  async getAll(filters?: { status?: string; regionId?: string }) {
     const queryParams = new URLSearchParams();
     if (filters?.status) queryParams.append('status', filters.status);
+    if (filters?.regionId) queryParams.append('regionId', filters.regionId);
 
     const query = queryParams.toString();
     return apiClient.get<{ licensees: RegionalLicensee[] }>(`/api/hrm8/licensees${query ? `?${query}` : ''}`);
   }
 
-  async getOverview() {
-    return apiClient.get<LicenseeOverviewData>('/api/hrm8/licensees/overview');
+  async getOverview(regionId?: string) {
+    const query = regionId ? `?regionId=${encodeURIComponent(regionId)}` : '';
+    return apiClient.get<LicenseeOverviewData>(`/api/hrm8/licensees/overview${query}`);
   }
 
   async getById(id: string) {
@@ -144,4 +146,3 @@ class LicenseeService {
 }
 
 export const licenseeService = new LicenseeService();
-

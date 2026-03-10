@@ -7,6 +7,8 @@ import { RoleGuard } from '@/shared/components/auth/RoleGuard'
 import { Outlet } from 'react-router-dom'
 import { UnifiedDashboardLayout } from '@/shared/layouts/UnifiedDashboardLayout'
 import { useAuthStore } from '@/shared/stores/authStore'
+import { useRegionStore } from '@/shared/stores/useRegionStore'
+import { isAllRegionsSelected } from '@/shared/lib/regionScope'
 import { useEffect } from 'react'
 
 /**
@@ -18,6 +20,12 @@ function DashboardWrapper() {
             <Outlet />
         </UnifiedDashboardLayout>
     );
+}
+
+function AllRegionsWorkspaceRedirect({ overviewPath, listPath }: { overviewPath: string; listPath: string }) {
+    const { selectedRegionId } = useRegionStore();
+
+    return <Navigate to={isAllRegionsSelected(selectedRegionId) ? overviewPath : listPath} replace />;
 }
 
 import Hrm8Overview from './pages/hrm8/Hrm8Overview'
@@ -150,7 +158,7 @@ function App() {
                         <Route path="attribution" element={<AttributionPage />} />
                     </Route>
                     <Route path="/hrm8/licensees" element={<LicenseesWorkspacePage />}>
-                        <Route index element={<Navigate to="overview" replace />} />
+                        <Route index element={<AllRegionsWorkspaceRedirect overviewPath="overview" listPath="list" />} />
                         <Route path="overview" element={<LicenseesOverviewPage />} />
                         <Route path="list" element={<LicenseesPage />} />
                     </Route>
@@ -196,7 +204,7 @@ function App() {
 
                     <Route path="/hrm8/settlements" element={<SettlementsPage />} />
                     <Route path="/hrm8/regions" element={<RegionsWorkspacePage />}>
-                        <Route index element={<Navigate to="overview" replace />} />
+                        <Route index element={<AllRegionsWorkspaceRedirect overviewPath="overview" listPath="list" />} />
                         <Route path="overview" element={<RegionsOverviewPage />} />
                         <Route path="list" element={<RegionsPage />} />
                     </Route>

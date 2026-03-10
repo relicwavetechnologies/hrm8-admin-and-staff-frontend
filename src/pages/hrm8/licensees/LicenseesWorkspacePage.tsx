@@ -1,6 +1,9 @@
+import { useMemo } from 'react';
 import { Outlet } from 'react-router-dom';
 import { LayoutDashboard, Users } from 'lucide-react';
 import { NestedSidebarLayout, type NestedSidebarItem } from '@/shared/components/layouts/NestedSidebarLayout';
+import { useRegionStore } from '@/shared/stores/useRegionStore';
+import { isAllRegionsSelected } from '@/shared/lib/regionScope';
 
 const licenseesNavItems: NestedSidebarItem[] = [
   {
@@ -18,13 +21,22 @@ const licenseesNavItems: NestedSidebarItem[] = [
 ];
 
 export default function LicenseesWorkspacePage() {
+  const { selectedRegionId } = useRegionStore();
+  const items = useMemo(
+    () =>
+      licenseesNavItems.filter((item) =>
+        item.id === 'licensees-overview' ? isAllRegionsSelected(selectedRegionId) : true,
+      ),
+    [selectedRegionId],
+  );
+
   return (
     <NestedSidebarLayout
       title="Licensees"
       subtitle="Track partner performance and regional ownership"
       backPath="/hrm8/dashboard"
       backLabel="Back to Dashboard"
-      items={licenseesNavItems}
+      items={items}
     >
       <div className="p-2 lg:p-3">
         <Outlet />

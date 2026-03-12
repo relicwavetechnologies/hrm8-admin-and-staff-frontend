@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Skeleton } from '@/shared/components/ui/skeleton';
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { toast } from 'sonner';
 import { BriefcaseBusiness, DollarSign, Globe2, Users } from 'lucide-react';
 import { licenseeService, type LicenseeOverviewData } from '@/shared/lib/hrm8/licenseeService';
+import { useRegionStore } from '@/shared/stores/useRegionStore';
+import { isAllRegionsSelected } from '@/shared/lib/regionScope';
 
 const STATUS_COLORS: Record<string, string> = {
   ACTIVE: '#22c55e',
@@ -49,8 +52,13 @@ function LicenseesOverviewSkeleton() {
 }
 
 export default function LicenseesOverviewPage() {
+  const { selectedRegionId } = useRegionStore();
   const [overview, setOverview] = useState<LicenseeOverviewData | null>(null);
   const [loading, setLoading] = useState(true);
+
+  if (!isAllRegionsSelected(selectedRegionId)) {
+    return <Navigate to="/hrm8/licensees/list" replace />;
+  }
 
   useEffect(() => {
     const loadOverview = async () => {

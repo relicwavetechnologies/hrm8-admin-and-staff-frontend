@@ -17,6 +17,8 @@ import { Badge } from '@/shared/components/ui/badge';
 import { TableSkeleton } from '@/shared/components/tables/TableSkeleton';
 import { useHrm8Auth } from '@/contexts/Hrm8AuthContext';
 import { RegionProfileSheet } from './components/RegionProfileSheet';
+import { useRegionStore } from '@/shared/stores/useRegionStore';
+import { isAllRegionsSelected } from '@/shared/lib/regionScope';
 
 const createColumns = (
   onEdit: (region: Region) => void,
@@ -163,6 +165,7 @@ const createColumns = (
 
 export default function RegionsPage() {
   const { hrm8User } = useHrm8Auth();
+  const { selectedRegionId: activeRegionId } = useRegionStore();
   const canManageRegions = hrm8User?.role === 'GLOBAL_ADMIN';
 
   const [regions, setRegions] = useState<Region[]>([]);
@@ -276,6 +279,10 @@ export default function RegionsPage() {
     canManageRegions
   );
 
+  const visibleRegions = isAllRegionsSelected(activeRegionId)
+    ? regions
+    : regions.filter((region) => region.id === activeRegionId);
+
   // Auth check is handled by RoleGuard at route level (allowedRoles: ['GLOBAL_ADMIN'])
   return (
 
@@ -302,7 +309,7 @@ export default function RegionsPage() {
             <TableSkeleton columns={6} />
           ) : (
             <DataTable
-              data={regions}
+              data={visibleRegions}
               columns={columns}
               searchable
               searchKeys={['code', 'name', 'country']}

@@ -44,8 +44,12 @@ export const useRegionStore = create<RegionStore>()(
     }),
     {
       name: 'region-store',
+      version: 2,
       partialize: (state) => ({
         selectedRegionId: state.selectedRegionId,
+      }),
+      migrate: () => ({
+        selectedRegionId: 'all',
       }),
     }
   )

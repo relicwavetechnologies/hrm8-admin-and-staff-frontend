@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '@/shared/contexts/AuthContext'
 import { CurrencyFormatProvider } from '@/shared/contexts/CurrencyFormatContext'
+import { ThemeProvider } from 'next-themes'
 import App from './App.tsx'
 import './index.css'
 
@@ -22,11 +23,13 @@ createRoot(document.getElementById('root')!).render(
     <StrictMode>
         <BrowserRouter>
             <QueryClientProvider client={queryClient}>
-                <AuthProvider>
-                    <CurrencyFormatProvider>
-                        <App />
-                    </CurrencyFormatProvider>
-                </AuthProvider>
+                <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+                    <AuthProvider>
+                        <CurrencyFormatProvider>
+                            <App />
+                        </CurrencyFormatProvider>
+                    </AuthProvider>
+                </ThemeProvider>
             </QueryClientProvider>
         </BrowserRouter>
     </StrictMode>,

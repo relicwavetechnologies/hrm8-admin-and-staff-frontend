@@ -26,6 +26,8 @@ import { UnifiedSidebarFooter } from "./UnifiedSidebarFooter";
 import { RegionToggler } from "@/shared/components/hrm8/RegionToggler";
 import type { SidebarConfig, AuthAdapter, MenuItem } from "@/shared/types/dashboard";
 import { getNestedRoutes } from "@/shared/config/nestedRoutes";
+import { useRegionStore } from "@/shared/stores/useRegionStore";
+import { isAllRegionsSelected } from "@/shared/lib/regionScope";
 
 interface UnifiedSidebarProps {
   config: SidebarConfig;
@@ -36,8 +38,10 @@ export function UnifiedSidebar({ config, auth }: UnifiedSidebarProps) {
   const location = useLocation();
   const { open } = useSidebar();
   const [isHovering, setIsHovering] = useState(false);
+  const { selectedRegionId } = useRegionStore();
 
   const isExpanded = open || (!open && isHovering);
+  const canViewAllRegionOverview = isAllRegionsSelected(selectedRegionId);
 
   // Get filtered menu items (apply role-based filtering if provided)
   const menuItems: MenuItem[] = config.menuItems
@@ -55,11 +59,14 @@ export function UnifiedSidebar({ config, auth }: UnifiedSidebarProps) {
     const nestedRoutes = getNestedRoutes("ADMIN");
     for (const route of nestedRoutes) {
       if (!route.parentPath) continue;
+      if (route.requiresAllRegions && !canViewAllRegionOverview) {
+        continue;
+      }
       const existing = map.get(route.parentPath) || [];
       map.set(route.parentPath, [...existing, route]);
     }
     return map;
-  }, [config.dashboardType]);
+  }, [canViewAllRegionOverview, config.dashboardType]);
 
   // Check if a path is active
   const isActive = (path: string) => {

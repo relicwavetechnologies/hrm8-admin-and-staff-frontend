@@ -33,14 +33,28 @@ class AuthService {
             const response = await consultantAuthService.login({ email, password });
             if (response.success && response.data?.consultant) {
                 const consultant = response.data.consultant;
-                let finalType: UserType = 'CONSULTANT';
-
-                if (consultant.role === 'SALES_AGENT') finalType = 'SALES_AGENT';
-                else if (consultant.role === 'CONSULTANT_360') finalType = 'CONSULTANT360';
-
+                // Strict role-based portal access: no cross-login allowed
+                const roleToType: Record<string, UserType> = {
+                    RECRUITER: 'CONSULTANT',
+                    SALES_AGENT: 'SALES_AGENT',
+                    CONSULTANT_360: 'CONSULTANT360',
+                };
+                const allowedType = roleToType[consultant.role] ?? 'CONSULTANT';
+                if (type !== allowedType) {
+                    const portalNames: Record<UserType, string> = {
+                        ADMIN: 'HRM8 Admin',
+                        CONSULTANT: 'Consultant Portal',
+                        SALES_AGENT: 'Sales Agent Portal',
+                        CONSULTANT360: 'Consultant 360 Portal',
+                    };
+                    return {
+                        success: false,
+                        error: `This account can only access the ${portalNames[allowedType]}. Please select it and sign in again.`,
+                    };
+                }
                 return {
                     success: true,
-                    user: this.mapToUnifiedUser(consultant, finalType)
+                    user: this.mapToUnifiedUser(consultant, allowedType),
                 };
             }
             return { success: false, error: response.error };

@@ -66,6 +66,7 @@ function SortableRoundColumn({
   onConfigureOffer,
   onExecuteOffer,
   onOpenAssessmentDrawer,
+  pipelineActionStyle = "review",
   pendingApplicationIds,
 }: {
   round: JobRound;
@@ -86,6 +87,7 @@ function SortableRoundColumn({
   onConfigureOffer?: (roundId: string) => void;
   onExecuteOffer?: (roundId: string) => void;
   onOpenAssessmentDrawer?: (round: JobRound) => void;
+  pipelineActionStyle?: "review" | "offer-reject";
   dragHandleProps?: any;
   pendingApplicationIds?: Set<string>;
 }) {
@@ -128,6 +130,7 @@ function SortableRoundColumn({
         onConfigureOffer={onConfigureOffer}
         onExecuteOffer={onExecuteOffer}
         onOpenAssessmentDrawer={onOpenAssessmentDrawer}
+        pipelineActionStyle={pipelineActionStyle}
         dragHandleProps={!round.isFixed ? { ...attributes, ...listeners } : undefined}
         pendingApplicationIds={pendingApplicationIds}
       />
@@ -155,6 +158,7 @@ function StageColumn({
   onConfigureOffer,
   onExecuteOffer,
   onOpenAssessmentDrawer,
+  pipelineActionStyle = "review",
   dragHandleProps,
   pendingApplicationIds,
 }: {
@@ -176,6 +180,7 @@ function StageColumn({
   onConfigureOffer?: (roundId: string) => void;
   onExecuteOffer?: (roundId: string) => void;
   onOpenAssessmentDrawer?: (round: JobRound) => void;
+  pipelineActionStyle?: "review" | "offer-reject";
   dragHandleProps?: any;
   pendingApplicationIds?: Set<string>;
 }) {
@@ -198,9 +203,9 @@ function StageColumn({
 
   return (
     <div className="min-w-0">
-      <Card className={`${getRoundColor(round)} border-2 h-full flex flex-col ${isOver ? 'ring-2 ring-primary' : ''}`}>
-        <div className="p-3 flex flex-col flex-1">
-          <div className="flex items-center justify-between mb-3 flex-shrink-0">
+      <Card className={`${getRoundColor(round)} border h-full flex flex-col shadow-none ${isOver ? 'ring-1 ring-primary' : ''}`}>
+        <div className="p-2.5 flex flex-col flex-1">
+          <div className="flex items-center justify-between mb-2 flex-shrink-0">
             <div
               className={`flex items-center gap-2 flex-1 min-w-0 ${round.isFixed && round.fixedKey === 'NEW' ? 'cursor-pointer hover:opacity-80' : ''}`}
               onClick={(e) => {
@@ -215,7 +220,7 @@ function StageColumn({
                   <GripVertical className="h-4 w-4" />
                 </div>
               )}
-              <h3 className="font-semibold text-sm truncate">{round.name}</h3>
+              <h3 className="font-semibold text-xs truncate">{round.name}</h3>
               {!round.isFixed && round.type === 'INTERVIEW' && (
                 <Badge variant="outline" className="text-xs h-5 px-1.5 rounded-full shrink-0">
                   Interview
@@ -228,7 +233,7 @@ function StageColumn({
               )}
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs h-6 px-2 rounded-full">
+              <Badge variant="outline" className="text-[10px] h-5 px-1.5 rounded-full">
                 {applications.length}
               </Badge>
               {round.isFixed && round.fixedKey === 'NEW' && onOpenScreening && (
@@ -368,8 +373,11 @@ function StageColumn({
                       isCompareMode={isCompareMode}
                       isSelected={selectedForComparison.includes(application.id)}
                       onToggleSelect={onToggleSelect}
-                      showOnlyReview={true}
+                      showOnlyReview={pipelineActionStyle === "review"}
                       onViewInterviews={onViewInterviews}
+                      allRounds={allRounds}
+                      onMoveToRound={onMoveToRound}
+                      pipelineActionStyle={pipelineActionStyle}
                       isPendingApproval={pendingApplicationIds?.has(application.id)}
                     />
                     {/* Round Dropdown - Alternative to drag-drop */}
@@ -917,7 +925,13 @@ export function ApplicationPipeline({
       // Move application to round via API (using actual round ID)
       const response = await appService.moveToRound(applicationId, actualRoundId);
 
-      if (response.success && response.data?.requiresApproval) {
+      if (
+        response.success &&
+        response.data &&
+        typeof response.data === "object" &&
+        "requiresApproval" in response.data &&
+        response.data.requiresApproval
+      ) {
         // HRM8-managed: consultant requested approval - no move executed yet
         queryClient.invalidateQueries({ queryKey: ['consultant-decision-requests'] });
         toast.info('Awaiting HR approval', {
@@ -1352,6 +1366,7 @@ export function ApplicationPipeline({
                       onConfigureOffer={handleConfigureOffer}
                       onExecuteOffer={handleExecuteOffer}
                       onOpenAssessmentDrawer={handleOpenAssessmentReview}
+                      pipelineActionStyle={isConsultantView ? "offer-reject" : "review"}
                       pendingApplicationIds={pendingApplicationIds}
                     />
                   </div>

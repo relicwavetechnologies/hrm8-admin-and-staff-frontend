@@ -1,5 +1,89 @@
 import { apiClient } from '../apiClient';
 
+export interface RatingCriterion {
+  id: string;
+  name: string;
+  description?: string;
+  weight: number;
+  threshold?: number;
+}
+
+export interface CreateInterviewConfigRequest {
+  enabled: boolean;
+  autoSchedule?: boolean;
+  requireBeforeProgression?: boolean;
+  requireAllInterviewers?: boolean;
+  interviewFormat?: 'LIVE_VIDEO' | 'PHONE' | 'IN_PERSON' | 'PANEL';
+  defaultDuration?: number;
+  requiresInterviewer?: boolean;
+  autoScheduleWindowDays?: number;
+  availableTimeSlots?: string[];
+  bufferTimeMinutes?: number;
+  calendarIntegration?: string;
+  autoRescheduleOnNoShow?: boolean;
+  autoRescheduleOnCancel?: boolean;
+  useCustomCriteria?: boolean;
+  ratingCriteria?: RatingCriterion[];
+  passThreshold?: number;
+  scoringMethod?: 'AVERAGE' | 'WEIGHTED' | 'CONSENSUS';
+  autoMoveOnPass?: boolean;
+  passCriteria?: 'SCORE_THRESHOLD' | 'RECOMMENDATION' | 'RATING_CRITERIA' | 'COMBINATION';
+  nextRoundOnPassId?: string;
+  autoRejectOnFail?: boolean;
+  failCriteria?: 'SCORE_BELOW_THRESHOLD' | 'RECOMMENDATION_NO' | 'RATING_CRITERIA_FAIL' | 'COMBINATION';
+  rejectRoundId?: string;
+  requiresManualReview?: boolean;
+  templateId?: string;
+  questions?: any[];
+  agenda?: string;
+  assignedInterviewerIds?: string[];
+}
+
+export interface InterviewConfiguration {
+  id?: string;
+  jobRoundId: string;
+  enabled: boolean;
+  autoSchedule: boolean;
+  requireBeforeProgression?: boolean;
+  requireAllInterviewers?: boolean;
+  interviewFormat: 'LIVE_VIDEO' | 'PHONE' | 'IN_PERSON' | 'PANEL';
+  defaultDuration?: number;
+  requiresInterviewer?: boolean;
+  autoScheduleWindowDays?: number;
+  availableTimeSlots?: string[];
+  bufferTimeMinutes?: number;
+  calendarIntegration?: string;
+  autoRescheduleOnNoShow?: boolean;
+  autoRescheduleOnCancel?: boolean;
+  useCustomCriteria?: boolean;
+  ratingCriteria?: RatingCriterion[];
+  passThreshold?: number;
+  scoringMethod?: 'AVERAGE' | 'WEIGHTED' | 'CONSENSUS';
+  autoMoveOnPass?: boolean;
+  passCriteria?: 'SCORE_THRESHOLD' | 'RECOMMENDATION' | 'RATING_CRITERIA' | 'COMBINATION';
+  nextRoundOnPassId?: string;
+  autoRejectOnFail?: boolean;
+  failCriteria?: 'SCORE_BELOW_THRESHOLD' | 'RECOMMENDATION_NO' | 'RATING_CRITERIA_FAIL' | 'COMBINATION';
+  rejectRoundId?: string;
+  requiresManualReview?: boolean;
+  templateId?: string;
+  questions?: any[];
+  agenda?: string;
+  assignedInterviewerIds?: string[];
+}
+
+export interface Candidate {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  photo?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+}
+
 export interface Interview {
   id: string;
   jobId: string;
@@ -22,17 +106,7 @@ export interface Interview {
   interviewFeedbacks?: any[];
   createdAt: string;
   updatedAt: string;
-  candidate?: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone?: string;
-    city?: string;
-    state?: string;
-    country?: string;
-    photo?: string;
-  };
+  candidate?: Candidate;
 }
 
 class InterviewService {

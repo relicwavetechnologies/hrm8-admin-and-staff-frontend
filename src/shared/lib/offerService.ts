@@ -1,227 +1,287 @@
-export interface Offer {
-  id: string;
-  jobId: string;
-  jobTitle: string;
-  candidateId: string;
-  candidateName: string;
-  candidateEmail: string;
+/**
+ * Offer API Service
+ * Handles all offer-related API calls
+ */
+
+import { apiClient } from './api';
+import { OfferLetter } from '@/shared/types/offer';
+
+export interface CreateOfferRequest {
+  applicationId: string;
+  offerType: string;
   salary: number;
-  currency: string;
-  salaryPeriod: 'hourly' | 'daily' | 'weekly' | 'monthly' | 'annual';
+  salaryCurrency?: string;
+  salaryPeriod: string;
   startDate: string;
-  benefits: string[];
-  additionalTerms?: string;
-  status: 'draft' | 'pending' | 'accepted' | 'rejected' | 'withdrawn' | 'expired';
-  sentDate?: string;
-  responseDate?: string;
+  benefits?: string[];
+  bonusStructure?: string;
+  equityOptions?: string;
+  workLocation: string;
+  workArrangement: string;
+  probationPeriod?: number;
+  vacationDays?: number;
+  customTerms?: any;
+  approvalWorkflow?: any;
   expiryDate?: string;
-  rejectionReason?: string;
-  negotiationNotes?: string[];
-  approvals: OfferApproval[];
-  documents: OfferDocument[];
-  createdBy: string;
-  createdByName: string;
+  customMessage?: string;
+  templateId?: string;
+}
+
+export interface NegotiationMessage {
+  id: string;
+  offerId: string;
+  messageType: string;
+  message: string;
+  proposedChanges?: any;
+  senderId: string;
+  senderType: string;
+  senderName: string;
+  senderEmail?: string;
+  responded: boolean;
+  response?: string;
+  responseDate?: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface OfferApproval {
-  approverId: string;
-  approverName: string;
-  approverRole: string;
-  status: 'pending' | 'approved' | 'rejected';
-  comments?: string;
-  timestamp?: string;
-}
-
 export interface OfferDocument {
   id: string;
+  offerId: string;
+  applicationId?: string;
   name: string;
-  type: 'offer_letter' | 'contract' | 'benefits_summary' | 'other';
-  url: string;
-  uploadedAt: string;
+  description?: string;
+  category: string;
+  status: string;
+  fileUrl?: string;
+  fileName?: string;
+  uploadedDate?: string;
+  uploadedBy?: string;
+  reviewedBy?: string;
+  reviewedDate?: string;
+  reviewNotes?: string;
+  expiryDate?: string;
+  isRequired: boolean;
+  templateUrl?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-// Mock data
-const mockOffers: Offer[] = [
-  {
-    id: '1',
-    jobId: '1',
-    jobTitle: 'Senior Software Engineer',
-    candidateId: 'c1',
-    candidateName: 'Sarah Johnson',
-    candidateEmail: 'sarah.j@email.com',
-    salary: 135000,
-    currency: 'USD',
-    salaryPeriod: 'annual',
-    startDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    benefits: [
-      'Health Insurance',
-      '401(k) Matching',
-      'Unlimited PTO',
-      'Remote Work Options',
-      'Professional Development Budget',
-    ],
-    status: 'pending',
-    sentDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    expiryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-    approvals: [
-      {
-        approverId: 'a1',
-        approverName: 'John Doe',
-        approverRole: 'Hiring Manager',
-        status: 'approved',
-        timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-      },
-      {
-        approverId: 'a2',
-        approverName: 'Jane Smith',
-        approverRole: 'HR Director',
-        status: 'approved',
-        timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-      },
-    ],
-    documents: [
-      {
-        id: 'd1',
-        name: 'Offer Letter.pdf',
-        type: 'offer_letter',
-        url: '#',
-        uploadedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-      },
-    ],
-    createdBy: 'u1',
-    createdByName: 'Admin User',
-    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '2',
-    jobId: '2',
-    jobTitle: 'Product Manager',
-    candidateId: 'c3',
-    candidateName: 'Emily Rodriguez',
-    candidateEmail: 'emily.r@email.com',
-    salary: 145000,
-    currency: 'USD',
-    salaryPeriod: 'annual',
-    startDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString(),
-    benefits: [
-      'Health Insurance',
-      '401(k) Matching',
-      'Equity Package',
-      'Flexible Hours',
-    ],
-    status: 'accepted',
-    sentDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-    responseDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    approvals: [
-      {
-        approverId: 'a1',
-        approverName: 'John Doe',
-        approverRole: 'Hiring Manager',
-        status: 'approved',
-        timestamp: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
-      },
-    ],
-    documents: [],
-    createdBy: 'u1',
-    createdByName: 'Admin User',
-    createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-];
+export type OfferWorkflowStep =
+  | 'negotiation'
+  | 'amount'
+  | 'offer_letter'
+  | 'document_request'
+  | 'documents'
+  | 'hired';
 
-export function getOffers(filters?: {
-  jobId?: string;
-  candidateId?: string;
-  status?: Offer['status'];
-}): Offer[] {
-  let filtered = [...mockOffers];
+export interface CompensationBreakdown {
+  baseSalary?: string;
+  variablePay?: string;
+  signingBonus?: string;
+  retentionBonus?: string;
+  esops?: string;
+  rsus?: string;
+  ppf?: string;
+  gratuity?: string;
+  healthInsurance?: string;
+  hra?: string;
+  travelAllowance?: string;
+  mealAllowance?: string;
+  learningBudget?: string;
+  otherBenefits?: string;
+}
 
-  if (filters?.jobId) {
-    filtered = filtered.filter((o) => o.jobId === filters.jobId);
-  }
-  if (filters?.candidateId) {
-    filtered = filtered.filter((o) => o.candidateId === filters.candidateId);
-  }
-  if (filters?.status) {
-    filtered = filtered.filter((o) => o.status === filters.status);
+export interface OfferWorkflowState {
+  currentStep: OfferWorkflowStep;
+  negotiationComplete: boolean;
+  amount: string;
+  compensation?: CompensationBreakdown;
+  offerLetterSent: boolean;
+  documentRequestSent: boolean;
+  stepNotes: Partial<Record<OfferWorkflowStep, string>>;
+  hiredAt?: string;
+}
+
+export interface OfferWorkflowResponse {
+  offerId: string;
+  applicationId: string;
+  workflow: OfferWorkflowState;
+  documents: OfferDocument[];
+}
+
+class OfferService {
+  async getOfferWorkflow(applicationId: string) {
+    return apiClient.get<OfferWorkflowResponse>(`/api/offers/application/${applicationId}/workflow`);
   }
 
-  return filtered.sort((a, b) => 
-    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+  async updateOfferWorkflow(
+    applicationId: string,
+    data: {
+      negotiationComplete?: boolean;
+      amount?: string;
+      compensation?: CompensationBreakdown;
+      offerLetterSent?: boolean;
+      documentRequestSent?: boolean;
+      step?: OfferWorkflowStep;
+      note?: string;
+      markHired?: boolean;
+    }
+  ) {
+    return apiClient.put<OfferWorkflowResponse>(`/api/offers/application/${applicationId}/workflow`, data);
+  }
+
+  async uploadOfferWorkflowDocuments(
+    applicationId: string,
+    files: File[],
+    options?: {
+      category?: string;
+      note?: string;
+    }
+  ) {
+    const formData = new FormData();
+    files.forEach((file) => formData.append('files', file));
+    if (options?.category) formData.append('category', options.category);
+    if (options?.note) formData.append('note', options.note);
+    return apiClient.upload<OfferWorkflowResponse>(`/api/offers/application/${applicationId}/workflow/documents`, formData);
+  }
+
+  /**
+   * Create a new offer
+   */
+  async createOffer(applicationId: string, data: CreateOfferRequest) {
+    return apiClient.post<OfferLetter>(`/api/applications/${applicationId}/offers`, data);
+  }
+
+  /**
+   * Get offer by ID
+   */
+  async getOffer(offerId: string) {
+    return apiClient.get<OfferLetter>(`/api/offers/${offerId}`);
+  }
+
+  /**
+   * Get all offers for an application
+   */
+  async getApplicationOffers(applicationId: string) {
+    return apiClient.get<OfferLetter[]>(`/api/applications/${applicationId}/offers`);
+  }
+
+  /**
+   * Update offer
+   */
+  async updateOffer(offerId: string, data: Partial<CreateOfferRequest>) {
+    return apiClient.put<OfferLetter>(`/api/offers/${offerId}`, data);
+  }
+
+  /**
+   * Send offer
+   */
+  async sendOffer(offerId: string) {
+    return apiClient.post<OfferLetter>(`/api/offers/${offerId}/send`, {});
+  }
+
+  /**
+   * Accept offer (candidate)
+   */
+  async acceptOffer(offerId: string, signedDocumentUrl?: string) {
+    return apiClient.post<OfferLetter>(`/api/candidate/offers/${offerId}/accept`, {
+      signedDocumentUrl,
+    });
+  }
+
+  /**
+   * Decline offer (candidate)
+   */
+  async declineOffer(offerId: string, reason?: string) {
+    return apiClient.post<OfferLetter>(`/api/candidate/offers/${offerId}/decline`, {
+      reason,
+    });
+  }
+
+  /**
+   * Withdraw offer (employer)
+   */
+  async withdrawOffer(offerId: string, reason?: string) {
+    return apiClient.post<OfferLetter>(`/api/offers/${offerId}/withdraw`, {
+      reason,
+    });
+  }
+
+  /**
+   * Initiate negotiation (candidate)
+   */
+  async initiateNegotiation(offerId: string, data: {
+    message: string;
+    proposedChanges?: any;
+  }) {
+    return apiClient.post<NegotiationMessage>(`/api/candidate/offers/${offerId}/negotiations`, data);
+  }
+
+  /**
+   * Get negotiation history
+   */
+  async getNegotiationHistory(offerId: string) {
+    return apiClient.get<NegotiationMessage[]>(`/api/offers/${offerId}/negotiations`);
+  }
+
+  /**
+   * Respond to negotiation (employer)
+   */
+  async respondToNegotiation(offerId: string, negotiationId: string, data: {
+    message: string;
+    response: 'accept' | 'reject' | 'counter';
+    counterChanges?: any;
+  }) {
+    return apiClient.post<NegotiationMessage>(`/api/offers/${offerId}/negotiations/${negotiationId}/respond`, data);
+  }
+
+  /**
+   * Accept negotiated terms (candidate)
+   */
+  async acceptNegotiatedTerms(offerId: string, negotiationId: string) {
+    return apiClient.post(`/api/candidate/offers/${offerId}/negotiations/${negotiationId}/accept`, {});
+  }
+
+  /**
+   * Create document request (employer)
+   */
+  async createDocumentRequest(offerId: string, data: {
+    name: string;
+    description?: string;
+    category: string;
+    isRequired?: boolean;
+    templateUrl?: string;
+    expiryDate?: string;
+  }) {
+    return apiClient.post<OfferDocument>(`/api/offers/${offerId}/documents`, data);
+  }
+
+  /**
+   * Get required documents
+   */
+  async getRequiredDocuments(offerId: string) {
+    return apiClient.get<OfferDocument[]>(`/api/offers/${offerId}/documents`);
+  }
+
+  /**
+   * Upload document (candidate)
+   */
+  async uploadDocument(offerId: string, documentId: string, data: {
+    fileUrl: string;
+    fileName: string;
+  }) {
+    return apiClient.post<OfferDocument>(`/api/candidate/offers/${offerId}/documents/${documentId}/upload`, data);
+  }
+
+  /**
+   * Review document (employer)
+   */
+  async reviewDocument(offerId: string, documentId: string, data: {
+    status: 'approved' | 'rejected' | 'revision-required';
+    notes?: string;
+  }) {
+    return apiClient.post<OfferDocument>(`/api/offers/${offerId}/documents/${documentId}/review`, data);
+  }
 }
 
-export function createOffer(
-  offer: Omit<Offer, 'id' | 'createdAt' | 'updatedAt'>
-): Offer {
-  const newOffer: Offer = {
-    ...offer,
-    id: Date.now().toString(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-
-  mockOffers.push(newOffer);
-  return newOffer;
-}
-
-export function updateOffer(
-  id: string,
-  updates: Partial<Offer>
-): Offer | null {
-  const index = mockOffers.findIndex((o) => o.id === id);
-  if (index === -1) return null;
-
-  mockOffers[index] = {
-    ...mockOffers[index],
-    ...updates,
-    updatedAt: new Date().toISOString(),
-  };
-
-  return mockOffers[index];
-}
-
-export function acceptOffer(id: string): Offer | null {
-  return updateOffer(id, {
-    status: 'accepted',
-    responseDate: new Date().toISOString(),
-  });
-}
-
-export function rejectOffer(id: string, reason?: string): Offer | null {
-  return updateOffer(id, {
-    status: 'rejected',
-    responseDate: new Date().toISOString(),
-    rejectionReason: reason,
-  });
-}
-
-export function withdrawOffer(id: string): Offer | null {
-  return updateOffer(id, { status: 'withdrawn' });
-}
-
-export function addNegotiationNote(id: string, note: string): Offer | null {
-  const offer = mockOffers.find((o) => o.id === id);
-  if (!offer) return null;
-
-  const notes = [...(offer.negotiationNotes || []), note];
-  return updateOffer(id, { negotiationNotes: notes });
-}
-
-export function getOfferStats(jobId?: string) {
-  const offers = jobId ? getOffers({ jobId }) : mockOffers;
-
-  return {
-    total: offers.length,
-    pending: offers.filter((o) => o.status === 'pending').length,
-    accepted: offers.filter((o) => o.status === 'accepted').length,
-    rejected: offers.filter((o) => o.status === 'rejected').length,
-    withdrawn: offers.filter((o) => o.status === 'withdrawn').length,
-    acceptanceRate: offers.length > 0
-      ? Math.round((offers.filter((o) => o.status === 'accepted').length / offers.length) * 100)
-      : 0,
-  };
-}
+export const offerService = new OfferService();

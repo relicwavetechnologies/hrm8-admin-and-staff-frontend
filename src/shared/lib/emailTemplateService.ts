@@ -1,4 +1,16 @@
 import { z } from "zod";
+export {
+  emailTemplateService,
+  type EmailTemplate as ApiEmailTemplate,
+  type EmailTemplateType,
+  type TemplateVariable as ApiTemplateVariable,
+  type CreateEmailTemplateRequest,
+  type UpdateEmailTemplateRequest,
+  type GenerateAITemplateRequest,
+  type GeneratedEmailTemplate,
+  type TemplatePreviewRequest,
+  type TemplatePreview,
+} from "./api/emailTemplateService";
 
 export interface EmailTemplate {
   id: string;

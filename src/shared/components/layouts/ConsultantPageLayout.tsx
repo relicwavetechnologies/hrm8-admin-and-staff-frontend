@@ -1,5 +1,4 @@
 import { ReactNode } from 'react';
-import { ConsultantHeader } from './ConsultantHeader';
 
 interface ConsultantPageLayoutProps {
   title?: string;
@@ -15,13 +14,11 @@ export function ConsultantPageLayout({
   subtitle,
   actions,
   children,
-  breadcrumbActions,
+  breadcrumbActions: _breadcrumbActions,
   fullWidth = true,
 }: ConsultantPageLayoutProps) {
   return (
     <>
-      <ConsultantHeader breadcrumbActions={breadcrumbActions} />
-
       <div className="flex-1">
         {(title || subtitle || actions) && (
           <div className="p-12 pb-0">
@@ -41,7 +38,6 @@ export function ConsultantPageLayout({
     </>
   );
 }
-
 
 
 

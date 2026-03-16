@@ -1,5 +1,6 @@
 import { apiClient } from '../api';
 import { ConversationData, MessageData } from '@/shared/types/websocket';
+import type { Application, ApplicationStage } from '@/shared/types/application';
 
 export interface CandidatePipelineItem {
     id: string; // Application ID
@@ -22,12 +23,60 @@ export interface CandidatePipelineItem {
     }[];
 }
 
+function mapApplicationStatus(status: unknown): Application['status'] {
+    const normalizedStatus = typeof status === 'string' ? status.toUpperCase().trim() : '';
+
+    const statusMap: Record<string, Application['status']> = {
+        NEW: 'applied',
+        APPLIED: 'applied',
+        SCREENING: 'screening',
+        INTERVIEW: 'interview',
+        OFFER: 'offer',
+        HIRED: 'hired',
+        REJECTED: 'rejected',
+        WITHDRAWN: 'withdrawn',
+    };
+
+    return statusMap[normalizedStatus] || 'applied';
+}
+
+function mapApplicationStage(stage: unknown): ApplicationStage {
+    const normalizedStage = typeof stage === 'string' ? stage.toUpperCase().trim() : '';
+
+    const stageMap: Record<string, ApplicationStage> = {
+        NEW_APPLICATION: 'New Application',
+        'NEW APPLICATION': 'New Application',
+        RESUME_REVIEW: 'Resume Review',
+        'RESUME REVIEW': 'Resume Review',
+        PHONE_SCREEN: 'Phone Screen',
+        'PHONE SCREEN': 'Phone Screen',
+        TECHNICAL_INTERVIEW: 'Technical Interview',
+        'TECHNICAL INTERVIEW': 'Technical Interview',
+        ONSITE_INTERVIEW: 'Manager Interview',
+        'ONSITE INTERVIEW': 'Manager Interview',
+        MANAGER_INTERVIEW: 'Manager Interview',
+        'MANAGER INTERVIEW': 'Manager Interview',
+        FINAL_ROUND: 'Final Round',
+        'FINAL ROUND': 'Final Round',
+        REFERENCE_CHECK: 'Reference Check',
+        'REFERENCE CHECK': 'Reference Check',
+        OFFER_EXTENDED: 'Offer Extended',
+        'OFFER EXTENDED': 'Offer Extended',
+        OFFER_ACCEPTED: 'Offer Accepted',
+        'OFFER ACCEPTED': 'Offer Accepted',
+        REJECTED: 'Rejected',
+        WITHDRAWN: 'Withdrawn',
+    };
+
+    return stageMap[normalizedStage] || 'New Application';
+}
+
 export const ConsultantCandidateService = {
     /**
      * Fetch candidate pipeline for a specific job
      */
     getPipeline: async (jobId: string): Promise<CandidatePipelineItem[]> => {
-        const { data } = await apiClient.get<CandidatePipelineItem[]>(`/api/consultant/jobs/${jobId}/candidates`);
+        const { data } = await apiClient.get<CandidatePipelineItem[]>(`/api/consultant/jobs/${jobId}/candidates/pipeline`);
         return data || [];
     },
 
@@ -124,7 +173,7 @@ export const ConsultantCandidateService = {
      * Get job applications in ApplicationPipeline-compatible format
      */
     getJobApplications: async (jobId: string): Promise<{ success: boolean; data: { applications: any[] } }> => {
-        const { data } = await apiClient.get<any[]>(`/api/consultant/jobs/${jobId}/candidates`);
+        const { data } = await apiClient.get<any[]>(`/api/consultant/jobs/${jobId}/candidates/pipeline`);
         // Backend now returns pre-mapped camelCase data with AI scoring fields
         const applications = (data || []).map((app: any) => ({
             id: app.id,
@@ -140,9 +189,11 @@ export const ConsultantCandidateService = {
             candidateEmail: app.candidateEmail || app.candidate?.email || '',
             candidatePhoto: app.candidatePhoto || app.candidate?.photo,
             jobId: app.jobId || jobId,
+            jobTitle: app.jobTitle || app.job?.title || '',
+            employerName: app.employerName || app.job?.company?.name || '',
             appliedDate: app.appliedDate ? new Date(app.appliedDate) : (app.applied_date ? new Date(app.applied_date) : new Date()),
-            status: typeof app.status === 'string' ? app.status.toLowerCase() : 'new',
-            stage: app.stage,
+            status: mapApplicationStatus(app.status),
+            stage: mapApplicationStage(app.stage),
             resumeUrl: app.resumeUrl || app.candidate?.resumeUrl || app.candidate?.resume_url,
             linkedInUrl: app.linkedInUrl || app.candidate?.linkedInUrl || app.candidate?.linked_in_url,
             // AI Scoring - now comes directly from backend
@@ -166,6 +217,8 @@ export const ConsultantCandidateService = {
             activities: [],
             interviews: [],
             tags: app.tags || [],
+            createdAt: app.createdAt ? new Date(app.createdAt) : (app.created_at ? new Date(app.created_at) : new Date()),
+            updatedAt: app.updatedAt ? new Date(app.updatedAt) : (app.updated_at ? new Date(app.updated_at) : new Date()),
         }));
         return { success: true, data: { applications } };
     },

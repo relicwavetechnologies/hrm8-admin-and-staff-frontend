@@ -47,6 +47,11 @@ export interface JobAssignmentInfo {
     assignmentSource?: string;
     assignmentMode?: 'AUTO' | 'MANUAL';
     regionId?: string;
+    managementType?: string;
+    servicePackage?: string;
+    pendingConsultantAssignment?: boolean;
+    assignmentRequestId?: string;
+    assignmentRequestStatus?: string;
   };
   consultants: Array<{
     id: string;
@@ -121,13 +126,6 @@ class JobAllocationService {
 
   async getAssignmentInfo(jobId: string) {
     return apiClient.get<JobAssignmentInfo>(`/api/hrm8/jobs/${jobId}/assignment-info`);
-  }
-
-  async autoAssign(jobId: string, reason?: string) {
-    return apiClient.post<{ consultantId?: string; job: any; consultants: any[] }>(
-      `/api/hrm8/jobs/${jobId}/auto-assign`,
-      reason ? { reason } : undefined
-    );
   }
 
   async getConsultantsForAssignment(filters: {

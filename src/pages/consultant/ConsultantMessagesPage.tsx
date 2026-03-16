@@ -168,9 +168,9 @@ export default function ConsultantMessagesPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [sortedMessages.length]);
 
-  const getParticipantDisplay = (p: Conversation['participants'][0]) =>
+  const getParticipantDisplay = (p?: Conversation['participants'][number]) =>
     p?.displayName ?? p?.display_name ?? 'Unknown';
-  const getParticipantEmail = (p: Conversation['participants'][0]) =>
+  const getParticipantEmail = (p?: Conversation['participants'][number]) =>
     p?.participantEmail ?? p?.participant_email ?? '';
 
   const filteredConversations = conversations?.filter((c) => {

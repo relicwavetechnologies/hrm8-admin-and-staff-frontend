@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui
 import { Button } from '@/shared/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
 import { Badge } from '@/shared/components/ui/badge';
-import { AssignConsultantToRequestDialog } from '@/shared/components/hrm8/AssignConsultantToRequestDialog';
 import { toast } from 'sonner';
 import { Users, RefreshCw, Inbox, ExternalLink } from 'lucide-react';
 
@@ -16,7 +15,6 @@ export default function ConsultantAssignmentRequestsPage() {
   const [requests, setRequests] = useState<ConsultantAssignmentRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [scope, setScope] = useState<Scope>('my_regions');
-  const [assigningRequest, setAssigningRequest] = useState<ConsultantAssignmentRequest | null>(null);
 
   const loadRequests = async () => {
     try {
@@ -39,17 +37,12 @@ export default function ConsultantAssignmentRequestsPage() {
     loadRequests();
   }, [scope]);
 
-  const handleAssignSuccess = () => {
-    setAssigningRequest(null);
-    loadRequests();
-  };
-
   return (
     <div className="p-6 space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Consultant Assignment Requests</h1>
         <p className="text-muted-foreground">
-          Assign consultants to jobs that chose HRM8 managed service but have no consultant in region
+          Review managed-recruitment jobs, their financials, and then confirm or assign the consultant from the job detail page.
         </p>
       </div>
 
@@ -85,7 +78,7 @@ export default function ConsultantAssignmentRequestsPage() {
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <Inbox className="h-12 w-12 mb-4 opacity-50" />
               <p>No pending consultant assignment requests</p>
-              <p className="text-sm mt-1">Requests appear when a company chooses HRM8 managed service but no consultant is available in their region</p>
+              <p className="text-sm mt-1">Requests appear when an HRM8 managed-recruitment job is waiting for admin consultant confirmation.</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -111,19 +104,15 @@ export default function ConsultantAssignmentRequestsPage() {
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <Button
-                      variant="outline"
                       size="sm"
-                      onClick={() => navigate(`/hrm8/job-board/job/${req.job.id}`)}
+                      onClick={() =>
+                        navigate(
+                          `/hrm8/job-board/job/${req.job.id}?tab=managed&assignmentRequestId=${req.id}&source=consultant-assignment-queue`
+                        )
+                      }
                     >
                       <ExternalLink className="mr-2 h-4 w-4" />
-                      View job detail
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => setAssigningRequest(req)}
-                    >
-                      <Users className="mr-2 h-4 w-4" />
-                      Assign consultant
+                      Review and assign
                     </Button>
                   </div>
                 </div>
@@ -132,19 +121,6 @@ export default function ConsultantAssignmentRequestsPage() {
           )}
         </CardContent>
       </Card>
-
-      {assigningRequest && (
-        <AssignConsultantToRequestDialog
-          open={!!assigningRequest}
-          onOpenChange={(open) => !open && setAssigningRequest(null)}
-          requestId={assigningRequest.id}
-          jobTitle={assigningRequest.job.title}
-          companyName={assigningRequest.company.name}
-          regionId={assigningRequest.region_id}
-          suggestedConsultantId={assigningRequest.company.default_consultant_id ?? undefined}
-          onSuccess={handleAssignSuccess}
-        />
-      )}
     </div>
   );
 }

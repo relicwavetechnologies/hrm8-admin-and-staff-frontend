@@ -49,6 +49,21 @@ const stageColors: Record<string, string> = {
   'Withdrawn': 'bg-gray-500',
 };
 
+function getStatusConfig(status: unknown) {
+  const normalizedStatus = typeof status === "string" ? status.toLowerCase().trim() : "";
+  return statusConfig[normalizedStatus as ApplicationStatus] || statusConfig.applied;
+}
+
+function getCandidateInitials(name: string | undefined) {
+  const safeName = (name || "Candidate").trim();
+  return safeName
+    .split(/\s+/)
+    .map((part) => part[0] || "")
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
 export function ApplicationListView({
   applications,
   onApplicationClick,
@@ -63,10 +78,10 @@ export function ApplicationListView({
       render: (app: Application) => (
         <div className="flex items-center gap-3">
           <div className="relative">
-            <Avatar className="h-8 w-8">
+              <Avatar className="h-8 w-8">
               <AvatarImage src={app.candidatePhoto} />
               <AvatarFallback>
-                {app.candidateName.split(' ').map((n: string) => n[0]).join('')}
+                {getCandidateInitials(app.candidateName)}
               </AvatarFallback>
             </Avatar>
             {(app.isNew || !app.isRead) && (
@@ -108,7 +123,7 @@ export function ApplicationListView({
       label: "Status",
       sortable: true,
       render: (app: Application) => {
-        const config = statusConfig[app.status as ApplicationStatus];
+        const config = getStatusConfig(app.status);
         return <Badge variant={config.variant}>{config.label}</Badge>;
       },
     },
@@ -129,7 +144,12 @@ export function ApplicationListView({
     {
       key: "appliedDate",
       label: "Applied Date",
-      render: (app: Application) => <span className="text-sm">{format(app.appliedDate, "MMM d, yyyy")}</span>,
+      render: (app: Application) => {
+        if (!app.appliedDate) return <span className="text-sm text-muted-foreground">-</span>;
+        const date = new Date(app.appliedDate);
+        if (isNaN(date.getTime())) return <span className="text-sm text-muted-foreground">Invalid Date</span>;
+        return <span className="text-sm">{format(date, "MMM d, yyyy")}</span>;
+      },
     },
     {
       key: "score",

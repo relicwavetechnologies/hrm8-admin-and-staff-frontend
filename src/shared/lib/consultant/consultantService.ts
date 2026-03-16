@@ -65,6 +65,13 @@ class ConsultantService {
   async getJobDetails(jobId: string) {
     return apiClient.get<{
       job: any;
+      company?: {
+        id: string;
+        name: string;
+        canUseAiFeatures: boolean;
+        aiAccessReason?: 'PAYG' | 'PLAN_EXPIRED' | 'NO_SUBSCRIPTION' | 'OK';
+        planType?: string;
+      };
       pipeline: any;
       team: any[];
       employer: any;
@@ -181,6 +188,5 @@ class ConsultantService {
 }
 
 export const consultantService = new ConsultantService();
-
 
 

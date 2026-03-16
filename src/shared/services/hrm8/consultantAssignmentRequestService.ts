@@ -12,7 +12,7 @@ export interface ConsultantAssignmentRequest {
   region_id: string | null;
   status: string;
   created_at: string;
-  company: { id: string; name: string; region_id: string | null };
+  company: { id: string; name: string; region_id: string | null; default_consultant_id?: string | null };
   job: {
     id: string;
     title: string;
@@ -32,10 +32,15 @@ class ConsultantAssignmentRequestService {
     );
   }
 
-  async assign(requestId: string, consultantId: string, skipRegionCheck = true) {
+  async assign(
+    requestId: string,
+    consultantId: string,
+    skipRegionCheck = true,
+    setAsDefault = false
+  ) {
     return apiClient.post<{ success: boolean; jobId: string; consultantId: string }>(
       `/api/hrm8/consultant-assignment-requests/${requestId}/assign`,
-      { consultantId, skipRegionCheck }
+      { consultantId, skipRegionCheck, setAsDefault }
     );
   }
 }

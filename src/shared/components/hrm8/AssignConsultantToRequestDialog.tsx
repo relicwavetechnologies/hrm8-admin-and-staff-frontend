@@ -21,6 +21,7 @@ import { Badge } from '@/shared/components/ui/badge';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { Skeleton } from '@/shared/components/ui/skeleton';
 import { Loader2, Search, Users, CheckCircle } from 'lucide-react';
+import { Checkbox } from '@/shared/components/ui/checkbox';
 import { jobAllocationService, ConsultantForAssignment } from '@/shared/services/hrm8/jobAllocationService';
 import { consultantAssignmentRequestService } from '@/shared/services/hrm8/consultantAssignmentRequestService';
 import { toast } from 'sonner';
@@ -32,6 +33,8 @@ interface AssignConsultantToRequestDialogProps {
   jobTitle: string;
   companyName: string;
   regionId: string | null;
+  /** Company default consultant (e.g. 360) to preselect */
+  suggestedConsultantId?: string | null;
   onSuccess?: () => void;
 }
 
@@ -44,12 +47,14 @@ export function AssignConsultantToRequestDialog({
   jobTitle,
   companyName,
   regionId,
+  suggestedConsultantId,
   onSuccess,
 }: AssignConsultantToRequestDialogProps) {
   const [loading, setLoading] = useState(false);
   const [assigning, setAssigning] = useState(false);
   const [consultants, setConsultants] = useState<ConsultantForAssignment[]>([]);
   const [selectedConsultantId, setSelectedConsultantId] = useState<string>('');
+  const [setAsDefault, setSetAsDefault] = useState(false);
   const [consultantScope, setConsultantScope] = useState<ConsultantScope>(
     regionId ? 'region' : 'all'
   );
@@ -85,8 +90,18 @@ export function AssignConsultantToRequestDialog({
     if (open) {
       loadConsultants();
       setSelectedConsultantId('');
+      setSetAsDefault(!!suggestedConsultantId);
     }
-  }, [open, loadConsultants]);
+  }, [open, loadConsultants, suggestedConsultantId]);
+
+  // Preselect suggested consultant once consultants are loaded
+  useEffect(() => {
+    if (!open || !suggestedConsultantId || consultants.length === 0) return;
+    const found = consultants.some((c) => c.id === suggestedConsultantId);
+    if (found && !selectedConsultantId) {
+      setSelectedConsultantId(suggestedConsultantId);
+    }
+  }, [open, suggestedConsultantId, consultants, selectedConsultantId]);
 
   const handleAssign = async () => {
     if (!selectedConsultantId) return;
@@ -95,7 +110,8 @@ export function AssignConsultantToRequestDialog({
       const res = await consultantAssignmentRequestService.assign(
         requestId,
         selectedConsultantId,
-        consultantScope === 'all'
+        consultantScope === 'all',
+        setAsDefault
       );
       if (res.success) {
         toast.success('Consultant assigned successfully');
@@ -223,6 +239,18 @@ export function AssignConsultantToRequestDialog({
                 })}
               </div>
             )}
+          </div>
+
+          {/* Set as company default for future jobs */}
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="setAsDefault"
+              checked={setAsDefault}
+              onCheckedChange={(v) => setSetAsDefault(!!v)}
+            />
+            <Label htmlFor="setAsDefault" className="text-sm font-normal cursor-pointer">
+              Set as company default consultant for future HRM8 managed jobs
+            </Label>
           </div>
         </div>
 

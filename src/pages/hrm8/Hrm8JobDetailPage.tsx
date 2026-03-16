@@ -28,10 +28,13 @@ import {
     EyeOff,
     Activity,
     BarChart3,
+    DollarSign,
+    UserCheck,
 } from 'lucide-react';
 import { PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { apiClient } from '@/shared/lib/apiClient';
 import { toast } from 'sonner';
+import { AssignConsultantToRequestDialog } from '@/shared/components/hrm8/AssignConsultantToRequestDialog';
 
 interface JobDetail {
     id: string;
@@ -50,6 +53,25 @@ interface JobDetail {
     hrm8_notes?: string;
     posted_at: string;
     expires_at?: string;
+    // Managed service & consultant assignment
+    managementType?: string;
+    servicePackage?: string;
+    paymentStatus?: string;
+    paymentAmount?: number;
+    paymentCurrency?: string;
+    pendingConsultantAssignment?: boolean;
+    companyDefaultConsultantId?: string | null;
+    companyDefaultConsultant?: { id: string; firstName: string; lastName: string; email?: string } | null;
+    assignedConsultantId?: string | null;
+    assignedConsultantName?: string | null;
+    consultantAssignmentRequest?: {
+        id: string;
+        status: string;
+        createdAt: string;
+        regionId?: string | null;
+        region?: { id: string; name: string; code: string } | null;
+    } | null;
+    financials?: { paymentStatus?: string; paymentAmount?: number; paymentCurrency?: string; servicePackage?: string };
 }
 
 interface Analytics {
@@ -172,6 +194,23 @@ function normalizeJobPayload(payload: any): { job?: JobDetail; analytics?: Analy
             hrm8_notes: rawJob.hrm8_notes ?? rawJob.hrm8Notes,
             posted_at: rawJob.posted_at ?? rawJob.postedAt ?? rawJob.createdAt ?? '-',
             expires_at: rawJob.expires_at ?? rawJob.expiresAt,
+            managementType: rawJob.managementType ?? rawJob.management_type,
+            servicePackage: rawJob.servicePackage ?? rawJob.service_package,
+            paymentStatus: rawJob.paymentStatus ?? rawJob.payment_status,
+            paymentAmount: rawJob.paymentAmount ?? rawJob.payment_amount,
+            paymentCurrency: rawJob.paymentCurrency ?? rawJob.payment_currency,
+            pendingConsultantAssignment: Boolean(rawJob.pendingConsultantAssignment ?? rawJob.pending_consultant_assignment),
+            companyDefaultConsultantId: rawJob.companyDefaultConsultantId ?? rawJob.company_default_consultant_id ?? null,
+            companyDefaultConsultant: rawJob.companyDefaultConsultant ?? rawJob.company_default_consultant ?? null,
+            assignedConsultantId: rawJob.assignedConsultantId ?? rawJob.assigned_consultant_id ?? null,
+            assignedConsultantName: rawJob.assignedConsultantName ?? rawJob.assigned_consultant_name ?? null,
+            consultantAssignmentRequest: rawJob.consultantAssignmentRequest ?? rawJob.consultant_assignment_request ?? null,
+            financials: rawJob.financials ?? {
+                paymentStatus: rawJob.paymentStatus ?? rawJob.payment_status,
+                paymentAmount: rawJob.paymentAmount ?? rawJob.payment_amount,
+                paymentCurrency: rawJob.paymentCurrency ?? rawJob.payment_currency,
+                servicePackage: rawJob.servicePackage ?? rawJob.service_package,
+            },
         }
         : undefined;
 
@@ -261,6 +300,7 @@ export default function Hrm8JobDetailPage() {
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState<string | null>(null);
     const [notes, setNotes] = useState('');
+    const [showAssignDialog, setShowAssignDialog] = useState(false);
 
     const safeAnalytics = useMemo(() => {
         const totalViews = Number(analytics?.total_views ?? 0);
@@ -530,6 +570,10 @@ export default function Hrm8JobDetailPage() {
                                     <BarChart3 className="h-4 w-4" />
                                     Analytics
                                 </TabsTrigger>
+                                <TabsTrigger value="managed" className="gap-2">
+                                    <UserCheck className="h-4 w-4" />
+                                    Managed Service
+                                </TabsTrigger>
                                 <TabsTrigger value="activity" className="gap-2">
                                     <Activity className="h-4 w-4" />
                                     Activity
@@ -594,6 +638,77 @@ export default function Hrm8JobDetailPage() {
                                                 ))}
                                             </div>
                                         </div>
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+
+                            <TabsContent value="managed" className="mt-4 space-y-4">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                            <DollarSign className="h-4 w-4" />
+                                            Financials & Consultant
+                                        </CardTitle>
+                                        <p className="text-xs text-muted-foreground">
+                                            Job details and payment for admin review before confirming or assigning a consultant.
+                                        </p>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        {(job.managementType === 'hrm8-managed' || job.servicePackage) && (
+                                            <>
+                                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                                    <div>
+                                                        <p className="text-muted-foreground">Service package</p>
+                                                        <p className="font-medium">{job.servicePackage ?? job.financials?.servicePackage ?? '—'}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-muted-foreground">Payment status</p>
+                                                        <p className="font-medium">{job.paymentStatus ?? job.financials?.paymentStatus ?? '—'}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-muted-foreground">Amount</p>
+                                                        <p className="font-medium">
+                                                            {job.paymentAmount != null || job.financials?.paymentAmount != null
+                                                                ? `${job.paymentCurrency ?? job.financials?.paymentCurrency ?? 'USD'} ${(job.paymentAmount ?? job.financials?.paymentAmount ?? 0).toLocaleString()}`
+                                                                : '—'}
+                                                        </p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-muted-foreground">Assignment status</p>
+                                                        <p className="font-medium">
+                                                            {job.pendingConsultantAssignment ? (
+                                                                <Badge variant="secondary">Pending assignment</Badge>
+                                                            ) : job.assignedConsultantId ? (
+                                                                <span>{job.assignedConsultantName ?? 'Consultant assigned'}</span>
+                                                            ) : (
+                                                                '—'
+                                                            )}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                {job.companyDefaultConsultant && (
+                                                    <div className="text-sm">
+                                                        <p className="text-muted-foreground">Company default consultant (suggested)</p>
+                                                        <p className="font-medium">
+                                                            {job.companyDefaultConsultant.firstName} {job.companyDefaultConsultant.lastName}
+                                                            {job.companyDefaultConsultant.email && ` (${job.companyDefaultConsultant.email})`}
+                                                        </p>
+                                                    </div>
+                                                )}
+                                                {job.pendingConsultantAssignment && job.consultantAssignmentRequest?.id && (
+                                                    <Button
+                                                        className="gap-2"
+                                                        onClick={() => setShowAssignDialog(true)}
+                                                    >
+                                                        <Users className="h-4 w-4" />
+                                                        Assign consultant
+                                                    </Button>
+                                                )}
+                                            </>
+                                        )}
+                                        {!job.managementType && !job.servicePackage && (
+                                            <p className="text-sm text-muted-foreground">This job is not an HRM8 Managed Recruitment job.</p>
+                                        )}
                                     </CardContent>
                                 </Card>
                             </TabsContent>
@@ -695,7 +810,22 @@ export default function Hrm8JobDetailPage() {
                         </Card>
                     </div>
                 </div>
+
+                {showAssignDialog && job.consultantAssignmentRequest?.id && (
+                    <AssignConsultantToRequestDialog
+                        open={showAssignDialog}
+                        onOpenChange={setShowAssignDialog}
+                        requestId={job.consultantAssignmentRequest.id}
+                        jobTitle={job.title}
+                        companyName={job.company?.name ?? 'Company'}
+                        regionId={job.consultantAssignmentRequest.regionId ?? null}
+                        suggestedConsultantId={job.companyDefaultConsultantId ?? undefined}
+                        onSuccess={() => {
+                            setShowAssignDialog(false);
+                            loadJobDetail();
+                        }}
+                    />
+                )}
             </div>
-        
-    );
+        );
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { consultantAssignmentRequestService, ConsultantAssignmentRequest } from '@/shared/services/hrm8/consultantAssignmentRequestService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
@@ -6,11 +7,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/shared/components/ui/badge';
 import { AssignConsultantToRequestDialog } from '@/shared/components/hrm8/AssignConsultantToRequestDialog';
 import { toast } from 'sonner';
-import { Users, RefreshCw, Inbox } from 'lucide-react';
+import { Users, RefreshCw, Inbox, ExternalLink } from 'lucide-react';
 
 type Scope = 'my_regions' | 'all';
 
 export default function ConsultantAssignmentRequestsPage() {
+  const navigate = useNavigate();
   const [requests, setRequests] = useState<ConsultantAssignmentRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [scope, setScope] = useState<Scope>('my_regions');
@@ -107,13 +109,23 @@ export default function ConsultantAssignmentRequestsPage() {
                       Created {new Date(req.created_at).toLocaleDateString()}
                     </p>
                   </div>
-                  <Button
-                    size="sm"
-                    onClick={() => setAssigningRequest(req)}
-                  >
-                    <Users className="mr-2 h-4 w-4" />
-                    Assign consultant
-                  </Button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(`/hrm8/job-board/job/${req.job.id}`)}
+                    >
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      View job detail
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => setAssigningRequest(req)}
+                    >
+                      <Users className="mr-2 h-4 w-4" />
+                      Assign consultant
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -129,6 +141,7 @@ export default function ConsultantAssignmentRequestsPage() {
           jobTitle={assigningRequest.job.title}
           companyName={assigningRequest.company.name}
           regionId={assigningRequest.region_id}
+          suggestedConsultantId={assigningRequest.company.default_consultant_id ?? undefined}
           onSuccess={handleAssignSuccess}
         />
       )}

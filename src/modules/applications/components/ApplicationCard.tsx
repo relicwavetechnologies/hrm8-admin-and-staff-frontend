@@ -62,6 +62,7 @@ interface ApplicationCardProps {
   isPendingApproval?: boolean; // Consultant view: awaiting HR approval for OFFER/REJECT
   dragDisabled?: boolean;
   restrictToOfferActions?: boolean;
+  lockReason?: string;
 }
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
@@ -89,6 +90,7 @@ export function ApplicationCard({
   isPendingApproval = false,
   dragDisabled = false,
   restrictToOfferActions = false,
+  lockReason,
 }: ApplicationCardProps) {
   if (!application || !application.id) {
     return null;
@@ -190,8 +192,18 @@ export function ApplicationCard({
       .slice(0, 2);
   };
 
+  const isActionLocked = Boolean(lockReason);
+
   const handleShortlist = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isActionLocked) {
+      toast({
+        title: "Action locked",
+        description: lockReason,
+        variant: "destructive",
+      });
+      return;
+    }
     if (isShortlistedState || isHiredState) {
       return;
     }
@@ -225,6 +237,14 @@ export function ApplicationCard({
 
   const handleReject = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isActionLocked) {
+      toast({
+        title: "Action locked",
+        description: lockReason,
+        variant: "destructive",
+      });
+      return;
+    }
     if (restrictToOfferActions) {
       toast({
         title: "Offer actions only",
@@ -337,6 +357,18 @@ export function ApplicationCard({
                     Shortlisted
                   </Badge>
                 )}
+                {lockReason && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Badge variant="outline" className="h-5 px-2 text-[10px] border-amber-300 text-amber-700">
+                          Locked
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent>{lockReason}</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
                 {isHiredState && (
                   <Badge className="h-5 px-2 text-[10px] bg-emerald-600 hover:bg-emerald-600">
                     Hired
@@ -387,7 +419,7 @@ export function ApplicationCard({
                       size="sm"
                       className={`${isSimpleFlow ? "h-7 min-w-[84px] px-3 text-[11px]" : "h-7 px-2 text-[10px]"}`}
                       onClick={handleShortlist}
-                      disabled={isShortlisting || isShortlistedState || isHiredState}
+                      disabled={isActionLocked || isShortlisting || isShortlistedState || isHiredState}
                       title="Move to Offer"
                     >
                       Offer
@@ -399,7 +431,7 @@ export function ApplicationCard({
                         size="sm"
                         className="h-7 min-w-[84px] px-3 text-[11px] border-red-200 text-red-600 hover:text-red-700 hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950/40"
                         onClick={handleReject}
-                        disabled={isRejectedState || isHiredState}
+                        disabled={isActionLocked || isRejectedState || isHiredState}
                         title="Reject Candidate"
                       >
                         Reject
@@ -412,7 +444,7 @@ export function ApplicationCard({
                          size="sm"
                          className="h-7 w-7 px-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/50"
                          onClick={handleReject}
-                         disabled={isRejectedState || isHiredState}
+                         disabled={isActionLocked || isRejectedState || isHiredState}
                          title="Reject Candidate"
                       >
                          <UserX className="h-3.5 w-3.5" />
@@ -733,7 +765,7 @@ export function ApplicationCard({
                             size="sm"
                             className="w-full text-xs h-7"
                             onClick={handleShortlist}
-                            disabled={isShortlisting}
+                            disabled={isActionLocked || isShortlisting}
                           >
                             <CheckCircle2 className="h-3 w-3 mr-1" />
                             Offer

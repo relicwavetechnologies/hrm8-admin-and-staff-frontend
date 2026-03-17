@@ -12,6 +12,7 @@ import { apiClient } from "@/shared/lib/api";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { useParams } from "react-router-dom";
+import { getJobTeamEndpoint } from "../teamEndpoint";
 
 interface SlackTabProps {
   application: Application;
@@ -80,7 +81,7 @@ export function SlackTab({ application }: SlackTabProps) {
 
       const [logsRes, teamRes] = await Promise.all([
         apiClient.get(`/api/applications/${application.id}/slack`),
-        jobId ? apiClient.get(`/api/jobs/${jobId}/team`) : Promise.resolve({ data: { team: [] } }),
+        jobId ? apiClient.get(getJobTeamEndpoint(jobId)) : Promise.resolve({ data: { team: [] } }),
       ]);
       
       setSlackLogs(logsRes.data?.slackLogs || []);

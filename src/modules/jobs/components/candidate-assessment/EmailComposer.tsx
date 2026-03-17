@@ -11,6 +11,7 @@ import { apiClient } from "@/shared/lib/api";
 import { GmailMessage, GmailThread, gmailThreadService } from "@/shared/lib/gmailThreadService";
 import { useToast } from "@/shared/hooks/use-toast";
 import { getApplicationEmailTemplates } from "@/shared/lib/applicationEmailTemplates";
+import { getJobTeamEndpoint } from "./teamEndpoint";
 
 type ComposerMode = "new" | "reply";
 type Tone = "professional" | "friendly" | "formal";
@@ -75,7 +76,7 @@ export function EmailComposer({
 
   useEffect(() => {
     if (!jobId) return;
-    apiClient.get<any>(`/api/jobs/${jobId}/team`).then((res) => {
+    apiClient.get<any>(getJobTeamEndpoint(jobId)).then((res) => {
       if (res.success && res.data) {
         const team = (res.data.team || res.data) as any[];
         setHiringTeam(

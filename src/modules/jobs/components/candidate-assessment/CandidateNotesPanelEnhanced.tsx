@@ -20,6 +20,7 @@ import { ScheduleMeetingTab } from './tabs/ScheduleMeetingTab';
 import { CreateTaskTab } from './tabs/CreateTaskTab';
 import { AssessmentRoundCreatePanel } from './tabs/AssessmentRoundTab';
 import { getCaretCoordinates } from '@/shared/lib/textareaUtils';
+import { getJobTeamEndpoint } from './teamEndpoint';
 
 interface Note {
   id: string;
@@ -111,7 +112,7 @@ export function CandidateNotesPanelEnhanced({
           user?: { name?: string; avatar?: string; email?: string };
           email?: string;
         };
-        const url = `/api/jobs/${resolvedJobId}/team`;
+        const url = getJobTeamEndpoint(resolvedJobId);
         const response = await apiClient.get<RawTeamMember[]>(url);
 
         if (response.success && response.data) {
@@ -122,13 +123,13 @@ export function CandidateNotesPanelEnhanced({
             avatar: member.avatar || member.user?.avatar,
             email: member.email || member.user?.email || member.userEmail,
           }));
-          console.log('CandidateNotesPanelEnhanced: Mapped team:', mappedTeam);
           setHiringTeam(mappedTeam);
         } else {
-          console.warn('CandidateNotesPanelEnhanced: Team fetch was not successful or no data', response);
+          setHiringTeam([]);
         }
       } catch (error) {
         console.error('CandidateNotesPanelEnhanced: Failed to fetch hiring team:', error);
+        setHiringTeam([]);
       }
     };
 

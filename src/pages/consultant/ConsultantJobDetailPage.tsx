@@ -554,9 +554,8 @@ export default function ConsultantJobDetailPage() {
                     variant="ghost"
                     size="sm"
                     onClick={() => setActiveRoundTab('overview')}
-                    className={`w-full justify-start pl-9 pr-3 py-1.5 text-xs rounded-md transition-colors ${
-                      activeRoundTab === 'overview' ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                    }`}
+                    className={`w-full justify-start pl-9 pr-3 py-1.5 text-xs rounded-md transition-colors ${activeRoundTab === 'overview' ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                      }`}
                   >
                     Overview
                   </Button>
@@ -566,9 +565,8 @@ export default function ConsultantJobDetailPage() {
                       variant="ghost"
                       size="sm"
                       onClick={() => setActiveRoundTab(round.id)}
-                      className={`w-full justify-start pl-9 pr-3 py-1.5 text-xs rounded-md transition-colors ${
-                        activeRoundTab === round.id ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                      }`}
+                      className={`w-full justify-start pl-9 pr-3 py-1.5 text-xs rounded-md transition-colors ${activeRoundTab === round.id ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                        }`}
                     >
                       <span className="truncate">{round.name}</span>
                       <span className="ml-auto text-[10px] opacity-70">
@@ -606,9 +604,13 @@ export default function ConsultantJobDetailPage() {
                 <Inbox className="h-3.5 w-3.5" />
                 Inbox
               </TabsTrigger>
-              <TabsTrigger value="messages" className="w-full justify-start gap-3 h-9 px-3 rounded-md text-xs font-medium data-[state=active]:bg-primary/10 data-[state=active]:text-primary transition-colors">
+              <TabsTrigger value="candidate-messages" className="w-full justify-start gap-3 h-9 px-3 rounded-md text-xs font-medium data-[state=active]:bg-primary/10 data-[state=active]:text-primary transition-colors">
                 <MessageSquarePlus className="h-3.5 w-3.5" />
-                Messages
+                Candidate Messages
+              </TabsTrigger>
+              <TabsTrigger value="company-chat" className="w-full justify-start gap-3 h-9 px-3 rounded-md text-xs font-medium data-[state=active]:bg-primary/10 data-[state=active]:text-primary transition-colors">
+                <MessageSquarePlus className="h-3.5 w-3.5" />
+                Company Chat
               </TabsTrigger>
             </TabsList>
           </div>
@@ -869,6 +871,8 @@ export default function ConsultantJobDetailPage() {
                   <ApplicationPipeline
                     jobId={frontendJob.id}
                     jobTitle={frontendJob.title}
+                    jobServiceType={frontendJob.serviceType}
+                    jobManagementType={frontendJob.managementType}
                     applications={filteredApplications}
                     enableMultiSelect={false}
                     isConsultantView={true}
@@ -975,15 +979,27 @@ export default function ConsultantJobDetailPage() {
               <JobInboxTab jobId={frontendJob.id} jobTitle={frontendJob.title} applications={allApplications} />
             </TabsContent>
 
-            <TabsContent value="messages" className="h-full overflow-hidden p-6 pt-0">
+            <TabsContent value="candidate-messages" className="h-full overflow-hidden p-6 pt-0">
               <div className="h-full flex flex-col gap-4">
                 <div className="flex justify-between items-center shrink-0">
                   <div>
-                    <h2 className="text-2xl font-bold tracking-tight">Messages</h2>
-                    <p className="text-muted-foreground">Manage communications with candidates</p>
+                    <h2 className="text-2xl font-bold tracking-tight">Candidate Messages</h2>
+                    <p className="text-muted-foreground">Shared conversations with candidates and the hiring team</p>
                   </div>
                 </div>
-                <JobMessagesTab jobId={frontendJob.id} />
+                <JobMessagesTab jobId={frontendJob.id} channelType="CANDIDATE_EMPLOYER" />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="company-chat" className="h-full overflow-hidden p-6 pt-0">
+              <div className="h-full flex flex-col gap-4">
+                <div className="flex justify-between items-center shrink-0">
+                  <div>
+                    <h2 className="text-2xl font-bold tracking-tight">Company Chat</h2>
+                    <p className="text-muted-foreground">Private discussion with {frontendJob.employerName}</p>
+                  </div>
+                </div>
+                <JobMessagesTab jobId={frontendJob.id} channelType="COMPANY_CONSULTANT" />
               </div>
             </TabsContent>
           </div>
@@ -992,6 +1008,7 @@ export default function ConsultantJobDetailPage() {
 
       {selectedApplication && (
         <CandidateAssessmentView
+          key={selectedApplication.id}
           application={selectedApplication}
           open={detailPanelOpen}
           onOpenChange={setDetailPanelOpen}

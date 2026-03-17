@@ -314,15 +314,17 @@ class MessagingService {
       };
     }
   }
-  async getJobConversations(jobId: string): Promise<{
+  async getJobConversations(jobId: string, channelType?: string): Promise<{
     success: boolean;
     data?: ConversationData[];
     error?: string;
   }> {
     try {
-      const response = await apiClient.get<ConversationData[]>(
-        `/api/messaging/conversations?jobId=${jobId}`
-      );
+      let url = `/api/messaging/conversations?jobId=${jobId}`;
+      if (channelType) {
+        url += `&channelType=${channelType}`;
+      }
+      const response = await apiClient.get<ConversationData[]>(url);
       if (response.success && response.data) {
         return {
           success: true,

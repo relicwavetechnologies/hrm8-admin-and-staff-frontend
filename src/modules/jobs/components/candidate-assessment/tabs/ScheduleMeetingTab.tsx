@@ -22,6 +22,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover';
 import { AvailabilityGrid } from './AvailabilityGrid';
 import { MergedCalendarDrawer } from './MergedCalendarDrawer';
+import { getJobTeamEndpoint } from '../teamEndpoint';
 
 interface ScheduleMeetingTabProps {
   application: Application;
@@ -140,7 +141,7 @@ export function ScheduleMeetingTab({ application }: ScheduleMeetingTabProps) {
 
       try {
         const response = await apiClient.get<HiringTeamMember[]>(
-          `/api/jobs/${jobId}/team`
+          getJobTeamEndpoint(jobId)
         );
         if (response.success && response.data) {
           setHiringTeam(response.data);

@@ -9,6 +9,10 @@ export interface CandidatePipelineItem {
     applied_date: string;
     score?: number;
     recruiter_notes?: string;
+    consultant_action_type?: string;
+    consultant_actioned_at?: string;
+    consultant_actioned_by?: string;
+    consultant_action_round_id?: string;
     candidate: {
         id: string;
         first_name: string;
@@ -207,6 +211,10 @@ export const ConsultantCandidateService = {
             roundId: app.roundId,
             // Flags
             shortlisted: app.shortlisted || false,
+            consultantActionType: app.consultantActionType || app.consultant_action_type,
+            consultantActionedAt: app.consultantActionedAt || app.consultant_actioned_at,
+            consultantActionedBy: app.consultantActionedBy || app.consultant_actioned_by,
+            consultantActionRoundId: app.consultantActionRoundId || app.consultant_action_round_id,
             manuallyAdded: app.manuallyAdded || false,
             isRead: app.isRead,
             isNew: app.isNew,

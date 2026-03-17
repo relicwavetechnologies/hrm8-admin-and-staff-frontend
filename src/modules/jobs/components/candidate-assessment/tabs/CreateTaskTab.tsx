@@ -15,6 +15,7 @@ import { apiClient } from "@/shared/lib/api";
 import { useToast } from "@/shared/hooks/use-toast";
 import { cn } from "@/shared/lib/utils";
 import { Application } from "@/shared/types/application";
+import { getJobTeamEndpoint } from "../teamEndpoint";
 
 // --- Types ---
 type TaskPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
@@ -81,7 +82,7 @@ export function TaskCreationTab({ application, onTaskCreated }: CreateTaskTabPro
     const fetchTeam = async () => {
       if (application.jobId) {
         try {
-          const response = await apiClient.get<HiringTeamMember[]>(`/api/jobs/${application.jobId}/team`);
+          const response = await apiClient.get<HiringTeamMember[]>(getJobTeamEndpoint(application.jobId));
           if (response.success && response.data) {
             setHiringTeam(response.data);
           }

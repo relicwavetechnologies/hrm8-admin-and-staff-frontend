@@ -34,6 +34,7 @@ import { format, isFuture, isToday } from 'date-fns';
 import { apiClient } from '@/shared/lib/api';
 import { useToast } from '@/shared/hooks/use-toast';
 import { videoInterviewService, type VideoInterview } from '@/shared/lib/videoInterviewService';
+import { getJobTeamEndpoint } from '../teamEndpoint';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -92,7 +93,7 @@ export function InterviewsTab({ application }: InterviewsTabProps) {
 
       try {
         const response = await apiClient.get<HiringTeamMember[]>(
-          `/api/jobs/${jobId}/team`
+          getJobTeamEndpoint(jobId)
         );
         if (response.success && response.data) {
           setHiringTeam(response.data);

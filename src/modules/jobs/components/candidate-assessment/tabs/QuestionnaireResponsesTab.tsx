@@ -12,6 +12,7 @@ import { jobService } from '@/modules/jobs/lib/jobService';
 import { Loader2 } from 'lucide-react';
 import { apiClient } from '@/shared/lib/api';
 import { useToast } from '@/shared/hooks/use-toast';
+import { getJobTeamEndpoint } from '../teamEndpoint';
 import {
   ResizablePanelGroup,
   ResizablePanel,
@@ -85,7 +86,7 @@ export function QuestionnaireResponsesTab({ application, jobId }: QuestionnaireR
     const fetchHiringTeam = async () => {
       if (!jobId) return;
       try {
-        const response = await apiClient.get<any>(`/api/jobs/${jobId}/team`);
+        const response = await apiClient.get<any>(getJobTeamEndpoint(jobId));
         const team = Array.isArray(response.data) ? response.data : response.data?.team;
         if (response.success && Array.isArray(team)) {
           setHiringTeam(team.map((member: any) => ({ userId: member.userId || member.user_id, name: member.name })));

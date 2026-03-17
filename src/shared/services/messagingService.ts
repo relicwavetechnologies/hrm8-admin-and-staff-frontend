@@ -320,7 +320,8 @@ class MessagingService {
     error?: string;
   }> {
     try {
-      let url = `/api/messaging/conversations?jobId=${jobId}`;
+      const basePath = window.location.pathname.startsWith('/consultant') ? '/api/consultant' : '/api/messaging';
+      let url = `${basePath}/conversations?jobId=${jobId}`;
       if (channelType) {
         url += `&channelType=${channelType}`;
       }

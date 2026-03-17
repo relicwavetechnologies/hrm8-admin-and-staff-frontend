@@ -137,10 +137,14 @@ export function JobMessagesTab({ jobId, channelType }: JobMessagesTabProps) {
     };
 
     const getOtherParticipant = (c: ConversationData) => {
+        // Find Candidate first (used in Candidate Messages tab)
         const candidate = c.participants?.find((p: any) => p.participant_type === 'CANDIDATE' || p.type === 'CANDIDATE');
         if (candidate) return { ...candidate, label: 'Candidate' };
-        const consultant = c.participants?.find((p: any) => p.participant_type === 'CONSULTANT' || p.type === 'CONSULTANT');
-        if (consultant) return { ...consultant, label: 'Consultant' };
+
+        // If no candidate, we are in a Company Chat. The "other" participant is the Employer.
+        const employer = c.participants?.find((p: any) => p.participant_type === 'EMPLOYER' || p.type === 'EMPLOYER');
+        if (employer) return { ...employer, label: 'Company Team' };
+
         return null;
     };
 

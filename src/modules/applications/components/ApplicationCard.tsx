@@ -171,15 +171,20 @@ export function ApplicationCard({
   const offerRound = findRound("OFFER");
   const hiredRound = findRound("HIRED");
   const rejectedRound = findRound("REJECTED");
+  const managedPipelineOwner = application.managedPipelineOwner ?? null;
   const isInHiredRound = !!(application.roundId && hiredRound && application.roundId === hiredRound.id);
   const isInOfferRound = !!(application.roundId && offerRound && application.roundId === offerRound.id);
   const isInRejectedRound = !!(application.roundId && rejectedRound && application.roundId === rejectedRound.id);
+  const isOfferState = isInOfferRound || normalizedStage.includes("offer") || normalizedStatus === "offer";
   const isHiredState = isInHiredRound || normalizedStage.includes("hired") || normalizedStatus === "hired";
   const isRejectedState = isInRejectedRound || normalizedStage.includes("reject") || normalizedStatus === "rejected";
+  const isFullServiceHandoffState =
+    managedPipelineOwner === "COMPANY" || Boolean(application.offerHandoffAt);
   const isShortlistedState =
+    !isFullServiceHandoffState &&
     !isRejectedState &&
     !isHiredState &&
-    (isInOfferRound || normalizedStage.includes("offer") || normalizedStatus === "offer" || Boolean(application.shortlisted));
+    (isOfferState || Boolean(application.shortlisted));
 
   const displayCandidateName = application.candidateName?.trim() || "Unknown Candidate";
 
@@ -204,7 +209,7 @@ export function ApplicationCard({
       });
       return;
     }
-    if (isShortlistedState || isHiredState) {
+    if (isOfferState || isRejectedState || isHiredState) {
       return;
     }
 
@@ -352,7 +357,7 @@ export function ApplicationCard({
               </div>
 
               <div className="flex items-center justify-center gap-1 flex-wrap">
-                {isShortlistedState && (
+                {!isFullServiceHandoffState && isShortlistedState && (
                   <Badge variant="default" className="h-5 px-2 text-[10px] bg-green-600 hover:bg-green-600">
                     Shortlisted
                   </Badge>
@@ -379,7 +384,7 @@ export function ApplicationCard({
                     Rejected
                   </Badge>
                 )}
-                {!isSimpleFlow && !isShortlistedState && !isRejectedState && !isHiredState && application.stage && (
+                {!isSimpleFlow && !isOfferState && !isRejectedState && !isHiredState && application.stage && (
                   <Badge variant="outline" className="h-5 px-2 text-[10px]">
                     {application.stage}
                   </Badge>
@@ -414,16 +419,18 @@ export function ApplicationCard({
                         View
                       </Button>
                     )}
-                    <Button
-                      variant="default"
-                      size="sm"
-                      className={`${isSimpleFlow ? "h-7 min-w-[84px] px-3 text-[11px]" : "h-7 px-2 text-[10px]"}`}
-                      onClick={handleShortlist}
-                      disabled={isActionLocked || isShortlisting || isShortlistedState || isHiredState}
-                      title="Move to Offer"
-                    >
-                      Offer
-                    </Button>
+                    {!isOfferState && !isRejectedState && !isHiredState && (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className={`${isSimpleFlow ? "h-7 min-w-[84px] px-3 text-[11px]" : "h-7 px-2 text-[10px]"}`}
+                        onClick={handleShortlist}
+                        disabled={isActionLocked || isShortlisting}
+                        title="Move to Offer"
+                      >
+                        Offer
+                      </Button>
+                    )}
                     {isSimpleFlow ? (
                       !restrictToOfferActions && (
                       <Button
@@ -747,7 +754,7 @@ export function ApplicationCard({
                             <Eye className="h-3 w-3 mr-1" />
                             Review
                           </Button>
-                          {!restrictToOfferActions && !isShortlistedState && !isRejectedState && !isHiredState && (
+                          {!restrictToOfferActions && !isRejectedState && !isHiredState && (
                             <Button 
                                variant="ghost" 
                                size="sm"
@@ -759,7 +766,7 @@ export function ApplicationCard({
                             </Button>
                           )}
                         </div>
-                        {!isShortlistedState && !isRejectedState && !isHiredState && (
+                        {!isOfferState && !isRejectedState && !isHiredState && (
                           <Button
                             variant="default"
                             size="sm"
@@ -771,7 +778,7 @@ export function ApplicationCard({
                             Offer
                           </Button>
                         )}
-                        {isShortlistedState && (
+                        {!isFullServiceHandoffState && isShortlistedState && (
                           <Badge variant="default" className="bg-green-500 text-xs w-full justify-center h-7">
                             Shortlisted
                           </Badge>

@@ -132,12 +132,17 @@ export function CandidateInfoPanel({
   const recommendation = aiAnalysis?.recommendation || 'pending';
   const normalizedStage = String(application.stage || '').toLowerCase();
   const normalizedStatus = String(application.status || '').toLowerCase();
+  const managedPipelineOwner = application.managedPipelineOwner ?? null;
+  const isOfferState = normalizedStage.includes('offer') || normalizedStatus === 'offer';
   const isHiredState = normalizedStage.includes('hired') || normalizedStatus === 'hired';
   const isRejectedState = normalizedStage.includes('reject') || normalizedStatus === 'rejected';
+  const isFullServiceHandoffState =
+    managedPipelineOwner === 'COMPANY' || Boolean(application.offerHandoffAt);
   const isShortlistedState =
+    !isFullServiceHandoffState &&
     !isRejectedState &&
     !isHiredState &&
-    (normalizedStage.includes('offer') || normalizedStatus === 'offer' || Boolean(application.shortlisted));
+    (isOfferState || Boolean(application.shortlisted));
 
   useEffect(() => {
     let cancelled = false;
@@ -238,7 +243,7 @@ export function CandidateInfoPanel({
                   {application.stage}
                 </Badge>
               )}
-              {isShortlistedState && (
+              {!isFullServiceHandoffState && isShortlistedState && (
                 <Badge className="text-[10px] py-0 bg-green-600 hover:bg-green-600">
                   Shortlisted
                 </Badge>
@@ -304,7 +309,7 @@ export function CandidateInfoPanel({
               }
               onOfferCandidate?.(application.id);
             }}
-            disabled={Boolean(offerActionsDisabledReason) || isShortlistedState || isHiredState}
+            disabled={Boolean(offerActionsDisabledReason) || isOfferState || isRejectedState || isHiredState}
           >
             <Check className="h-3 w-3" />
             Offer

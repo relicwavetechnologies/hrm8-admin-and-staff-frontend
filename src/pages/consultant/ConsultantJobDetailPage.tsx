@@ -53,6 +53,7 @@ import { JobInboxTab } from '@/modules/jobs/components/JobInboxTab';
 import { JobMessagesTab } from '@/modules/jobs/components/JobMessagesTab';
 import { CandidateAssessmentView } from '@/modules/jobs/components/candidate-assessment/CandidateAssessmentView';
 import { JobDetailPageSkeleton } from '@/shared/components/jobs/JobDetailPageSkeleton';
+import { normalizeServicePackage } from '@/shared/lib/managedServicePolicy';
 
 type ConsultantJobDetailsResponse = {
   job: any;
@@ -436,6 +437,12 @@ export default function ConsultantJobDetailPage() {
   };
 
   const frontendJob = useMemo(() => buildFrontendJob(jobData, allApplications), [jobData, allApplications]);
+  const isFullServiceHandoff = useMemo(
+    () =>
+      frontendJob?.managementType === 'hrm8-managed' &&
+      normalizeServicePackage(frontendJob?.servicePackage || frontendJob?.serviceType) === 'full-service',
+    [frontendJob]
+  );
 
   const filteredApplications = useMemo(
     () => filterApplications(allApplications, applicationsFilters),
@@ -957,6 +964,7 @@ export default function ConsultantJobDetailPage() {
                 applications={allApplications}
                 rounds={rounds}
                 onRefresh={handleRefresh}
+                readOnly={isFullServiceHandoff}
               />
             </TabsContent>
 
@@ -968,6 +976,7 @@ export default function ConsultantJobDetailPage() {
                 applications={allApplications}
                 rounds={rounds}
                 onRefresh={handleRefresh}
+                readOnly={isFullServiceHandoff}
               />
             </TabsContent>
 
@@ -1020,6 +1029,8 @@ export default function ConsultantJobDetailPage() {
           hasPrevious={selectedApplicationIndex > 0}
           isSimpleFlow={frontendJob.setupType === 'simple'}
           canUseAiOverride={companyAiEnabled}
+          statusUpdateDisabled
+          statusUpdateDisabledReason="Use the kanban to manage candidates in this flow."
         />
       )}
     </DashboardPageLayout>

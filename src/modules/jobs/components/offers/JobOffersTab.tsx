@@ -50,6 +50,7 @@ interface JobOffersTabProps {
   onRefresh?: () => void;
   mode?: "offers" | "hired";
   showJobColumn?: boolean;
+  readOnly?: boolean;
 }
 
 type StepConfig = {
@@ -137,6 +138,7 @@ export function JobOffersTab({
   onRefresh,
   mode = "offers",
   showJobColumn = false,
+  readOnly = false,
 }: JobOffersTabProps) {
   const { toast } = useToast();
   const [workflowByApp, setWorkflowByApp] = useState<Record<string, OfferWorkflowResponse>>({});
@@ -168,7 +170,7 @@ export function JobOffersTab({
 
   const offerRound = useMemo(() => rounds.find((r) => r.fixedKey === "OFFER") || null, [rounds]);
   const hiredRound = useMemo(() => rounds.find((r) => r.fixedKey === "HIRED") || null, [rounds]);
-  const isReadOnly = mode === "hired";
+  const isReadOnly = mode === "hired" || readOnly;
 
   const rows = useMemo(() => {
     const offerRows = applications.filter((app) => app?.id && isOffer(app, offerRound?.id) && !isHired(app, hiredRound?.id));
@@ -1386,6 +1388,13 @@ export function JobOffersTab({
           }}
           jobTitle={selectedProfileApp.jobTitle || jobTitle}
           jobId={selectedProfileApp.jobId || jobId}
+          statusUpdateDisabled={isReadOnly}
+          statusUpdateDisabledReason={
+            isReadOnly ? "Offer management is read-only in this view." : null
+          }
+          offerActionsDisabledReason={
+            isReadOnly ? "Offer management is read-only in this view." : null
+          }
         />
       )}
 

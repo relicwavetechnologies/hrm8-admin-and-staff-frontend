@@ -35,6 +35,7 @@ import { format, isValid, parseISO, formatDistanceToNow } from 'date-fns';
 import { applicationService } from '@/modules/applications/lib/applicationService';
 import { useCanUseAiFeatures } from '@/shared/hooks/useCanUseAiFeatures';
 import { UpgradePlanDialog } from '@/shared/components/UpgradePlanDialog';
+import { useToast } from '@/shared/hooks/use-toast';
 
 interface CandidateInfoPanelProps {
   application: Application;
@@ -42,6 +43,7 @@ interface CandidateInfoPanelProps {
   onOfferCandidate?: (applicationId: string) => void;
   onRejectCandidate?: (applicationId: string) => void;
   canUseAiOverride?: boolean;
+  offerActionsDisabledReason?: string | null;
 }
 
 // Helper function to safely format dates
@@ -79,7 +81,15 @@ function formatTimeAgo(dateInput: string | Date | undefined | null): string {
   return 'Just now';
 }
 
-export function CandidateInfoPanel({ application, jobTitle, onOfferCandidate, onRejectCandidate, canUseAiOverride }: CandidateInfoPanelProps) {
+export function CandidateInfoPanel({
+  application,
+  jobTitle,
+  onOfferCandidate,
+  onRejectCandidate,
+  canUseAiOverride,
+  offerActionsDisabledReason,
+}: CandidateInfoPanelProps) {
+  const { toast } = useToast();
   const { canUseAi } = useCanUseAiFeatures(canUseAiOverride === undefined);
   const effectiveCanUseAi = canUseAiOverride ?? canUseAi;
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
@@ -188,6 +198,16 @@ export function CandidateInfoPanel({ application, jobTitle, onOfferCandidate, on
     return colors[status] || colors.applied;
   };
 
+  const handleLockedOfferAction = () => {
+    if (offerActionsDisabledReason) {
+      toast({
+        title: "Action locked",
+        description: offerActionsDisabledReason,
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="h-full flex flex-col bg-muted/20">
       {/* Candidate Header - Consolidated from CandidateProfileHeader */}
@@ -277,8 +297,14 @@ export function CandidateInfoPanel({ application, jobTitle, onOfferCandidate, on
             variant="default"
             size="sm"
             className="h-6 px-2 text-[10px] gap-1 bg-green-600 hover:bg-green-700"
-            onClick={() => onOfferCandidate?.(application.id)}
-            disabled={isShortlistedState || isHiredState}
+            onClick={() => {
+              if (offerActionsDisabledReason) {
+                handleLockedOfferAction();
+                return;
+              }
+              onOfferCandidate?.(application.id);
+            }}
+            disabled={Boolean(offerActionsDisabledReason) || isShortlistedState || isHiredState}
           >
             <Check className="h-3 w-3" />
             Offer
@@ -287,13 +313,25 @@ export function CandidateInfoPanel({ application, jobTitle, onOfferCandidate, on
             variant="ghost"
             size="sm"
             className="h-6 px-2 text-[10px] gap-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40"
-            onClick={() => onRejectCandidate?.(application.id)}
-            disabled={isRejectedState || isHiredState}
+            onClick={() => {
+              if (offerActionsDisabledReason) {
+                handleLockedOfferAction();
+                return;
+              }
+              onRejectCandidate?.(application.id);
+            }}
+            disabled={Boolean(offerActionsDisabledReason) || isRejectedState || isHiredState}
           >
             <UserX className="h-3 w-3" />
             Reject
           </Button>
         </div>
+        {offerActionsDisabledReason && (
+          <div className="flex items-center gap-1 mt-2 text-[10px] text-muted-foreground">
+            <Lock className="h-3 w-3" />
+            <span>{offerActionsDisabledReason}</span>
+          </div>
+        )}
       </div>
 
       {/* Content/AI Review Tabs */}

@@ -13,6 +13,10 @@ export interface CandidatePipelineItem {
     consultant_actioned_at?: string;
     consultant_actioned_by?: string;
     consultant_action_round_id?: string;
+    managed_pipeline_owner?: 'CONSULTANT' | 'COMPANY' | null;
+    offer_handoff_at?: string | null;
+    offer_handoff_by?: string | null;
+    offer_handoff_note?: string | null;
     candidate: {
         id: string;
         first_name: string;
@@ -25,6 +29,10 @@ export interface CandidatePipelineItem {
     video_interview?: {
         status: string;
     }[];
+    application_round_progress?: Array<{
+        job_round_id?: string;
+        jobRoundId?: string;
+    }>;
 }
 
 function mapApplicationStatus(status: unknown): Application['status'] {
@@ -140,7 +148,7 @@ export const ConsultantCandidateService = {
 
     /**
      * Move application to a specific round (for drag-drop pipeline).
-     * For HRM8-managed jobs, OFFER/REJECT may return requiresApproval: true (approval requested from HR).
+     * Legacy managed services may still return requiresApproval: true.
      */
     moveToRound: async (
         applicationId: string,
@@ -179,55 +187,72 @@ export const ConsultantCandidateService = {
     getJobApplications: async (jobId: string): Promise<{ success: boolean; data: { applications: any[] } }> => {
         const { data } = await apiClient.get<any[]>(`/api/consultant/jobs/${jobId}/candidates/pipeline`);
         // Backend now returns pre-mapped camelCase data with AI scoring fields
-        const applications = (data || []).map((app: any) => ({
-            id: app.id,
-            candidateId: app.candidateId || app.candidate?.id,
-            // Use pre-mapped candidateName or construct from candidate object
-            candidateName: app.candidateName || (
-                (app.candidate?.firstName && app.candidate?.lastName)
-                    ? `${app.candidate.firstName} ${app.candidate.lastName}`
-                    : (app.candidate?.first_name && app.candidate?.last_name)
-                        ? `${app.candidate.first_name} ${app.candidate.last_name}`
-                        : 'Unknown Candidate'
-            ),
-            candidateEmail: app.candidateEmail || app.candidate?.email || '',
-            candidatePhoto: app.candidatePhoto || app.candidate?.photo,
-            jobId: app.jobId || jobId,
-            jobTitle: app.jobTitle || app.job?.title || '',
-            employerName: app.employerName || app.job?.company?.name || '',
-            appliedDate: app.appliedDate ? new Date(app.appliedDate) : (app.applied_date ? new Date(app.applied_date) : new Date()),
-            status: mapApplicationStatus(app.status),
-            stage: mapApplicationStage(app.stage),
-            resumeUrl: app.resumeUrl || app.candidate?.resumeUrl || app.candidate?.resume_url,
-            linkedInUrl: app.linkedInUrl || app.candidate?.linkedInUrl || app.candidate?.linked_in_url,
-            // AI Scoring - now comes directly from backend
-            score: app.score,
-            aiMatchScore: app.aiMatchScore || app.aiScore || app.score, // For AIMatchBadge
-            aiScore: app.aiScore || app.score,
-            aiAnalysis: app.aiAnalysis, // For recommendation badge and justification
-            aiReasoning: app.aiReasoning,
-            aiMatchType: app.aiMatchType,
-            // Round tracking
-            roundId: app.roundId,
-            // Flags
-            shortlisted: app.shortlisted || false,
-            consultantActionType: app.consultantActionType || app.consultant_action_type,
-            consultantActionedAt: app.consultantActionedAt || app.consultant_actioned_at,
-            consultantActionedBy: app.consultantActionedBy || app.consultant_actioned_by,
-            consultantActionRoundId: app.consultantActionRoundId || app.consultant_action_round_id,
-            manuallyAdded: app.manuallyAdded || false,
-            isRead: app.isRead,
-            isNew: app.isNew,
-            // Candidate object for nested access
-            candidate: app.candidate,
-            // Empty arrays for compatibility
-            notes: [],
-            activities: [],
-            interviews: [],
-            tags: app.tags || [],
-            createdAt: app.createdAt ? new Date(app.createdAt) : (app.created_at ? new Date(app.created_at) : new Date()),
-            updatedAt: app.updatedAt ? new Date(app.updatedAt) : (app.updated_at ? new Date(app.updated_at) : new Date()),
-        }));
+        const applications = (data || []).map((app: any) => {
+            const latestRoundProgress =
+                Array.isArray(app.application_round_progress) && app.application_round_progress.length > 0
+                    ? app.application_round_progress[0]
+                    : null;
+            const resolvedRoundId =
+                app.roundId ||
+                app.round_id ||
+                latestRoundProgress?.jobRoundId ||
+                latestRoundProgress?.job_round_id ||
+                null;
+
+            return {
+                id: app.id,
+                candidateId: app.candidateId || app.candidate?.id,
+                // Use pre-mapped candidateName or construct from candidate object
+                candidateName: app.candidateName || (
+                    (app.candidate?.firstName && app.candidate?.lastName)
+                        ? `${app.candidate.firstName} ${app.candidate.lastName}`
+                        : (app.candidate?.first_name && app.candidate?.last_name)
+                            ? `${app.candidate.first_name} ${app.candidate.last_name}`
+                            : 'Unknown Candidate'
+                ),
+                candidateEmail: app.candidateEmail || app.candidate?.email || '',
+                candidatePhoto: app.candidatePhoto || app.candidate?.photo,
+                jobId: app.jobId || jobId,
+                jobTitle: app.jobTitle || app.job?.title || '',
+                employerName: app.employerName || app.job?.company?.name || '',
+                appliedDate: app.appliedDate ? new Date(app.appliedDate) : (app.applied_date ? new Date(app.applied_date) : new Date()),
+                status: mapApplicationStatus(app.status),
+                stage: mapApplicationStage(app.stage),
+                resumeUrl: app.resumeUrl || app.candidate?.resumeUrl || app.candidate?.resume_url,
+                linkedInUrl: app.linkedInUrl || app.candidate?.linkedInUrl || app.candidate?.linked_in_url,
+                // AI Scoring - now comes directly from backend
+                score: app.score,
+                aiMatchScore: app.aiMatchScore || app.aiScore || app.score, // For AIMatchBadge
+                aiScore: app.aiScore || app.score,
+                aiAnalysis: app.aiAnalysis, // For recommendation badge and justification
+                aiReasoning: app.aiReasoning,
+                aiMatchType: app.aiMatchType,
+                // Round tracking
+                roundId: resolvedRoundId,
+                // Flags
+                shortlisted: app.shortlisted || false,
+                consultantActionType: app.consultantActionType || app.consultant_action_type,
+                consultantActionedAt: app.consultantActionedAt || app.consultant_actioned_at,
+                consultantActionedBy: app.consultantActionedBy || app.consultant_actioned_by,
+                consultantActionRoundId: app.consultantActionRoundId || app.consultant_action_round_id,
+                managedPipelineOwner: app.managedPipelineOwner || app.managed_pipeline_owner || null,
+                offerHandoffAt: app.offerHandoffAt || app.offer_handoff_at,
+                offerHandoffBy: app.offerHandoffBy || app.offer_handoff_by,
+                offerHandoffNote: app.offerHandoffNote || app.offer_handoff_note,
+                manuallyAdded: app.manuallyAdded || false,
+                isRead: app.isRead,
+                isNew: app.isNew,
+                // Candidate object for nested access
+                candidate: app.candidate,
+                // Empty arrays for compatibility
+                notes: [],
+                activities: [],
+                interviews: [],
+                tags: app.tags || [],
+                createdAt: app.createdAt ? new Date(app.createdAt) : (app.created_at ? new Date(app.created_at) : new Date()),
+                updatedAt: app.updatedAt ? new Date(app.updatedAt) : (app.updated_at ? new Date(app.updated_at) : new Date()),
+            };
+        });
         return { success: true, data: { applications } };
     },
 

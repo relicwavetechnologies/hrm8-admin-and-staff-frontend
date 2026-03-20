@@ -49,6 +49,7 @@ import SalesPipelinePage from './pages/sales/SalesPipelinePage'
 import ConsultantProfilePage from './pages/consultant/ConsultantProfilePage'
 import ConsultantJobDetailPage from './pages/consultant/ConsultantJobDetailPage'
 import ConsultantJobSimpleSetupPage from './pages/consultant/ConsultantJobSimpleSetupPage'
+import ExecutiveSearchWorkspacePage from './pages/consultant/ExecutiveSearchWorkspacePage'
 import ConsultantCommissionsPage from './pages/consultant/ConsultantCommissionsPage'
 import ConsultantSettingsPage from './pages/consultant360/ConsultantSettingsPage'
 import ConsultantHelpPage from './pages/consultant360/ConsultantHelpPage'
@@ -220,6 +221,7 @@ function App() {
                     {/* Consultant Portal */}
                     <Route path="/consultant/dashboard" element={<ConsultantDashboard />} />
                     <Route path="/consultant/jobs" element={<ConsultantJobsPage />} />
+                    <Route path="/consultant/jobs/:jobId/executive-search" element={<ExecutiveSearchWorkspacePage />} />
                     <Route path="/consultant/jobs/:jobId/setup-simple" element={<ConsultantJobSimpleSetupPage />} />
                     <Route path="/consultant/jobs/:jobId" element={<ConsultantJobDetailPage />} />
                     <Route path="/consultant/messages" element={<ConsultantMessagesPage />} />
@@ -253,6 +255,7 @@ function App() {
                     <Route path="/consultant360/dashboard" element={<Consultant360Dashboard />} />
                     <Route path="/consultant360/earnings" element={<Consultant360EarningsPage />} />
                     <Route path="/consultant360/jobs" element={<ConsultantJobsPage />} />
+                    <Route path="/consultant360/jobs/:jobId/executive-search" element={<ExecutiveSearchWorkspacePage />} />
                     <Route path="/consultant360/jobs/:jobId/setup-simple" element={<ConsultantJobSimpleSetupPage />} />
                     <Route path="/consultant360/jobs/:jobId" element={<ConsultantJobDetailPage />} />
                     <Route path="/consultant360/leads" element={<OpportunitiesPage />} />

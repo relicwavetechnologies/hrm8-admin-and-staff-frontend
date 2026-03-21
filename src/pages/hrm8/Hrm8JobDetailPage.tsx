@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
@@ -28,10 +28,17 @@ import {
     EyeOff,
     Activity,
     BarChart3,
+    DollarSign,
+    UserCheck,
 } from 'lucide-react';
 import { PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { apiClient } from '@/shared/lib/apiClient';
 import { toast } from 'sonner';
+import { AssignConsultantToRequestDialog } from '@/shared/components/hrm8/AssignConsultantToRequestDialog';
+import {
+    consultantAssignmentRequestService,
+    ConsultantAssignmentReviewContext,
+} from '@/shared/services/hrm8/consultantAssignmentRequestService';
 
 interface JobDetail {
     id: string;
@@ -50,6 +57,50 @@ interface JobDetail {
     hrm8_notes?: string;
     posted_at: string;
     expires_at?: string;
+    // Managed service & consultant assignment
+    managementType?: string;
+    servicePackage?: string;
+    paymentStatus?: string;
+    paymentAmount?: number;
+    paymentCurrency?: string;
+    pendingConsultantAssignment?: boolean;
+    suggestedConsultantId?: string | null;
+    suggestedConsultant?: { id: string; firstName: string; lastName: string; email?: string; source?: string } | null;
+    conversionSource?: string | null;
+    assignedConsultantId?: string | null;
+    assignedConsultantName?: string | null;
+    consultantAssignmentRequest?: {
+        id: string;
+        status: string;
+        createdAt: string;
+        regionId?: string | null;
+        region?: { id: string; name: string; code: string } | null;
+    } | null;
+    financials?: {
+        paymentStatus?: string;
+        paymentAmount?: number;
+        paymentCurrency?: string;
+        servicePackage?: string;
+        billId?: string | null;
+        billNumber?: string | null;
+        billStatus?: string | null;
+        billAmount?: number | null;
+        billTaxAmount?: number | null;
+        billTotalAmount?: number | null;
+        billCurrency?: string | null;
+        billDueDate?: string | null;
+        billPaidAt?: string | null;
+        billCreatedAt?: string | null;
+        paymentMethod?: string | null;
+        paymentAttemptId?: string | null;
+        accountingRef?: string | null;
+        accountingSyncedAt?: string | null;
+        provider?: string | null;
+        providerTransactionId?: string | null;
+        checkoutType?: string | null;
+        xeroInvoiceId?: string | null;
+        xeroInvoiceNumber?: string | null;
+    };
 }
 
 interface Analytics {
@@ -172,6 +223,43 @@ function normalizeJobPayload(payload: any): { job?: JobDetail; analytics?: Analy
             hrm8_notes: rawJob.hrm8_notes ?? rawJob.hrm8Notes,
             posted_at: rawJob.posted_at ?? rawJob.postedAt ?? rawJob.createdAt ?? '-',
             expires_at: rawJob.expires_at ?? rawJob.expiresAt,
+            managementType: rawJob.managementType ?? rawJob.management_type,
+            servicePackage: rawJob.servicePackage ?? rawJob.service_package,
+            paymentStatus: rawJob.paymentStatus ?? rawJob.payment_status,
+            paymentAmount: rawJob.paymentAmount ?? rawJob.payment_amount,
+            paymentCurrency: rawJob.paymentCurrency ?? rawJob.payment_currency,
+            pendingConsultantAssignment: Boolean(rawJob.pendingConsultantAssignment ?? rawJob.pending_consultant_assignment),
+            suggestedConsultantId: rawJob.suggestedConsultantId ?? rawJob.suggested_consultant_id ?? null,
+            suggestedConsultant: rawJob.suggestedConsultant ?? rawJob.suggested_consultant ?? null,
+            conversionSource: rawJob.conversionSource ?? rawJob.conversion_source ?? null,
+            assignedConsultantId: rawJob.assignedConsultantId ?? rawJob.assigned_consultant_id ?? null,
+            assignedConsultantName: rawJob.assignedConsultantName ?? rawJob.assigned_consultant_name ?? null,
+            consultantAssignmentRequest: rawJob.consultantAssignmentRequest ?? rawJob.consultant_assignment_request ?? null,
+            financials: rawJob.financials ?? {
+                paymentStatus: rawJob.paymentStatus ?? rawJob.payment_status,
+                paymentAmount: rawJob.paymentAmount ?? rawJob.payment_amount,
+                paymentCurrency: rawJob.paymentCurrency ?? rawJob.payment_currency,
+                servicePackage: rawJob.servicePackage ?? rawJob.service_package,
+                billId: rawJob.billId ?? rawJob.bill_id,
+                billNumber: rawJob.billNumber ?? rawJob.bill_number,
+                billStatus: rawJob.billStatus ?? rawJob.bill_status,
+                billAmount: rawJob.billAmount ?? rawJob.bill_amount,
+                billTaxAmount: rawJob.billTaxAmount ?? rawJob.bill_tax_amount,
+                billTotalAmount: rawJob.billTotalAmount ?? rawJob.bill_total_amount,
+                billCurrency: rawJob.billCurrency ?? rawJob.bill_currency,
+                billDueDate: rawJob.billDueDate ?? rawJob.bill_due_date,
+                billPaidAt: rawJob.billPaidAt ?? rawJob.bill_paid_at,
+                billCreatedAt: rawJob.billCreatedAt ?? rawJob.bill_created_at,
+                paymentMethod: rawJob.paymentMethod ?? rawJob.payment_method,
+                paymentAttemptId: rawJob.paymentAttemptId ?? rawJob.payment_attempt_id,
+                accountingRef: rawJob.accountingRef ?? rawJob.accounting_ref,
+                accountingSyncedAt: rawJob.accountingSyncedAt ?? rawJob.accounting_synced_at,
+                provider: rawJob.provider,
+                providerTransactionId: rawJob.providerTransactionId ?? rawJob.provider_transaction_id,
+                checkoutType: rawJob.checkoutType ?? rawJob.checkout_type,
+                xeroInvoiceId: rawJob.xeroInvoiceId ?? rawJob.xero_invoice_id,
+                xeroInvoiceNumber: rawJob.xeroInvoiceNumber ?? rawJob.xero_invoice_number,
+            },
         }
         : undefined;
 
@@ -255,12 +343,20 @@ function normalizeJobPayload(payload: any): { job?: JobDetail; analytics?: Analy
 export default function Hrm8JobDetailPage() {
     const { jobId } = useParams<{ jobId: string }>();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [job, setJob] = useState<JobDetail | null>(null);
     const [analytics, setAnalytics] = useState<Analytics | null>(null);
     const [activities, setActivities] = useState<ActivityItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState<string | null>(null);
     const [notes, setNotes] = useState('');
+    const [showAssignDialog, setShowAssignDialog] = useState(false);
+    const initialTab = searchParams.get('tab') === 'managed' ? 'managed' : 'analytics';
+    const [activeTab, setActiveTab] = useState<'analytics' | 'managed' | 'activity'>(initialTab);
+    const assignmentRequestId = searchParams.get('assignmentRequestId');
+    const fromAssignmentQueue = searchParams.get('source') === 'consultant-assignment-queue';
+    const [assignmentReviewContext, setAssignmentReviewContext] = useState<ConsultantAssignmentReviewContext | null>(null);
+    const [assignmentReviewLoading, setAssignmentReviewLoading] = useState(false);
 
     const safeAnalytics = useMemo(() => {
         const totalViews = Number(analytics?.total_views ?? 0);
@@ -290,6 +386,38 @@ export default function Hrm8JobDetailPage() {
             loadJobDetail();
         }
     }, [jobId]);
+
+    useEffect(() => {
+        if (searchParams.get('tab') === 'managed') {
+            setActiveTab('managed');
+        }
+    }, [searchParams]);
+
+    useEffect(() => {
+        const loadAssignmentReviewContext = async () => {
+            if (!assignmentRequestId) {
+                setAssignmentReviewContext(null);
+                return;
+            }
+
+            try {
+                setAssignmentReviewLoading(true);
+                const response = await consultantAssignmentRequestService.getReviewContext(assignmentRequestId);
+                if (!response.success || !response.data?.context) {
+                    throw new Error(response.error || 'Failed to load assignment review context');
+                }
+                setAssignmentReviewContext(response.data.context);
+            } catch (error) {
+                console.error('Failed to load assignment review context:', error);
+                setAssignmentReviewContext(null);
+                toast.error(error instanceof Error ? error.message : 'Failed to load assignment review context');
+            } finally {
+                setAssignmentReviewLoading(false);
+            }
+        };
+
+        void loadAssignmentReviewContext();
+    }, [assignmentRequestId]);
 
     const loadJobDetail = async () => {
         try {
@@ -524,11 +652,15 @@ export default function Hrm8JobDetailPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Main Content */}
                     <div className="lg:col-span-2">
-                        <Tabs defaultValue="analytics">
+                        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'analytics' | 'managed' | 'activity')}>
                             <TabsList>
                                 <TabsTrigger value="analytics" className="gap-2">
                                     <BarChart3 className="h-4 w-4" />
                                     Analytics
+                                </TabsTrigger>
+                                <TabsTrigger value="managed" className="gap-2">
+                                    <UserCheck className="h-4 w-4" />
+                                    Managed Service
                                 </TabsTrigger>
                                 <TabsTrigger value="activity" className="gap-2">
                                     <Activity className="h-4 w-4" />
@@ -594,6 +726,217 @@ export default function Hrm8JobDetailPage() {
                                                 ))}
                                             </div>
                                         </div>
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+
+                            <TabsContent value="managed" className="mt-4 space-y-4">
+                                {fromAssignmentQueue && assignmentRequestId && job.pendingConsultantAssignment && (
+                                    <Card className="border-primary/30 bg-primary/5">
+                                        <CardContent className="py-4">
+                                            <div className="flex items-start gap-3">
+                                                <UserCheck className="h-4 w-4 text-primary mt-0.5" />
+                                                <div className="space-y-1">
+                                                    <p className="text-sm font-medium">Assignment review required</p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        Review the full job and financial details below before confirming or changing the consultant for this request.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                )}
+                                {assignmentReviewLoading && (
+                                    <Card>
+                                        <CardContent className="py-4 space-y-3">
+                                            <Skeleton className="h-5 w-44" />
+                                            <Skeleton className="h-24 w-full" />
+                                        </CardContent>
+                                    </Card>
+                                )}
+                                {assignmentReviewContext && (
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                                <UserCheck className="h-4 w-4" />
+                                                Assignment Review Context
+                                            </CardTitle>
+                                            <p className="text-xs text-muted-foreground">
+                                                Origin, conversion evidence, and commercial context for this consultant assignment request.
+                                            </p>
+                                        </CardHeader>
+                                        <CardContent className="space-y-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                                <div>
+                                                    <p className="text-muted-foreground">Request status</p>
+                                                    <p className="font-medium">{assignmentReviewContext.request.status}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-muted-foreground">Requested at</p>
+                                                    <p className="font-medium">
+                                                        {assignmentReviewContext.request.createdAt
+                                                            ? new Date(assignmentReviewContext.request.createdAt).toLocaleString()
+                                                            : '—'}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-muted-foreground">Conversion source</p>
+                                                    <p className="font-medium">{assignmentReviewContext.assignmentContext.conversionSource ?? '—'}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-muted-foreground">Lead confirmed</p>
+                                                    <p className="font-medium">
+                                                        {assignmentReviewContext.conversionContext.leadMilestones?.lead_confirmed_at
+                                                            ? new Date(assignmentReviewContext.conversionContext.leadMilestones.lead_confirmed_at).toLocaleString()
+                                                            : '—'}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-muted-foreground">Pricing peg</p>
+                                                    <p className="font-medium">{assignmentReviewContext.companyContext?.pricing_peg ?? '—'}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-muted-foreground">Billing currency</p>
+                                                    <p className="font-medium">{assignmentReviewContext.companyContext?.billing_currency ?? '—'}</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                                <div className="rounded-xl border bg-muted/20 p-3 space-y-2">
+                                                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Suggested Consultant</p>
+                                                    <p className="font-medium">
+                                                        {assignmentReviewContext.assignmentContext.suggestedConsultant
+                                                            ? `${assignmentReviewContext.assignmentContext.suggestedConsultant.firstName} ${assignmentReviewContext.assignmentContext.suggestedConsultant.lastName}`
+                                                            : 'No consultant suggested'}
+                                                    </p>
+                                                    {assignmentReviewContext.assignmentContext.suggestedConsultant?.email && (
+                                                        <p className="text-muted-foreground">
+                                                            {assignmentReviewContext.assignmentContext.suggestedConsultant.email}
+                                                        </p>
+                                                    )}
+                                                    {assignmentReviewContext.assignmentContext.suggestedConsultant?.source && (
+                                                        <p className="text-muted-foreground">
+                                                            Source: {assignmentReviewContext.assignmentContext.suggestedConsultant.source}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <div className="rounded-xl border bg-muted/20 p-3 space-y-2">
+                                                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Review Readiness</p>
+                                                    <p className="font-medium">
+                                                        Review surface: {assignmentReviewContext.dataCompleteness.preAssignmentReviewComplete ? 'Complete' : 'Partial'}
+                                                    </p>
+                                                    <p className="text-muted-foreground">
+                                                        Financial evidence: {assignmentReviewContext.dataCompleteness.financialEvidenceAvailable ? 'Available' : 'Not available yet'}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="rounded-xl border bg-muted/20 p-3 text-sm space-y-1">
+                                                <p className="text-xs uppercase tracking-wide text-muted-foreground">Sales Notes</p>
+                                                <p>{assignmentReviewContext.conversionContext.request?.agent_notes || 'Not available yet'}</p>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                )}
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                            <DollarSign className="h-4 w-4" />
+                                            Financials & Consultant
+                                        </CardTitle>
+                                        <p className="text-xs text-muted-foreground">
+                                            Job details and payment for admin review before confirming or assigning a consultant.
+                                        </p>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        {(job.managementType === 'hrm8-managed' || job.servicePackage) && (
+                                            <>
+                                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                                    <div>
+                                                        <p className="text-muted-foreground">Service package</p>
+                                                        <p className="font-medium">{job.servicePackage ?? job.financials?.servicePackage ?? '—'}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-muted-foreground">Payment status</p>
+                                                        <p className="font-medium">{job.paymentStatus ?? job.financials?.paymentStatus ?? '—'}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-muted-foreground">Amount</p>
+                                                        <p className="font-medium">
+                                                            {job.paymentAmount != null || job.financials?.paymentAmount != null || job.financials?.billTotalAmount != null
+                                                                ? `${job.paymentCurrency ?? job.financials?.paymentCurrency ?? job.financials?.billCurrency ?? 'USD'} ${(job.paymentAmount ?? job.financials?.paymentAmount ?? job.financials?.billTotalAmount ?? 0).toLocaleString()}`
+                                                                : '—'}
+                                                        </p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-muted-foreground">Assignment status</p>
+                                                        <p className="font-medium">
+                                                            {job.pendingConsultantAssignment ? (
+                                                                <Badge variant="secondary">Pending assignment</Badge>
+                                                            ) : job.assignedConsultantId ? (
+                                                                <span>{job.assignedConsultantName ?? 'Consultant assigned'}</span>
+                                                            ) : (
+                                                                '—'
+                                                            )}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                                    <div>
+                                                        <p className="text-muted-foreground">Bill number</p>
+                                                        <p className="font-medium">{job.financials?.billNumber ?? '—'}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-muted-foreground">Payment attempt</p>
+                                                        <p className="font-medium break-all">{job.financials?.paymentAttemptId ?? '—'}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-muted-foreground">Xero invoice</p>
+                                                        <p className="font-medium">{job.financials?.xeroInvoiceNumber ?? job.financials?.xeroInvoiceId ?? '—'}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-muted-foreground">Accounting sync</p>
+                                                        <p className="font-medium">
+                                                            {job.financials?.accountingSyncedAt ? new Date(job.financials.accountingSyncedAt).toLocaleString() : 'Pending'}
+                                                        </p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-muted-foreground">Provider</p>
+                                                        <p className="font-medium">{job.financials?.provider ?? job.financials?.paymentMethod ?? '—'}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-muted-foreground">Bill due date</p>
+                                                        <p className="font-medium">
+                                                            {job.financials?.billDueDate ? new Date(job.financials.billDueDate).toLocaleString() : '—'}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                {job.suggestedConsultant && (
+                                                    <div className="text-sm">
+                                                        <p className="text-muted-foreground">Suggested consultant</p>
+                                                        <p className="font-medium">
+                                                            {job.suggestedConsultant.firstName} {job.suggestedConsultant.lastName}
+                                                            {job.suggestedConsultant.email && ` (${job.suggestedConsultant.email})`}
+                                                        </p>
+                                                        <p className="text-xs text-muted-foreground mt-1">
+                                                            Source: {job.suggestedConsultant.source ?? job.conversionSource ?? 'Company conversion context'}
+                                                        </p>
+                                                    </div>
+                                                )}
+                                                {job.pendingConsultantAssignment && job.consultantAssignmentRequest?.id && (
+                                                    <Button
+                                                        className="gap-2"
+                                                        onClick={() => setShowAssignDialog(true)}
+                                                    >
+                                                        <Users className="h-4 w-4" />
+                                                        Assign consultant
+                                                    </Button>
+                                                )}
+                                            </>
+                                        )}
+                                        {!job.managementType && !job.servicePackage && (
+                                            <p className="text-sm text-muted-foreground">This job is not an HRM8 Managed Recruitment job.</p>
+                                        )}
                                     </CardContent>
                                 </Card>
                             </TabsContent>
@@ -695,7 +1038,22 @@ export default function Hrm8JobDetailPage() {
                         </Card>
                     </div>
                 </div>
+
+                {showAssignDialog && job.consultantAssignmentRequest?.id && (
+                    <AssignConsultantToRequestDialog
+                        open={showAssignDialog}
+                        onOpenChange={setShowAssignDialog}
+                        requestId={job.consultantAssignmentRequest.id}
+                        jobTitle={job.title}
+                        companyName={job.company?.name ?? 'Company'}
+                        regionId={job.consultantAssignmentRequest.regionId ?? null}
+                        suggestedConsultantId={job.suggestedConsultantId ?? undefined}
+                        onSuccess={() => {
+                            setShowAssignDialog(false);
+                            loadJobDetail();
+                        }}
+                    />
+                )}
             </div>
-        
-    );
+        );
 }

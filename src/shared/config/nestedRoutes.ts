@@ -41,6 +41,13 @@ export const jobsNestedRoutes: NestedRoute[] = [
         icon: Briefcase,
         parentPath: '/hrm8/jobs',
     },
+    {
+        id: 'jobs-consultant-requests',
+        label: 'Consultant Assignment Requests',
+        path: '/hrm8/jobs/consultant-assignment-requests',
+        icon: UserCheck,
+        parentPath: '/hrm8/jobs',
+    },
 ];
 
 /**

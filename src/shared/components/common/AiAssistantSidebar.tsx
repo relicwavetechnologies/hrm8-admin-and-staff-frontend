@@ -8,20 +8,24 @@ import { FormEvent, useMemo, useState, useEffect, useRef } from "react";
 import { useChat } from "@ai-sdk/react";
 import { Button } from "@/shared/components/ui/button";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
-import { Loader2, ArrowUp, Mic, X, Plus, Paperclip, MessageSquarePlus, Tag, Briefcase, User, Building2, FileText, Users, BotMessageSquare } from "lucide-react";
+import { Loader2, ArrowUp, Mic, X, Plus, Paperclip, MessageSquarePlus, Tag, Briefcase, User, Building2, FileText, Users, BotMessageSquare, RefreshCw, Lock } from "lucide-react";
 import TextShimmer from "@/shared/components/common/TextShimmer";
 import { MarkdownRenderer } from "@/shared/components/common/MarkdownRenderer";
 import { useAiReferences } from "@/shared/hooks/useAiReferences";
+import { useCanUseAiFeatures } from "@/shared/hooks/useCanUseAiFeatures";
 import { EntityReference } from "@/shared/types/ai-references";
+import { ConfirmationCard } from "@/shared/components/common/ConfirmationCard";
+import { UpgradePlanDialog } from "@/shared/components/UpgradePlanDialog";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "";
+// Use empty string to leverage Vite's proxy configuration for /api requests
+const API_BASE_URL = "";
 
 interface ToolInvocation {
   toolCallId: string;
   toolName: string;
-  args: Record<string, any>;
+  args: Record<string, unknown>;
   state: 'partial-call' | 'call' | 'result';
-  result?: any;
+  result?: unknown;
 }
 
 interface UploadedFile {
@@ -110,7 +114,7 @@ function UserMessage({ text }: { text: string }) {
 }
 
 /**
- * Thinking loader — shimmers until first token arrives
+ * Thinking loader animation
  */
 function ThinkingLoader() {
   return (
@@ -121,6 +125,7 @@ function ThinkingLoader() {
     </div>
   );
 }
+
 
 /**
  * Tool invocation row — shimmers while running, settles when done.
@@ -141,6 +146,7 @@ function ToolInvocationDisplay({ invocation }: { invocation: ToolInvocation }) {
             : "bg-muted-foreground/50 animate-pulse",
         ].join(" ")}
       />
+
       {/* Tool name — shimmering while running, static when done */}
       {isDone ? (
         <span className="text-[11px] font-medium text-muted-foreground/50">
@@ -159,28 +165,73 @@ function ToolInvocationDisplay({ invocation }: { invocation: ToolInvocation }) {
   );
 }
 
-// ── Entity type icon ────────────────────────────────────────────────────────
-function EntityTypeIcon({ type }: { type: EntityReference["entityType"] }) {
-  const cls = "h-3 w-3 shrink-0";
-  switch (type) {
-    case "job": return <Briefcase className={cls} />;
-    case "candidate": return <User className={cls} />;
-    case "company": return <Building2 className={cls} />;
-    case "application": return <FileText className={cls} />;
-    case "consultant": return <Users className={cls} />;
-    default: return <Tag className={cls} />;
-  }
+interface AiAssistantSidebarProps {
+  /** API endpoint for the chat stream - determines access control */
+  streamEndpoint?: string;
+  /** Additional request body fields (e.g. context for scoped assistants) */
+  requestBody?: Record<string, unknown>;
+  /** Empty state title */
+  welcomeTitle?: string;
+  /** Empty state subtitle */
+  welcomeSubtitle?: string;
+  /** Suggested prompts shown in empty state */
+  suggestedPrompts?: string[];
+  /** Optional override for company AI entitlement in consultant contexts */
+  canUseAiOverride?: boolean;
+  /** Optional override for lock message when using consultant company context */
+  lockDescriptionOverride?: string;
 }
 
-// ── Reference chip (composer — interactive, removable) ─────────────────────
-function ReferenceChip({ reference, onRemove }: { reference: EntityReference; onRemove: () => void }) {
+/**
+ * Icon for a given entity type
+ */
+function EntityTypeIcon({ type }: { type: EntityReference['entityType'] }) {
+  const icons: Record<string, React.ReactNode> = {
+    job: <Briefcase className="h-3 w-3" />,
+    candidate: <User className="h-3 w-3" />,
+    company: <Building2 className="h-3 w-3" />,
+    application: <FileText className="h-3 w-3" />,
+    consultant: <Users className="h-3 w-3" />,
+    custom: <Tag className="h-3 w-3" />,
+  };
+  return <>{icons[type] ?? icons.custom}</>;
+}
+
+/**
+ * A single removable reference chip in the context row
+ */
+function ReferenceChip({
+  reference,
+  onRemove,
+}: {
+  reference: EntityReference;
+  onRemove: () => void;
+}) {
   const styles: Record<string, { pill: string; dot: string }> = {
-    job: { pill: "bg-blue-500/10 text-blue-600 border-blue-300/40 dark:text-blue-300 dark:border-blue-700/40", dot: "bg-blue-400" },
-    candidate: { pill: "bg-violet-500/10 text-violet-600 border-violet-300/40 dark:text-violet-300 dark:border-violet-700/40", dot: "bg-violet-400" },
-    company: { pill: "bg-emerald-500/10 text-emerald-600 border-emerald-300/40 dark:text-emerald-300 dark:border-emerald-700/40", dot: "bg-emerald-400" },
-    application: { pill: "bg-amber-500/10 text-amber-600 border-amber-300/40 dark:text-amber-300 dark:border-amber-700/40", dot: "bg-amber-400" },
-    consultant: { pill: "bg-sky-500/10 text-sky-600 border-sky-300/40 dark:text-sky-300 dark:border-sky-700/40", dot: "bg-sky-400" },
-    custom: { pill: "bg-white/10 text-foreground/70 border-border/30", dot: "bg-muted-foreground/50" },
+    job: {
+      pill: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/60",
+      dot: "bg-blue-400",
+    },
+    candidate: {
+      pill: "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/40 dark:text-violet-300 dark:border-violet-800/60",
+      dot: "bg-violet-400",
+    },
+    company: {
+      pill: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60",
+      dot: "bg-emerald-400",
+    },
+    application: {
+      pill: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60",
+      dot: "bg-amber-400",
+    },
+    consultant: {
+      pill: "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-800/60",
+      dot: "bg-sky-400",
+    },
+    custom: {
+      pill: "bg-muted/60 text-muted-foreground border-border/50",
+      dot: "bg-muted-foreground/50",
+    },
   };
   const s = styles[reference.entityType] ?? styles.custom;
 
@@ -206,6 +257,7 @@ function ReferenceChip({ reference, onRemove }: { reference: EntityReference; on
 
 /**
  * Read-only chip shown inside a sent user message bubble.
+ * Same styles as ReferenceChip but without the remove button.
  */
 function MsgReferenceChip({ reference }: { reference: EntityReference }) {
   const styles: Record<string, { pill: string; dot: string }> = {
@@ -229,22 +281,31 @@ function MsgReferenceChip({ reference }: { reference: EntityReference }) {
   );
 }
 
-interface AiAssistantSidebarProps {
-  /** API endpoint for the chat stream - determines access control */
-  streamEndpoint?: string;
-  requestBody?: Record<string, unknown>;
-}
-
 export function AiAssistantSidebar({
   streamEndpoint = "/api/assistant/chat/stream",
   requestBody,
+  welcomeTitle = "Hi there,",
+  welcomeSubtitle = "How can I help?",
+  suggestedPrompts = [
+    "Show me this candidate's full profile summary",
+    "Move this candidate to Technical Interview",
+    "Add a note about fitment for this role",
+    "Schedule a video interview for tomorrow at 11 AM",
+  ],
+  canUseAiOverride,
+  lockDescriptionOverride,
 }: AiAssistantSidebarProps) {
   const chatId = `ai-chat-${streamEndpoint.replace(/[^a-zA-Z0-9]/g, '-')}`;
+  const isCompanyCopilot = !streamEndpoint.includes('consultant') && !streamEndpoint.includes('hrm8');
+  const { canUseAi } = useCanUseAiFeatures(isCompanyCopilot && canUseAiOverride === undefined);
+  const effectiveCanUseAi = canUseAiOverride ?? canUseAi;
+  const inputLocked = isCompanyCopilot && !effectiveCanUseAi;
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
 
-  // AI reference context store
+  // AI reference context store — shared with any producer component
   const { references, removeReference, clearReferences, addReference } = useAiReferences();
 
-  const { messages, input, handleInputChange, handleSubmit, status, stop, error, setInput, setMessages } = useChat({
+  const { messages, input, handleInputChange, handleSubmit, status, stop, error, setInput, setMessages, append } = useChat({
     api: `${API_BASE_URL}${streamEndpoint}`,
     // Base body — references are injected per-send via handleSubmit second arg
     body: requestBody,
@@ -275,19 +336,19 @@ export function AiAssistantSidebar({
   const chatMessages = useMemo(() => messages as unknown as ChatMessage[], [messages]);
   const isStreaming = status === "submitted" || status === "streaming";
   const [isRecording, setIsRecording] = useState(false);
-  const [recognition, setRecognition] = useState<any>(null);
+  const [recognition, setRecognition] = useState<{ start(): void; stop(): void; setRestartFlag?(v: boolean): void } | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
 
-  // Per-message attachments
+  // Per-message attachments: chips + images stored after each send
   const [messageAttachments, setMessageAttachments] = useState<
     Map<string, { refs: EntityReference[]; images: UploadedFile[] }>
   >(new Map());
+  // Snapshot captured at submit time, matched to message id once AI SDK assigns it
   const pendingAttachmentsRef = useRef<{ refs: EntityReference[]; images: UploadedFile[] } | null>(null);
 
-  // Drag state
+  // Drag state — separate flags for file drag vs entity reference drag
   const [isDragOver, setIsDragOver] = useState(false);
   const [isDragEntityOver, setIsDragEntityOver] = useState(false);
-
   const fileInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const lastUserMessageRef = useRef<HTMLDivElement>(null);
@@ -301,6 +362,7 @@ export function AiAssistantSidebar({
 
   useEffect(() => {
     if (lastUserMessageId && lastUserMessageRef.current) {
+      // Small delay to ensure render is complete
       setTimeout(() => {
         lastUserMessageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 50);
@@ -310,7 +372,9 @@ export function AiAssistantSidebar({
   // Initialize speech recognition
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      type SpeechRecognitionCtor = new () => { start(): void; stop(): void; continuous: boolean; interimResults: boolean; lang: string; setRestartFlag?: (v: boolean) => void; onstart: (() => void) | null; onresult: ((e: { resultIndex: number; results: { isFinal: boolean; 0: { transcript: string } }[] }) => void) | null; onend: (() => void) | null; onerror: ((e: { error: string }) => void) | null };
+      const win = window as Window & { SpeechRecognition?: SpeechRecognitionCtor; webkitSpeechRecognition?: SpeechRecognitionCtor };
+      const SpeechRecognition = win.SpeechRecognition ?? win.webkitSpeechRecognition;
       if (SpeechRecognition) {
         const recognitionInstance = new SpeechRecognition();
         recognitionInstance.continuous = true;
@@ -319,37 +383,67 @@ export function AiAssistantSidebar({
 
         let shouldRestart = false;
 
-        recognitionInstance.onstart = () => { console.log("Speech recognition started"); };
-        recognitionInstance.onresult = (event: any) => {
+        recognitionInstance.onstart = () => {
+          console.log("Speech recognition started");
+        };
+
+        recognitionInstance.onresult = (event) => {
           let finalTranscript = "";
+
           for (let i = event.resultIndex; i < event.results.length; i++) {
             const transcript = event.results[i][0].transcript;
-            if (event.results[i].isFinal) finalTranscript += transcript + " ";
+            if (event.results[i].isFinal) {
+              finalTranscript += transcript + " ";
+            }
           }
-          if (finalTranscript) setInput((prev: string) => prev + finalTranscript);
+
+          if (finalTranscript) {
+            setInput((prev: string) => prev + finalTranscript);
+          }
         };
-        recognitionInstance.onerror = (event: any) => {
+
+        recognitionInstance.onerror = (event) => {
           console.error("Speech recognition error:", event.error);
-          if (event.error === "no-speech" || event.error === "audio-capture") return;
+          if (event.error === "no-speech" || event.error === "audio-capture") {
+            // Don't stop on these errors, just continue
+            return;
+          }
           setIsRecording(false);
         };
+
         recognitionInstance.onend = () => {
+          // Only restart if we're still supposed to be recording
           if (shouldRestart) {
-            try { recognitionInstance.start(); }
-            catch (e) { console.error("Failed to restart recognition:", e); setIsRecording(false); }
+            try {
+              recognitionInstance.start();
+            } catch (e) {
+              console.error("Failed to restart recognition:", e);
+              setIsRecording(false);
+            }
           }
         };
-        (recognitionInstance as any).setRestartFlag = (value: boolean) => { shouldRestart = value; };
+
+        // Store the restart flag in the recognition instance
+        recognitionInstance.setRestartFlag = (value: boolean) => {
+          shouldRestart = value;
+        };
+
         setRecognition(recognitionInstance);
       }
     }
+
+    // Cleanup: stop recording when component unmounts
     return () => {
       if (recognition) {
-        try { recognition.setRestartFlag?.(false); recognition.stop(); }
-        catch (e) { console.error("Cleanup error:", e); }
+        try {
+          recognition.setRestartFlag?.(false);
+          recognition.stop();
+        } catch (e) {
+          console.error("Cleanup error:", e);
+        }
       }
     };
-  }, [setInput]);
+  }, [setInput, recognition]);
 
   // Stop recording when streaming starts
   useEffect(() => {
@@ -365,11 +459,14 @@ export function AiAssistantSidebar({
       alert("Speech recognition is not supported in your browser. Please use Chrome or Edge.");
       return;
     }
+
     if (isRecording) {
+      // Stop recording
       recognition.setRestartFlag?.(false);
       recognition.stop();
       setIsRecording(false);
     } else {
+      // Start recording
       try {
         recognition.setRestartFlag?.(true);
         recognition.start();
@@ -385,7 +482,10 @@ export function AiAssistantSidebar({
     stop();
     setMessages([]);
     setInput('');
-    setUploadedFiles(prev => { prev.forEach(f => URL.revokeObjectURL(f.url)); return []; });
+    setUploadedFiles(prev => {
+      prev.forEach(f => URL.revokeObjectURL(f.url));
+      return [];
+    });
     clearReferences();
     setMessageAttachments(new Map());
     pendingAttachmentsRef.current = null;
@@ -394,28 +494,42 @@ export function AiAssistantSidebar({
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (inputLocked) {
+      setShowUpgradeDialog(true);
+      return;
+    }
     if (!input.trim() || isStreaming) return;
 
-    // Snapshot before clearing
+    // Snapshot attachments BEFORE touching the store
     const snapshotRefs = [...references];
     const snapshotImages = [...uploadedFiles];
 
     if (snapshotRefs.length > 0 || snapshotImages.length > 0) {
-      pendingAttachmentsRef.current = { refs: snapshotRefs, images: snapshotImages };
+      pendingAttachmentsRef.current = {
+        refs: snapshotRefs,
+        images: snapshotImages,
+      };
     }
 
-    // Build explicit body with refs
+    // Build the exact body this message should carry — include refs explicitly
+    // so the backend gets them regardless of Zustand/React timing
     const submitBody: Record<string, unknown> = { ...(requestBody ?? {}) };
     if (snapshotRefs.length > 0) {
-      submitBody.context = { ...((requestBody as any)?.context ?? {}), references: snapshotRefs };
+      submitBody.context = {
+        ...((requestBody?.context as Record<string, unknown>) ?? {}),
+        references: snapshotRefs,
+      };
     }
 
+    // Clear composer — visual attachments now live in pendingAttachmentsRef
     clearReferences();
     setUploadedFiles([]);
+
+    // Pass the explicit body snapshot so the network request always has refs
     handleSubmit(event, { body: submitBody });
   };
 
-  // Bind pending attachments to the new user message once AI SDK assigns an ID
+  // When a new user message appears, bind the pending attachments to its ID
   useEffect(() => {
     if (!pendingAttachmentsRef.current) return;
     const latestUser = [...messages].reverse().find(m => m.role === 'user');
@@ -433,8 +547,65 @@ export function AiAssistantSidebar({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault();
-      if (input.trim() && !isStreaming) formRef.current?.requestSubmit();
+      if (input.trim() && !isStreaming) {
+        formRef.current?.requestSubmit();
+      }
     }
+  };
+
+  const handleResend = (messageId: string, text: string) => {
+    if (isStreaming) return;
+
+    // Find the index of the message to resend
+    const messageIndex = chatMessages.findIndex((m) => m.id === messageId);
+    if (messageIndex === -1) return;
+
+    // Retrieve original attachments (if any) before slicing history
+    const originalAttachments = messageAttachments.get(messageId);
+
+    // Slice the message history to remove this message and everything after it
+    // @ts-ignore - setMessages accepts an array of UIMessage or history objects
+    setMessages(chatMessages.slice(0, messageIndex));
+
+    // Clear composer & capture original context to be sent with the new message
+    clearReferences();
+    setUploadedFiles([]);
+
+    const submitBody: Record<string, unknown> = { ...(requestBody ?? {}) };
+
+    // We only need entity references for the backend context; images are handled internally by AI SDK
+    if (originalAttachments?.refs && originalAttachments.refs.length > 0) {
+      submitBody.context = {
+        ...((requestBody?.context as Record<string, unknown>) ?? {}),
+        references: originalAttachments.refs,
+      };
+
+      // Also restore references visibly so the user knows they were resent
+      originalAttachments.refs.forEach(ref => addReference(ref));
+    }
+
+    if (originalAttachments?.images && originalAttachments.images.length > 0) {
+      setUploadedFiles([...originalAttachments.images]);
+    }
+
+    // Capture attachments as pending, so the new user message id gets mapped to them
+    if ((originalAttachments?.refs && originalAttachments.refs.length > 0) ||
+      (originalAttachments?.images && originalAttachments.images.length > 0)) {
+      pendingAttachmentsRef.current = {
+        refs: originalAttachments.refs ? [...originalAttachments.refs] : [],
+        images: originalAttachments.images ? [...originalAttachments.images] : [],
+      };
+    }
+
+    // Resend using append with the reconstructed body
+    (append as any)({
+      role: 'user',
+      content: text,
+    }, {
+      data: {
+        body: submitBody
+      }
+    });
   };
 
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
@@ -442,34 +613,53 @@ export function AiAssistantSidebar({
     setIsDragOver(false);
     setIsDragEntityOver(false);
 
-    // Entity reference drop
+    // ── Entity reference drop (dragged from Jobs table etc.) ──────────────
     const refPayload = event.dataTransfer.getData('application/x-ai-reference');
     if (refPayload) {
       try {
         const ref = JSON.parse(refPayload);
-        if (ref.entityType && ref.entityId && ref.label) { addReference(ref); return; }
-      } catch { /* fall through */ }
+        if (ref.entityType && ref.entityId && ref.label) {
+          addReference(ref);
+          return; // Don't process as a file
+        }
+      } catch {
+        // fall through to file handling
+      }
     }
 
-    // File/image drop
+    // ── File / image drop ─────────────────────────────────────────────────
     const files = event.dataTransfer.files;
     if (!files) return;
+
     const newFiles: UploadedFile[] = [];
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (file.type.startsWith('image/')) {
         const url = URL.createObjectURL(file);
-        newFiles.push({ id: Math.random().toString(36).substr(2, 9), name: file.name, type: file.type, url, size: file.size });
+        newFiles.push({
+          id: Math.random().toString(36).substr(2, 9),
+          name: file.name,
+          type: file.type,
+          url,
+          size: file.size
+        });
       }
     }
+
     setUploadedFiles(prev => [...prev, ...newFiles]);
   };
 
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
+    // Distinguish entity drags from file drags for different visual feedback
     const isEntity = event.dataTransfer.types.includes('application/x-ai-reference');
-    if (isEntity) { setIsDragEntityOver(true); setIsDragOver(false); }
-    else { setIsDragOver(true); setIsDragEntityOver(false); }
+    if (isEntity) {
+      setIsDragEntityOver(true);
+      setIsDragOver(false);
+    } else {
+      setIsDragOver(true);
+      setIsDragEntityOver(false);
+    }
   };
 
   const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
@@ -477,26 +667,38 @@ export function AiAssistantSidebar({
     setIsDragOver(false);
     setIsDragEntityOver(false);
   };
-
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files) return;
+
     const newFiles: UploadedFile[] = [];
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (file.type.startsWith('image/')) {
         const url = URL.createObjectURL(file);
-        newFiles.push({ id: Math.random().toString(36).substr(2, 9), name: file.name, type: file.type, url, size: file.size });
+        newFiles.push({
+          id: Math.random().toString(36).substr(2, 9),
+          name: file.name,
+          type: file.type,
+          url,
+          size: file.size
+        });
       }
     }
+
     setUploadedFiles(prev => [...prev, ...newFiles]);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const removeFile = (fileId: string) => {
     setUploadedFiles(prev => {
-      const f = prev.find(f => f.id === fileId);
-      if (f) URL.revokeObjectURL(f.url);
+      const fileToRemove = prev.find(f => f.id === fileId);
+      if (fileToRemove) {
+        URL.revokeObjectURL(fileToRemove.url);
+      }
       return prev.filter(f => f.id !== fileId);
     });
   };
@@ -514,15 +716,14 @@ export function AiAssistantSidebar({
         <ScrollArea className="min-h-0 flex-1 px-4 py-4">
           {chatMessages.length === 0 ? (
             <div className="pt-20">
-              <h2 className="text-4xl font-semibold tracking-tight">Hi there,</h2>
-              <p className="mt-2 text-xl text-muted-foreground">How can I help?</p>
+              <h2 className="text-4xl font-semibold tracking-tight">{welcomeTitle}</h2>
+              <p className="mt-2 text-xl text-muted-foreground">{welcomeSubtitle}</p>
               <div className="mt-8 space-y-3">
                 <p className="text-sm font-medium">Try asking:</p>
                 <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>• Show me my daily briefing</li>
-                  <li>• What's my performance this month?</li>
-                  <li>• How much commission have I earned?</li>
-                  <li>• Show me my upcoming interviews</li>
+                  {suggestedPrompts.map((prompt) => (
+                    <li key={prompt}>• {prompt}</li>
+                  ))}
                 </ul>
               </div>
             </div>
@@ -533,9 +734,11 @@ export function AiAssistantSidebar({
                 const isUser = message.role === "user";
                 const hasToolInvocations = message.toolInvocations && message.toolInvocations.length > 0;
 
+                // Skip rendering if no text and no tool invocations
                 if (!text && !hasToolInvocations) return null;
 
                 const isLastUserMessage = isUser && message.id === lastUserMessageId;
+
                 const attachments = isUser ? messageAttachments.get(message.id) : undefined;
 
                 return (
@@ -543,25 +746,80 @@ export function AiAssistantSidebar({
                     key={message.id}
                     ref={isLastUserMessage ? lastUserMessageRef : null}
                     className={`w-full scroll-mt-4 ${isUser
-                        ? "ml-auto max-w-[85%]"
-                        : "mr-auto max-w-[95%] text-foreground py-2"
+                      ? "ml-auto max-w-[85%]"
+                      : "mr-auto max-w-[95%] text-foreground py-2"
                       }`}
                   >
                     {/* Tool Invocations */}
                     {hasToolInvocations && !isUser && (
                       <div className="mb-2">
-                        {message.toolInvocations!.map((invocation) => (
-                          <ToolInvocationDisplay
-                            key={invocation.toolCallId}
-                            invocation={invocation}
-                          />
-                        ))}
+                        {message.toolInvocations!.map((invocation) => {
+                          const requiredConfirm = invocation.state === 'result' && (invocation.result as any)?.confirmationRequired === true;
+
+                          return (
+                            <div key={invocation.toolCallId}>
+                              <ToolInvocationDisplay invocation={invocation} />
+                              {requiredConfirm && (
+                                <ConfirmationCard
+                                  toolName={invocation.toolName}
+                                  message={(invocation.result as any)?.message || "Please confirm this action."}
+                                  onConfirm={() => {
+                                    // Call the tool again with __confirmed: true
+                                    const confirmBody = {
+                                      ...requestBody,
+                                      message: `I confirm the ${invocation.toolName} action.`,
+                                      // Include context references if any
+                                      context: {
+                                        ...((requestBody?.context as any) || {}),
+                                        references: references
+                                      }
+                                    };
+                                    // @ts-ignore - The ai sdk provides this but it's hard to type
+                                    append({
+                                      role: 'user',
+                                      content: `I confirm the ${invocation.toolName} action. Proceed with execution.`,
+                                    }, {
+                                      data: {
+                                        body: {
+                                          ...confirmBody,
+                                          confirmedToolCallId: invocation.toolCallId
+                                        }
+                                      }
+                                    });
+                                  }}
+                                  onReject={() => {
+                                    // @ts-ignore
+                                    append({
+                                      role: 'user',
+                                      content: `I cancel the ${invocation.toolName} action. Do not proceed.`,
+                                    });
+                                  }}
+                                />
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
 
-                    {/* User bubble — attachments + text */}
+                    {/* User bubble — attachments + text together */}
                     {isUser ? (
-                      <div className="bg-muted/50 text-foreground rounded-2xl px-4 py-3 space-y-2">
+                      <div className="group relative bg-muted/50 text-foreground rounded-2xl px-4 py-3 space-y-2">
+                        {/* Resend button (hidden until hover) */}
+                        {!isStreaming && (
+                          <div className="absolute -left-10 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                              title="Resend this message (removes subsequent messages)"
+                              onClick={() => handleResend(message.id, text)}
+                            >
+                              <RefreshCw className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
                         {/* Attached images */}
                         {attachments?.images && attachments.images.length > 0 && (
                           <div className="flex flex-wrap gap-1.5">
@@ -571,12 +829,16 @@ export function AiAssistantSidebar({
                                 className="relative h-16 w-16 rounded-lg overflow-hidden border border-border/40 shrink-0"
                                 title={img.name}
                               >
-                                <img src={img.url} alt={img.name} className="h-full w-full object-cover" />
+                                <img
+                                  src={img.url}
+                                  alt={img.name}
+                                  className="h-full w-full object-cover"
+                                />
                               </div>
                             ))}
                           </div>
                         )}
-                        {/* Attached reference chips — read-only */}
+                        {/* Attached entity reference chips — read-only */}
                         {attachments?.refs && attachments.refs.length > 0 && (
                           <div className="flex flex-wrap gap-1">
                             {attachments.refs.map((ref) => (
@@ -584,16 +846,12 @@ export function AiAssistantSidebar({
                             ))}
                           </div>
                         )}
+                        {/* Message text */}
                         {text && <UserMessage text={text} />}
                       </div>
                     ) : (
                       /* AI bubble */
-                      text && (
-                        <MarkdownRenderer
-                          content={text}
-                          className='text-base leading-7 [font-family:Inter,"SF_Pro_Text",system-ui,sans-serif] [font-feature-settings:"kern"_1,"liga"_1,"calt"_1] antialiased'
-                        />
-                      )
+                      text && <MarkdownRenderer content={text} className='text-base leading-7 [font-family:Inter,"SF_Pro_Text",system-ui,sans-serif] [font-feature-settings:"kern"_1,"liga"_1,"calt"_1] antialiased' />
                     )}
                   </div>
                 );
@@ -618,69 +876,52 @@ export function AiAssistantSidebar({
 
         {/* Input */}
         <div className="p-4 pt-1 pb-3 bg-background">
+          {inputLocked && (
+            <div
+              className="mb-3 flex items-start gap-2 rounded-lg border border-amber-200/60 bg-amber-50/80 px-3 py-2.5 dark:border-amber-800/40 dark:bg-amber-950/30"
+              role="alert"
+            >
+              <Lock className="h-4 w-4 mt-0.5 flex-shrink-0 text-amber-600 dark:text-amber-500" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                  AI Copilot locked
+                </p>
+                <p className="text-xs text-amber-700/90 dark:text-amber-300/90 mt-0.5">
+                  {lockDescriptionOverride || "AI features require a paid plan (Small or higher). Upgrade to unlock AI-powered assistance."}
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-2 h-7 text-xs border-amber-300 dark:border-amber-700"
+                  onClick={() => setShowUpgradeDialog(true)}
+                >
+                  Upgrade to unlock
+                </Button>
+              </div>
+            </div>
+          )}
           <form ref={formRef} onSubmit={onSubmit}>
             <div
               className={[
                 "relative rounded-2xl bg-muted/30 border border-border/20 transition-all",
                 "focus-within:border-border/60 focus-within:bg-muted/50 focus-within:shadow-sm",
-                isDragEntityOver
-                  ? "border-blue-400/60 shadow-[0_0_0_3px_rgba(96,165,250,0.15)] bg-blue-500/5"
-                  : isDragOver
-                    ? "border-dashed border-primary/50 bg-primary/5"
-                    : "",
-              ].join(" ")}
+                isDragEntityOver ? "border-dashed border-blue-400 bg-blue-50/30 dark:bg-blue-950/20 shadow-[inset_0_0_0_2px_rgba(96,165,250,0.25)]" : "",
+                isDragOver && !isDragEntityOver ? "border-dashed border-primary/50 bg-primary/5" : "",
+              ].filter(Boolean).join(" ")}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
             >
-              {/* Entity drag overlay */}
+              {/* Drop hint overlay — shown when dragging an entity reference over the composer */}
               {isDragEntityOver && (
-                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl pointer-events-none">
-                  <BotMessageSquare className="h-5 w-5 text-blue-400 mb-1 animate-bounce" />
-                  <p className="text-xs font-medium text-blue-400">Drop to add to context</p>
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-blue-50/60 dark:bg-blue-950/30 backdrop-blur-[1px] pointer-events-none">
+                  <BotMessageSquare className="h-6 w-6 text-blue-500 mb-1.5 animate-bounce" />
+                  <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">Drop to add to context</span>
                 </div>
               )}
 
-              {/* Uploaded Files Preview */}
-              {uploadedFiles.length > 0 && (
-                <div className="px-4 pt-3">
-                  <div className="flex gap-2 mb-1 overflow-x-auto pb-2">
-                    {uploadedFiles.map((file) => (
-                      <div key={file.id} className="group relative flex-shrink-0">
-                        <div className="relative h-12 w-12 rounded-lg border border-border bg-muted overflow-hidden">
-                          <img src={file.url} alt={file.name} className="h-full w-full object-cover" />
-                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <button
-                              type="button"
-                              onClick={() => removeFile(file.id)}
-                              className="h-5 w-5 rounded-full bg-destructive/80 hover:bg-destructive flex items-center justify-center transition-colors"
-                            >
-                              <X className="h-3 w-3 text-white" />
-                            </button>
-                          </div>
-                        </div>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-background border border-border rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap max-w-xs pointer-events-none z-10">
-                          <p className="text-xs font-medium truncate">{file.name}</p>
-                          <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
-                        </div>
-                      </div>
-                    ))}
-                    <div className="flex-shrink-0">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="h-12 w-12 border-dashed border-border/50 hover:border-primary/50 flex flex-col gap-0.5 p-0"
-                        onClick={() => fileInputRef.current?.click()}
-                      >
-                        <Plus className="h-4 w-4 text-muted-foreground" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Reference chips — float directly inside composer */}
+              {/* Reference chips — float directly inside composer, no decoration */}
               {references.length > 0 && (
                 <div className="flex flex-wrap items-center gap-1.5 px-3 pt-2.5">
                   {references.map((ref) => (
@@ -703,6 +944,50 @@ export function AiAssistantSidebar({
                 </div>
               )}
 
+              {/* Uploaded Files Preview - Horizontal Gallery */}
+              {uploadedFiles.length > 0 && (
+                <div className="px-4 pt-3">
+                  <div className="flex gap-2 mb-1 overflow-x-auto pb-2">
+                    {uploadedFiles.map((file) => (
+                      <div key={file.id} className="group relative flex-shrink-0">
+                        <div className="relative h-12 w-12 rounded-lg border border-border bg-muted overflow-hidden">
+                          <img
+                            src={file.url}
+                            alt={file.name}
+                            className="h-full w-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <button
+                              type="button"
+                              onClick={() => removeFile(file.id)}
+                              className="h-5 w-5 rounded-full bg-destructive/80 hover:bg-destructive flex items-center justify-center transition-colors"
+                            >
+                              <X className="h-3 w-3 text-white" />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-background border border-border rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap max-w-xs pointer-events-none z-10">
+                          <p className="text-xs font-medium truncate">{file.name}</p>
+                          <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
+                        </div>
+                      </div>
+                    ))}
+                    {/* Add File Button */}
+                    <div className="flex-shrink-0">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-12 w-12 border-dashed border-border/50 hover:border-primary/50 flex flex-col gap-0.5 p-0"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <Plus className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Hidden file input */}
               <input
                 ref={fileInputRef}
@@ -715,13 +1000,18 @@ export function AiAssistantSidebar({
 
               {/* Textarea */}
               <div className="relative">
+                {inputLocked && (
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground/50 pointer-events-none" />
+                )}
                 <textarea
                   value={input}
                   onChange={handleInputChange}
                   onKeyDown={handleKeyDown}
-                  placeholder="Message AI assistant..."
-                  disabled={isStreaming}
-                  className="w-full resize-none bg-transparent px-4 pt-4 pb-2 text-sm font-light outline-none placeholder:text-muted-foreground/60 disabled:opacity-50"
+                  onFocus={inputLocked ? () => setShowUpgradeDialog(true) : undefined}
+                  placeholder={inputLocked ? "Upgrade to unlock AI Copilot" : "Message AI assistant..."}
+                  disabled={isStreaming || inputLocked}
+                  readOnly={inputLocked}
+                  className={`w-full resize-none bg-transparent pt-4 pb-2 text-sm font-light outline-none placeholder:text-muted-foreground/60 disabled:opacity-50 ${inputLocked ? "pl-10 pr-4" : "px-4"}`}
                   rows={2}
                 />
               </div>
@@ -735,7 +1025,7 @@ export function AiAssistantSidebar({
                     size="icon"
                     onClick={toggleRecording}
                     className={`h-8 w-8 ${isRecording ? "animate-pulse" : ""}`}
-                    disabled={isStreaming}
+                    disabled={isStreaming || inputLocked}
                     title="Voice input"
                   >
                     <Mic className={`h-4 w-4 ${isRecording ? "text-primary-foreground" : "text-muted-foreground"}`} />
@@ -757,7 +1047,7 @@ export function AiAssistantSidebar({
                     size="icon"
                     onClick={() => fileInputRef.current?.click()}
                     className="h-8 w-8"
-                    disabled={isStreaming}
+                    disabled={isStreaming || inputLocked}
                     title="Attach file"
                   >
                     <Paperclip className="h-4 w-4 text-muted-foreground" />
@@ -782,7 +1072,7 @@ export function AiAssistantSidebar({
                     <Button
                       type="submit"
                       size="icon"
-                      disabled={!input.trim()}
+                      disabled={!input.trim() || inputLocked}
                       className="h-8 w-8 rounded-full shadow-none transition-all disabled:opacity-40"
                     >
                       <ArrowUp className="h-4 w-4" />
@@ -793,7 +1083,13 @@ export function AiAssistantSidebar({
             </div>
           </form>
         </div>
-      </div>
-    </aside>
+      </div >
+      <UpgradePlanDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+        title="Upgrade to unlock AI Copilot"
+        description="AI Copilot requires a paid plan (Small or higher). Upgrade to unlock AI-powered assistance."
+      />
+    </aside >
   );
 }

@@ -91,7 +91,8 @@ export const useAuthStore = create<AuthState & AuthActions>()(
                 try {
                     const user = await authService.getCurrentUser(userType);
                     if (user) {
-                        set({ user, isAuthenticated: true });
+                        // Use role-based type from backend to prevent cross-portal access
+                        set({ user, userType: user.type, isAuthenticated: true });
                     } else {
                         set({ user: null, userType: null, isAuthenticated: false });
                     }

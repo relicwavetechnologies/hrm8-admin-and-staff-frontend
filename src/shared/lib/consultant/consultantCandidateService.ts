@@ -1,5 +1,6 @@
 import { apiClient } from '../api';
 import { ConversationData, MessageData } from '@/shared/types/websocket';
+import type { Application, ApplicationStage } from '@/shared/types/application';
 
 export interface CandidatePipelineItem {
     id: string; // Application ID
@@ -8,6 +9,14 @@ export interface CandidatePipelineItem {
     applied_date: string;
     score?: number;
     recruiter_notes?: string;
+    consultant_action_type?: string;
+    consultant_actioned_at?: string;
+    consultant_actioned_by?: string;
+    consultant_action_round_id?: string;
+    managed_pipeline_owner?: 'CONSULTANT' | 'COMPANY' | null;
+    offer_handoff_at?: string | null;
+    offer_handoff_by?: string | null;
+    offer_handoff_note?: string | null;
     candidate: {
         id: string;
         first_name: string;
@@ -20,6 +29,58 @@ export interface CandidatePipelineItem {
     video_interview?: {
         status: string;
     }[];
+    application_round_progress?: Array<{
+        job_round_id?: string;
+        jobRoundId?: string;
+    }>;
+}
+
+function mapApplicationStatus(status: unknown): Application['status'] {
+    const normalizedStatus = typeof status === 'string' ? status.toUpperCase().trim() : '';
+
+    const statusMap: Record<string, Application['status']> = {
+        NEW: 'applied',
+        APPLIED: 'applied',
+        SCREENING: 'screening',
+        INTERVIEW: 'interview',
+        OFFER: 'offer',
+        HIRED: 'hired',
+        REJECTED: 'rejected',
+        WITHDRAWN: 'withdrawn',
+    };
+
+    return statusMap[normalizedStatus] || 'applied';
+}
+
+function mapApplicationStage(stage: unknown): ApplicationStage {
+    const normalizedStage = typeof stage === 'string' ? stage.toUpperCase().trim() : '';
+
+    const stageMap: Record<string, ApplicationStage> = {
+        NEW_APPLICATION: 'New Application',
+        'NEW APPLICATION': 'New Application',
+        RESUME_REVIEW: 'Resume Review',
+        'RESUME REVIEW': 'Resume Review',
+        PHONE_SCREEN: 'Phone Screen',
+        'PHONE SCREEN': 'Phone Screen',
+        TECHNICAL_INTERVIEW: 'Technical Interview',
+        'TECHNICAL INTERVIEW': 'Technical Interview',
+        ONSITE_INTERVIEW: 'Manager Interview',
+        'ONSITE INTERVIEW': 'Manager Interview',
+        MANAGER_INTERVIEW: 'Manager Interview',
+        'MANAGER INTERVIEW': 'Manager Interview',
+        FINAL_ROUND: 'Final Round',
+        'FINAL ROUND': 'Final Round',
+        REFERENCE_CHECK: 'Reference Check',
+        'REFERENCE CHECK': 'Reference Check',
+        OFFER_EXTENDED: 'Offer Extended',
+        'OFFER EXTENDED': 'Offer Extended',
+        OFFER_ACCEPTED: 'Offer Accepted',
+        'OFFER ACCEPTED': 'Offer Accepted',
+        REJECTED: 'Rejected',
+        WITHDRAWN: 'Withdrawn',
+    };
+
+    return stageMap[normalizedStage] || 'New Application';
 }
 
 export const ConsultantCandidateService = {
@@ -27,7 +88,7 @@ export const ConsultantCandidateService = {
      * Fetch candidate pipeline for a specific job
      */
     getPipeline: async (jobId: string): Promise<CandidatePipelineItem[]> => {
-        const { data } = await apiClient.get<CandidatePipelineItem[]>(`/api/consultant/jobs/${jobId}/candidates`);
+        const { data } = await apiClient.get<CandidatePipelineItem[]>(`/api/consultant/jobs/${jobId}/candidates/pipeline`);
         return data || [];
     },
 
@@ -86,10 +147,29 @@ export const ConsultantCandidateService = {
     },
 
     /**
-     * Move application to a specific round (for drag-drop pipeline)
+     * Move application to a specific round (for drag-drop pipeline).
+     * Legacy managed services may still return requiresApproval: true.
      */
-    moveToRound: async (applicationId: string, roundId: string): Promise<{ success: boolean; data?: any; error?: string }> => {
-        const response = await apiClient.post<any>(`/api/consultant/candidates/${applicationId}/move-to-round`, { roundId });
+    moveToRound: async (
+        applicationId: string,
+        roundId: string,
+        reason?: string
+    ): Promise<{ success: boolean; data?: { requiresApproval?: boolean; requestId?: string; message?: string }; error?: string }> => {
+        const response = await apiClient.post<any>(`/api/consultant/candidates/${applicationId}/move-to-round`, {
+            roundId,
+            reason,
+        });
+        return response;
+    },
+
+    /**
+     * List consultant's decision requests (for pending approval display)
+     */
+    listDecisionRequests: async (
+        status?: 'PENDING' | 'APPROVED' | 'REJECTED'
+    ): Promise<{ success: boolean; data?: { requests: Array<{ id: string; application_id: string; job_id: string }> }; error?: string }> => {
+        const params = status ? `?status=${status}` : '';
+        const response = await apiClient.get<{ requests: any[] }>(`/api/consultant/decision-requests${params}`);
         return response;
     },
 
@@ -105,49 +185,74 @@ export const ConsultantCandidateService = {
      * Get job applications in ApplicationPipeline-compatible format
      */
     getJobApplications: async (jobId: string): Promise<{ success: boolean; data: { applications: any[] } }> => {
-        const { data } = await apiClient.get<any[]>(`/api/consultant/jobs/${jobId}/candidates`);
+        const { data } = await apiClient.get<any[]>(`/api/consultant/jobs/${jobId}/candidates/pipeline`);
         // Backend now returns pre-mapped camelCase data with AI scoring fields
-        const applications = (data || []).map((app: any) => ({
-            id: app.id,
-            candidateId: app.candidateId || app.candidate?.id,
-            // Use pre-mapped candidateName or construct from candidate object
-            candidateName: app.candidateName || (
-                (app.candidate?.firstName && app.candidate?.lastName)
-                    ? `${app.candidate.firstName} ${app.candidate.lastName}`
-                    : (app.candidate?.first_name && app.candidate?.last_name)
-                        ? `${app.candidate.first_name} ${app.candidate.last_name}`
-                        : 'Unknown Candidate'
-            ),
-            candidateEmail: app.candidateEmail || app.candidate?.email || '',
-            candidatePhoto: app.candidatePhoto || app.candidate?.photo,
-            jobId: app.jobId || jobId,
-            appliedDate: app.appliedDate ? new Date(app.appliedDate) : (app.applied_date ? new Date(app.applied_date) : new Date()),
-            status: typeof app.status === 'string' ? app.status.toLowerCase() : 'new',
-            stage: app.stage,
-            resumeUrl: app.resumeUrl || app.candidate?.resumeUrl || app.candidate?.resume_url,
-            linkedInUrl: app.linkedInUrl || app.candidate?.linkedInUrl || app.candidate?.linked_in_url,
-            // AI Scoring - now comes directly from backend
-            score: app.score,
-            aiMatchScore: app.aiMatchScore || app.aiScore || app.score, // For AIMatchBadge
-            aiScore: app.aiScore || app.score,
-            aiAnalysis: app.aiAnalysis, // For recommendation badge and justification
-            aiReasoning: app.aiReasoning,
-            aiMatchType: app.aiMatchType,
-            // Round tracking
-            roundId: app.roundId,
-            // Flags
-            shortlisted: app.shortlisted || false,
-            manuallyAdded: app.manuallyAdded || false,
-            isRead: app.isRead,
-            isNew: app.isNew,
-            // Candidate object for nested access
-            candidate: app.candidate,
-            // Empty arrays for compatibility
-            notes: [],
-            activities: [],
-            interviews: [],
-            tags: app.tags || [],
-        }));
+        const applications = (data || []).map((app: any) => {
+            const latestRoundProgress =
+                Array.isArray(app.application_round_progress) && app.application_round_progress.length > 0
+                    ? app.application_round_progress[0]
+                    : null;
+            const resolvedRoundId =
+                app.roundId ||
+                app.round_id ||
+                latestRoundProgress?.jobRoundId ||
+                latestRoundProgress?.job_round_id ||
+                null;
+
+            return {
+                id: app.id,
+                candidateId: app.candidateId || app.candidate?.id,
+                // Use pre-mapped candidateName or construct from candidate object
+                candidateName: app.candidateName || (
+                    (app.candidate?.firstName && app.candidate?.lastName)
+                        ? `${app.candidate.firstName} ${app.candidate.lastName}`
+                        : (app.candidate?.first_name && app.candidate?.last_name)
+                            ? `${app.candidate.first_name} ${app.candidate.last_name}`
+                            : 'Unknown Candidate'
+                ),
+                candidateEmail: app.candidateEmail || app.candidate?.email || '',
+                candidatePhoto: app.candidatePhoto || app.candidate?.photo,
+                jobId: app.jobId || jobId,
+                jobTitle: app.jobTitle || app.job?.title || '',
+                employerName: app.employerName || app.job?.company?.name || '',
+                appliedDate: app.appliedDate ? new Date(app.appliedDate) : (app.applied_date ? new Date(app.applied_date) : new Date()),
+                status: mapApplicationStatus(app.status),
+                stage: mapApplicationStage(app.stage),
+                resumeUrl: app.resumeUrl || app.candidate?.resumeUrl || app.candidate?.resume_url,
+                linkedInUrl: app.linkedInUrl || app.candidate?.linkedInUrl || app.candidate?.linked_in_url,
+                // AI Scoring - now comes directly from backend
+                score: app.score,
+                aiMatchScore: app.aiMatchScore || app.aiScore || app.score, // For AIMatchBadge
+                aiScore: app.aiScore || app.score,
+                aiAnalysis: app.aiAnalysis, // For recommendation badge and justification
+                aiReasoning: app.aiReasoning,
+                aiMatchType: app.aiMatchType,
+                // Round tracking
+                roundId: resolvedRoundId,
+                // Flags
+                shortlisted: app.shortlisted || false,
+                consultantActionType: app.consultantActionType || app.consultant_action_type,
+                consultantActionedAt: app.consultantActionedAt || app.consultant_actioned_at,
+                consultantActionedBy: app.consultantActionedBy || app.consultant_actioned_by,
+                consultantActionRoundId: app.consultantActionRoundId || app.consultant_action_round_id,
+                managedPipelineOwner: app.managedPipelineOwner || app.managed_pipeline_owner || null,
+                offerHandoffAt: app.offerHandoffAt || app.offer_handoff_at,
+                offerHandoffBy: app.offerHandoffBy || app.offer_handoff_by,
+                offerHandoffNote: app.offerHandoffNote || app.offer_handoff_note,
+                manuallyAdded: app.manuallyAdded || false,
+                isRead: app.isRead,
+                isNew: app.isNew,
+                // Candidate object for nested access
+                candidate: app.candidate,
+                // Empty arrays for compatibility
+                notes: [],
+                activities: [],
+                interviews: [],
+                tags: app.tags || [],
+                createdAt: app.createdAt ? new Date(app.createdAt) : (app.created_at ? new Date(app.created_at) : new Date()),
+                updatedAt: app.updatedAt ? new Date(app.updatedAt) : (app.updated_at ? new Date(app.updated_at) : new Date()),
+            };
+        });
         return { success: true, data: { applications } };
     },
 

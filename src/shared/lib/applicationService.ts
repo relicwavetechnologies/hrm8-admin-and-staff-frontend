@@ -45,6 +45,16 @@ class ApplicationService {
     return apiClient.get<{ applications: Application[] }>('/api/applications');
   }
 
+  // Single bulk fetch: all applications for the authenticated company
+  async getCompanyApplications() {
+    return apiClient.get<{ applications: Application[] }>('/api/applications/company');
+  }
+
+  // Single bulk fetch: all tasks for the authenticated company
+  async getCompanyTasks() {
+    return apiClient.get<{ tasks: any[] }>('/api/tasks/company');
+  }
+
   async getJobApplications(
     jobId: string,
     filters?: {
@@ -153,6 +163,17 @@ class ApplicationService {
    */
   async updateStage(id: string, stage: string) {
     return apiClient.put<{ application: Application; message: string }>(`/api/applications/${id}/stage`, { stage });
+  }
+
+  /**
+   * Move application to a stage or round.
+   * Keeps ATS component contract intact for screens that call moveStage directly.
+   */
+  async moveStage(id: string, stageName: string, roundId?: string) {
+    if (roundId) {
+      return this.moveToRound(id, roundId);
+    }
+    return this.updateStage(id, stageName);
   }
 
   /**
@@ -285,4 +306,3 @@ class TalentPoolService {
 export const talentPoolService = new TalentPoolService();
 
 export const applicationService = new ApplicationService();
-

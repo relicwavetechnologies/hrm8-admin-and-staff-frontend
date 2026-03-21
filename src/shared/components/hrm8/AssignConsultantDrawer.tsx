@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDebounce } from '@/shared/hooks/use-debounce';
 import {
   Sheet,
@@ -40,6 +41,7 @@ export function AssignConsultantDrawer({
   jobId,
   onSuccess,
 }: AssignConsultantDrawerProps) {
+  const navigate = useNavigate();
   const CONSULTANTS_PAGE_SIZE = 10;
   const [loading, setLoading] = useState(true);
   const [loadingConsultants, setLoadingConsultants] = useState(false);
@@ -52,7 +54,6 @@ export function AssignConsultantDrawer({
   const [hasMoreConsultants, setHasMoreConsultants] = useState(false);
   const [selectedConsultantId, setSelectedConsultantId] = useState<string>('');
   const [reassignmentReason, setReassignmentReason] = useState('');
-  const [autoReassignReason, setAutoReassignReason] = useState('');
   const [showOverrideModal, setShowOverrideModal] = useState(false);
   const [pendingConsultantId, setPendingConsultantId] = useState<string>('');
 
@@ -138,7 +139,6 @@ export function AssignConsultantDrawer({
       setConsultantsOffset(0);
       setHasMoreConsultants(false);
       setReassignmentReason('');
-      setAutoReassignReason('');
       setJobInfo(null);
       jobInfoRef.current = null;
     }
@@ -212,39 +212,8 @@ export function AssignConsultantDrawer({
     }
   };
 
-  const handleAutoAssign = async () => {
-    if (isAutoReassignmentFlow && !autoReassignReason.trim()) {
-      toast.error('Reason is required for auto-reassignment');
-      return;
-    }
-    try {
-      setAssigning(true);
-      const response = await jobAllocationService.autoAssign(
-        jobId,
-        isAutoReassignmentFlow ? autoReassignReason.trim() : undefined
-      );
-
-      if (response.success) {
-        if (response.data?.consultantId) {
-          toast.success(isAutoReassignmentFlow ? 'Job auto-reassigned successfully' : 'Job auto-assigned successfully');
-        } else {
-          toast.warning(isAutoReassignmentFlow ? 'No suitable consultant found for auto-reassignment' : 'No suitable consultant found for auto-assignment');
-        }
-        onSuccess?.();
-        onOpenChange(false);
-      } else {
-        toast.error(response.error || 'Failed to auto-assign job');
-      }
-    } catch (error) {
-      toast.error('Failed to auto-assign job');
-    } finally {
-      setAssigning(false);
-    }
-  };
-
   // Client-side filtering removed as backend handles it
   const filteredConsultants = consultants ?? [];
-  const isAutoReassignmentFlow = Boolean(jobInfo?.job.assignedConsultantId);
   const isReassignmentFlow = Boolean(
     jobInfo?.job.assignedConsultantId &&
     selectedConsultantId &&
@@ -254,6 +223,18 @@ export function AssignConsultantDrawer({
   const nextConsultant = filteredConsultants.find(c => c.id === selectedConsultantId);
   const requiresReason = isReassignmentFlow;
   const canSubmitAssign = Boolean(selectedConsultantId) && !assigning && (!requiresReason || Boolean(reassignmentReason.trim()));
+  const requiresManagedReview = Boolean(
+    jobInfo?.job.managementType === 'hrm8-managed' &&
+    jobInfo?.job.assignmentRequestId
+  );
+
+  const openManagedReview = () => {
+    if (!jobInfo?.job.assignmentRequestId) return;
+    onOpenChange(false);
+    navigate(
+      `/hrm8/job-board/job/${jobId}?tab=managed&assignmentRequestId=${jobInfo.job.assignmentRequestId}&source=job-allocation`
+    );
+  };
 
 
   return (
@@ -314,45 +295,22 @@ export function AssignConsultantDrawer({
                 </Card>
               )}
 
-              {/* Auto-assign Button */}
-              {isAutoReassignmentFlow && (
-                <Alert variant="destructive" className="border-amber-300 text-amber-900 dark:text-amber-100 dark:border-amber-700">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertTitle>Auto reassignment warning</AlertTitle>
-                  <AlertDescription>
-                    <p>
-                      This job is currently assigned to <strong>{currentConsultant ? `${currentConsultant.firstName} ${currentConsultant.lastName}` : 'a consultant'}</strong>.
-                    </p>
-                    <p className="mt-2">
-                      If you continue, auto rules will auto-reassign ownership to the best-fit consultant and keep pipeline progress unchanged.
-                    </p>
-                    <div className="mt-3 space-y-2">
-                      <Label className="text-amber-900 dark:text-amber-100">Reason for auto-reassignment</Label>
-                      <Textarea
-                        placeholder="Mention why auto-reassignment is needed..."
-                        value={autoReassignReason}
-                        onChange={(e) => setAutoReassignReason(e.target.value)}
-                        rows={3}
-                        className="bg-background text-foreground"
-                      />
-                    </div>
-                  </AlertDescription>
-                </Alert>
-              )}
-              <Button
-                variant="outline"
-                onClick={handleAutoAssign}
-                disabled={assigning}
-                className="w-full"
-              >
-                {assigning ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <CheckCircle className="mr-2 h-4 w-4" />
-                )}
-                {isAutoReassignmentFlow ? 'Try Auto-Reassign' : 'Try Auto-Assignment'}
-              </Button>
-
+              {requiresManagedReview ? (
+                <div className="space-y-4">
+                  <Alert>
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Review required for managed jobs</AlertTitle>
+                    <AlertDescription>
+                      HRM8 Managed Recruitment jobs must be reviewed from the dedicated job detail page before consultant confirmation or reassignment.
+                    </AlertDescription>
+                  </Alert>
+                  <Button className="w-full" onClick={openManagedReview}>
+                    <Users className="mr-2 h-4 w-4" />
+                    Open review page
+                  </Button>
+                </div>
+              ) : (
+                <>
               <Separator />
 
               {/* Filters */}
@@ -550,6 +508,8 @@ export function AssignConsultantDrawer({
                   Assign Consultant
                 </Button>
               </div>
+                </>
+              )}
             </div>
           )}
         </SheetContent>

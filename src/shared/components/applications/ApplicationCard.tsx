@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avat
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Checkbox } from "@/shared/components/ui/checkbox";
-import { Star, Calendar, FileText, MoreVertical, Mail, Phone, Sparkles, MessageSquare, Users, Bell, Info, Eye, CheckCircle2, CalendarClock, CheckCircle, Clock } from "lucide-react";
+import { Star, Calendar, FileText, MoreVertical, Mail, Phone, Sparkles, MessageSquare, Users, Bell, Info, Eye, CalendarClock, CheckCircle, Clock } from "lucide-react";
 import { AIAnalysisView } from "./screening/AIAnalysisView";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/components/ui/tooltip";
 import { formatDistanceToNow } from "date-fns";
@@ -37,6 +37,7 @@ import { getConsensusMetrics } from "@/shared/lib/applications/collaborativeRevi
 import { isFollowing, followApplication, unfollowApplication } from "@/shared/lib/applications/notifications";
 import { useToast } from "@/shared/hooks/use-toast";
 import { applicationService } from "@/shared/lib/applicationService";
+import { JobRound } from "@/shared/lib/api/jobRoundService";
 
 interface ApplicationCardProps {
   application: Application;
@@ -50,6 +51,11 @@ interface ApplicationCardProps {
   onScoreUpdate?: (applicationId: string, newScore: number) => void; // New prop for score updates
   onRankUpdate?: (applicationId: string, newRank: number) => void; // New prop for rank updates
   onShortlistChange?: (applicationId: string, shortlisted: boolean) => void; // New prop for shortlist changes
+  isPendingApproval?: boolean; // Consultant view: awaiting HR approval for OFFER/REJECT
+  allRounds?: JobRound[];
+  onMoveToRound?: (applicationId: string, roundId: string) => void;
+  restrictToOfferActions?: boolean;
+  pipelineActionStyle?: "review" | "offer-reject";
 }
 
 export function ApplicationCard({
@@ -63,7 +69,12 @@ export function ApplicationCard({
   onStageChange,
   onScoreUpdate,
   onRankUpdate,
-  onShortlistChange
+  onShortlistChange,
+  isPendingApproval = false,
+  allRounds,
+  onMoveToRound,
+  restrictToOfferActions = false,
+  pipelineActionStyle = "review",
 }: ApplicationCardProps) {
   // const navigate = useNavigate();
   const { toast } = useToast();
@@ -127,18 +138,54 @@ export function ApplicationCard({
       .slice(0, 2);
   };
 
+  const normalizedStage = String(application.stage || "").toLowerCase();
+  const normalizedStatus = String(application.status || "").toLowerCase();
+
+  const findRound = (target: "OFFER" | "REJECTED" | "HIRED") => {
+    if (!allRounds || allRounds.length === 0) return null;
+
+    return (
+      allRounds.find((round) => round.fixedKey === target) ||
+      allRounds.find((round) => {
+        const name = String(round.name || "").toLowerCase();
+        if (target === "OFFER") return name === "offer";
+        if (target === "HIRED") return name === "hired";
+        return name === "rejected" || name === "declined";
+      }) ||
+      null
+    );
+  };
+
+  const offerRound = findRound("OFFER");
+  const hiredRound = findRound("HIRED");
+  const rejectedRound = findRound("REJECTED");
+  const isInHiredRound = Boolean(application.roundId && hiredRound && application.roundId === hiredRound.id);
+  const isInOfferRound = Boolean(application.roundId && offerRound && application.roundId === offerRound.id);
+  const isInRejectedRound = Boolean(application.roundId && rejectedRound && application.roundId === rejectedRound.id);
+  const isHiredState = isInHiredRound || normalizedStage.includes("hired") || normalizedStatus === "hired";
+  const isRejectedState = isInRejectedRound || normalizedStage.includes("reject") || normalizedStatus === "rejected";
+  const isOfferedState =
+    !isRejectedState &&
+    !isHiredState &&
+    (isInOfferRound || normalizedStage.includes("offer") || normalizedStatus === "offer" || Boolean(application.shortlisted));
+
   const handleShortlist = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (application.shortlisted) {
+    if (isOfferedState || isHiredState) {
+      return;
+    }
+
+    if (offerRound && onMoveToRound) {
+      onMoveToRound(application.id, offerRound.id);
       return;
     }
 
     setIsShortlisting(true);
     try {
-      await applicationService.shortlistCandidate(application.id);
+      await applicationService.updateStage(application.id, "Offer Extended");
       toast({
-        title: "Candidate Shortlisted",
-        description: `${application.candidateName || "Candidate"} has been added to shortlist.`,
+        title: "Candidate moved",
+        description: `${application.candidateName || "Candidate"} moved to Offer.`,
       });
       // Refresh if there's a refresh callback
       if (onClick) {
@@ -153,6 +200,53 @@ export function ApplicationCard({
     } finally {
       setIsShortlisting(false);
     }
+  };
+
+  const handleReject = (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (restrictToOfferActions) {
+      toast({
+        title: "Offer actions only",
+        description: "For HRM8 Managed Recruitment jobs, the company can only take action in the Offer round.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (isRejectedState || isHiredState) {
+      return;
+    }
+
+    if (rejectedRound && onMoveToRound) {
+      onMoveToRound(application.id, rejectedRound.id);
+      return;
+    }
+
+    applicationService
+      .updateStage(application.id, "Rejected")
+      .then((res) => {
+        if (res.success) {
+          toast({
+            title: "Candidate moved",
+            description: `Moved ${application.candidateName || "Candidate"} to Rejected.`,
+          });
+          onClick?.();
+        } else {
+          toast({
+            title: "Error",
+            description: "Could not move candidate to Rejected.",
+            variant: "destructive",
+          });
+        }
+      })
+      .catch(() => {
+        toast({
+          title: "Error",
+          description: "Could not move candidate to Rejected.",
+          variant: "destructive",
+        });
+      });
   };
 
   const handleGenerateQuestions = (e: React.MouseEvent) => {
@@ -258,9 +352,26 @@ export function ApplicationCard({
           </Avatar>
 
           <div className="flex-1 min-w-0">
-            <h4 className={`text-sm font-semibold truncate ${!application.isRead ? 'font-bold' : ''}`}>
-              {application.candidateName}
-            </h4>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <h4 className={`text-sm font-semibold truncate ${!application.isRead ? 'font-bold' : ''}`}>
+                {application.candidateName}
+              </h4>
+              {isPendingApproval && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 gap-0.5 border-amber-500 text-amber-700 dark:text-amber-400">
+                        <Clock className="h-2.5 w-2.5" />
+                        Pending
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Awaiting HR approval for OFFER/REJECT</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground truncate leading-tight">
               {application.jobTitle}
             </p>
@@ -464,35 +575,57 @@ export function ApplicationCard({
             {!isCompareMode && (
               <div className="flex flex-col gap-2 mt-2 pt-2 border-t">
                 {showOnlyReview ? (
-                  // Pipeline view - show Review and View Interviews buttons
-                  <>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full text-xs h-7"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onClick?.();
-                      }}
-                    >
-                      <Eye className="h-3 w-3 mr-1" />
-                      Review
-                    </Button>
-                    {onViewInterviews && (
+                  pipelineActionStyle === "offer-reject" ? (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="flex-1 text-xs h-8"
+                        onClick={handleShortlist}
+                        disabled={isShortlisting || isOfferedState || isRejectedState || isHiredState}
+                      >
+                        Offer
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 text-xs h-8 text-red-600 border-red-200 hover:bg-red-50"
+                        onClick={handleReject}
+                        disabled={isRejectedState || isHiredState}
+                      >
+                        Reject
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
                       <Button
                         variant="outline"
                         size="sm"
                         className="w-full text-xs h-7"
                         onClick={(e) => {
                           e.stopPropagation();
-                          onViewInterviews(application);
+                          onClick?.();
                         }}
                       >
-                        <CalendarClock className="h-3 w-3 mr-1" />
-                        View
+                        <Eye className="h-3 w-3 mr-1" />
+                        Review
                       </Button>
-                    )}
-                  </>
+                      {onViewInterviews && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full text-xs h-7"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onViewInterviews(application);
+                          }}
+                        >
+                          <CalendarClock className="h-3 w-3 mr-1" />
+                          View
+                        </Button>
+                      )}
+                    </>
+                  )
                 ) : (
                   // Full view - show all buttons
                   <>
@@ -509,22 +642,19 @@ export function ApplicationCard({
                         <Eye className="h-3 w-3 mr-1" />
                         Review
                       </Button>
-                      {application.aiAnalysis && (
+                      {!isOfferedState && !isRejectedState && !isHiredState && (
                         <Button
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
-                          className="flex-1 text-xs h-7"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowAIAnalysis(true);
-                          }}
+                          className="h-7 px-2 text-red-500 hover:text-red-700 hover:bg-red-50"
+                          onClick={handleReject}
+                          title="Reject Candidate"
                         >
-                          <Sparkles className="h-3 w-3 mr-1" />
-                          AI Analysis
+                          Reject
                         </Button>
                       )}
                     </div>
-                    {!application.shortlisted && (
+                    {!isOfferedState && !isRejectedState && !isHiredState && (
                       <Button
                         variant="default"
                         size="sm"
@@ -532,13 +662,22 @@ export function ApplicationCard({
                         onClick={handleShortlist}
                         disabled={isShortlisting}
                       >
-                        <CheckCircle2 className="h-3 w-3 mr-1" />
-                        Shortlist
+                        Offer
                       </Button>
                     )}
-                    {application.shortlisted && (
+                    {isOfferedState && (
                       <Badge variant="default" className="bg-green-500 text-xs w-full justify-center h-7">
-                        Shortlisted
+                        Offer
+                      </Badge>
+                    )}
+                    {isRejectedState && (
+                      <Badge variant="destructive" className="text-xs w-full justify-center h-7">
+                        Rejected
+                      </Badge>
+                    )}
+                    {isHiredState && (
+                      <Badge className="text-xs w-full justify-center h-7 bg-emerald-600 hover:bg-emerald-600">
+                        Hired
                       </Badge>
                     )}
                   </>

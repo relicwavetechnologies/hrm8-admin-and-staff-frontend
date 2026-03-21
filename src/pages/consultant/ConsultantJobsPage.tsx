@@ -19,9 +19,10 @@ import { Button } from '@/shared/components/ui/button';
 import { Skeleton } from '@/shared/components/ui/skeleton';
 import { useNavigate } from 'react-router-dom';
 
+const MANAGED_SERVICE_TYPES = ['shortlisting', 'full-service', 'executive-search', 'rpo'];
+
 export default function ConsultantJobsPage() {
   const { consultant } = useConsultantAuth();
-  // Use consultant data for future features
   void consultant;
   const navigate = useNavigate();
   const [jobs, setJobs] = useState<any[]>([]);
@@ -312,7 +313,11 @@ export default function ConsultantJobsPage() {
                   searchable={true}
                   searchKeys={['title', 'company', 'location']}
                   emptyMessage="No jobs found"
-                  onRowClick={(row) => navigate(`${row.id}`)}
+                  onRowClick={(row) => {
+                  const serviceType = row.serviceType ?? row.service_package ?? '';
+                  const isManaged = MANAGED_SERVICE_TYPES.includes(serviceType);
+                  navigate(isManaged ? `${row.id}/setup-simple` : `${row.id}`);
+                }}
                   resizable={false}
                 />
               </Card>

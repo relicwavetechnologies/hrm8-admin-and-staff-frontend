@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { apiClient } from "./api";
 
 export interface ScoringWeights {
   skills: number;
@@ -75,37 +76,17 @@ export async function scoreCandidateWithAI(
 
   const weights = { ...defaultWeights, ...validated.weights };
 
-  // Call edge function
-  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-  const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-  const response = await fetch(`${SUPABASE_URL}/functions/v1/score-candidate`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-    },
-    body: JSON.stringify({
-      ...validated,
-      weights,
-    }),
+  // Call backend API (gated by FeatureGateService - PAYG cannot bypass)
+  const response = await apiClient.post<CandidateScoringResult>('/api/applications/score-adhoc', {
+    ...validated,
+    weights,
   });
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || 'Failed to score candidate');
+  if (!response.success || !response.data) {
+    throw new Error(response.error || 'Failed to score candidate');
   }
 
-  const data = await response.json();
-  
-  if (!data.success) {
-    throw new Error(data.error || 'Scoring failed');
-  }
-
-  return {
-    ...data.scoring,
-    analyzedAt: data.analyzedAt,
-  };
+  return response.data;
 }
 
 export function getRecommendationColor(recommendation: string): string {

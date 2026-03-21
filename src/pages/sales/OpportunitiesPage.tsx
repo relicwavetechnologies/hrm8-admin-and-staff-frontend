@@ -119,7 +119,7 @@ export default function OpportunitiesPage() {
   const [convertForm, setConvertForm] = useState<ConvertFormState>({
     agentNotes: "",
     tempPassword: "",
-    intendedSetupType: "ADVANCED",
+    intendedSetupType: "SIMPLE",
     intendedServicePackage: "self-managed",
     expectedSubscriptionPlan: "NONE",
     expectedFirstPaymentAmount: "",
@@ -306,7 +306,7 @@ export default function OpportunitiesPage() {
       setConvertForm({
         agentNotes: "",
         tempPassword: "",
-        intendedSetupType: "ADVANCED",
+        intendedSetupType: "SIMPLE",
         intendedServicePackage: "self-managed",
         expectedSubscriptionPlan: "NONE",
         expectedFirstPaymentAmount: "",
@@ -329,7 +329,7 @@ export default function OpportunitiesPage() {
     setConvertForm({
       agentNotes: "",
       tempPassword: "",
-      intendedSetupType: "ADVANCED",
+      intendedSetupType: "SIMPLE",
       intendedServicePackage: "self-managed",
       expectedSubscriptionPlan: "NONE",
       expectedFirstPaymentAmount: "",

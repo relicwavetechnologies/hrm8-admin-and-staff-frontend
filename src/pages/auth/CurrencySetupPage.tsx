@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/shared/contexts/AuthContext';
 import { consultantAuthService } from '@/shared/lib/consultantAuthService';
+import { getAvailableCurrencies } from '@/shared/lib/availableCurrenciesService';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
@@ -16,16 +17,23 @@ import { AuthLayout } from '@/shared/components/auth/AuthLayout';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-const SUPPORTED_CURRENCIES = ['USD', 'GBP', 'EUR', 'AUD', 'INR', 'NZD', 'SGD', 'CAD'] as const;
+const FALLBACK_CURRENCIES = ['USD', 'GBP', 'EUR', 'AUD', 'INR', 'NZD', 'SGD', 'CAD'] as const;
 
 export default function CurrencySetupPage() {
     const [loading, setLoading] = useState(false);
+    const [currenciesLoading, setCurrenciesLoading] = useState(true);
+    const [availableCurrencies, setAvailableCurrencies] = useState<string[]>(FALLBACK_CURRENCIES as unknown as string[]);
     const [selectedCurrency, setSelectedCurrency] = useState<string>('');
     const { user, userType, refreshUser } = useAuth();
     const navigate = useNavigate();
 
-    const raw = user?.rawUser as { defaultCurrency?: string; payoutCurrency?: string; requiresCurrencySetup?: boolean } | undefined;
-    const defaultCurrency = raw?.defaultCurrency ?? 'USD';
+    const raw = user?.rawUser as {
+        defaultCurrency?: string;
+        suggestedPayoutCurrency?: string;
+        payoutCurrency?: string;
+        requiresCurrencySetup?: boolean;
+      } | undefined;
+    const suggestedCurrency = raw?.suggestedPayoutCurrency ?? raw?.defaultCurrency ?? 'USD';
 
     useEffect(() => {
         if (user && userType && raw?.requiresCurrencySetup === false) {
@@ -45,9 +53,22 @@ export default function CurrencySetupPage() {
         }
     }, [user, userType, raw?.requiresCurrencySetup, navigate]);
 
+    useEffect(() => {
+        getAvailableCurrencies()
+            .then((currencies) => {
+                setAvailableCurrencies(currencies.length > 0 ? currencies : (FALLBACK_CURRENCIES as unknown as string[]));
+            })
+            .catch(() => {
+                setAvailableCurrencies(FALLBACK_CURRENCIES as unknown as string[]);
+            })
+            .finally(() => setCurrenciesLoading(false));
+    }, []);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const currency = selectedCurrency || defaultCurrency;
+        const currency =
+            selectedCurrency ||
+            (availableCurrencies.includes(suggestedCurrency) ? suggestedCurrency : availableCurrencies[0] ?? 'USD');
         if (!currency) {
             toast.error('Please select a currency');
             return;
@@ -83,7 +104,9 @@ export default function CurrencySetupPage() {
     };
 
     const handleUseDefault = () => {
-        setSelectedCurrency(defaultCurrency);
+        setSelectedCurrency(
+            availableCurrencies.includes(suggestedCurrency) ? suggestedCurrency : availableCurrencies[0] ?? 'USD'
+        );
     };
 
     return (
@@ -92,8 +115,8 @@ export default function CurrencySetupPage() {
                 <CardHeader>
                     <CardTitle>Set Your Payout Currency</CardTitle>
                     <CardDescription>
-                        Your admin set a default currency ({defaultCurrency}) for you. You can keep it or choose another.
-                        All commissions will be converted to your selected currency.
+                        Your default currency based on your region is {suggestedCurrency}. Keep it or choose another.
+                        Only currencies with pricing available are shown. All commissions will be converted to your selected currency.
                     </CardDescription>
                 </CardHeader>
                 <form onSubmit={handleSubmit}>
@@ -101,15 +124,18 @@ export default function CurrencySetupPage() {
                         <div className="space-y-2">
                             <Label htmlFor="currency">Payout Currency</Label>
                             <Select
-                                value={selectedCurrency || defaultCurrency}
+                                value={
+                                    selectedCurrency ||
+                                    (availableCurrencies.includes(suggestedCurrency) ? suggestedCurrency : availableCurrencies[0] ?? 'USD')
+                                }
                                 onValueChange={setSelectedCurrency}
-                                disabled={loading}
+                                disabled={loading || currenciesLoading}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select currency" />
+                                    <SelectValue placeholder={currenciesLoading ? 'Loading currencies…' : 'Select currency'} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {SUPPORTED_CURRENCIES.map((c) => (
+                                    {availableCurrencies.map((c) => (
                                         <SelectItem key={c} value={c}>
                                             {c}
                                         </SelectItem>
@@ -124,7 +150,7 @@ export default function CurrencySetupPage() {
                                 onClick={handleUseDefault}
                                 disabled={loading}
                             >
-                                Use default ({defaultCurrency})
+                                Use default ({suggestedCurrency})
                             </Button>
                             <Button type="submit" disabled={loading} className="flex-1">
                                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

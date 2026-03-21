@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom';
-import { Briefcase, Building2, LayoutDashboard } from 'lucide-react';
+import { Briefcase, Building2, LayoutDashboard, UserCheck } from 'lucide-react';
 import { NestedSidebarLayout, type NestedSidebarItem } from '@/shared/components/layouts/NestedSidebarLayout';
 
 const jobsNavItems: NestedSidebarItem[] = [
@@ -20,6 +20,12 @@ const jobsNavItems: NestedSidebarItem[] = [
     label: 'Job Allocation',
     path: '/hrm8/jobs/allocation',
     icon: Briefcase,
+  },
+  {
+    id: 'jobs-consultant-requests',
+    label: 'Consultant Assignment Requests',
+    path: '/hrm8/jobs/consultant-assignment-requests',
+    icon: UserCheck,
   },
 ];
 

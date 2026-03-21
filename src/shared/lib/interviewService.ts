@@ -1,3 +1,11 @@
+export {
+  interviewService,
+  type CreateInterviewConfigRequest,
+  type InterviewConfiguration,
+  type RatingCriterion,
+  type Candidate as ApiInterviewCandidate,
+} from "./api/interviewService";
+
 export interface Interview {
   id: string;
   jobId: string;

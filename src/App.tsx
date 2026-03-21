@@ -39,6 +39,7 @@ import ConsultantDashboard from './pages/consultant/ConsultantDashboard'
 import RegionalCompaniesPage from './pages/hrm8/RegionalCompaniesPage'
 import Hrm8CompanyDetailPage from './pages/hrm8/Hrm8CompanyDetailPage'
 import JobAllocationPage from './pages/hrm8/JobAllocationPage'
+import ConsultantAssignmentRequestsPage from './pages/hrm8/ConsultantAssignmentRequestsPage'
 import SalesDashboardPage from './pages/sales/SalesDashboardPage'
 import Consultant360Dashboard from './pages/consultant360/Consultant360Dashboard'
 import Consultant360EarningsPage from './pages/consultant360/Consultant360EarningsPage'
@@ -47,6 +48,7 @@ import OpportunitiesPage from './pages/sales/OpportunitiesPage'
 import SalesPipelinePage from './pages/sales/SalesPipelinePage'
 import ConsultantProfilePage from './pages/consultant/ConsultantProfilePage'
 import ConsultantJobDetailPage from './pages/consultant/ConsultantJobDetailPage'
+import ConsultantJobSimpleSetupPage from './pages/consultant/ConsultantJobSimpleSetupPage'
 import ConsultantCommissionsPage from './pages/consultant/ConsultantCommissionsPage'
 import ConsultantSettingsPage from './pages/consultant360/ConsultantSettingsPage'
 import ConsultantHelpPage from './pages/consultant360/ConsultantHelpPage'
@@ -138,7 +140,9 @@ function App() {
                         <Route path="overview" element={<JobsOverviewPage />} />
                         <Route path="companies" element={<Hrm8JobBoardPage />} />
                         <Route path="allocation" element={<JobAllocationPage />} />
+                        <Route path="consultant-assignment-requests" element={<ConsultantAssignmentRequestsPage />} />
                     </Route>
+                    <Route path="/hrm8/consultant-assignment-requests" element={<Navigate to="/hrm8/jobs/consultant-assignment-requests" replace />} />
                     <Route path="/hrm8/staff/:id" element={<StaffProfilePage />} />
                     <Route path="/hrm8/consultants/:id" element={<Hrm8ConsultantDetailPage />} />
                     <Route path="/hrm8/companies" element={<RegionalCompaniesPage />} />
@@ -181,6 +185,7 @@ function App() {
                     <Route path="/hrm8/billing" element={<BillingPage />} />
                     <Route path="/hrm8/regional-sales" element={<RegionalSalesDashboard />} />
                     <Route path="/hrm8/careers-requests" element={<CareersRequestsPage />} />
+
                 </Route>
 
                 {/* HRM8 Admin Routes (All Admins) */}
@@ -215,6 +220,7 @@ function App() {
                     {/* Consultant Portal */}
                     <Route path="/consultant/dashboard" element={<ConsultantDashboard />} />
                     <Route path="/consultant/jobs" element={<ConsultantJobsPage />} />
+                    <Route path="/consultant/jobs/:jobId/setup-simple" element={<ConsultantJobSimpleSetupPage />} />
                     <Route path="/consultant/jobs/:jobId" element={<ConsultantJobDetailPage />} />
                     <Route path="/consultant/messages" element={<ConsultantMessagesPage />} />
                     <Route path="/consultant/notifications" element={<ConsultantNotificationsPage />} />
@@ -247,6 +253,7 @@ function App() {
                     <Route path="/consultant360/dashboard" element={<Consultant360Dashboard />} />
                     <Route path="/consultant360/earnings" element={<Consultant360EarningsPage />} />
                     <Route path="/consultant360/jobs" element={<ConsultantJobsPage />} />
+                    <Route path="/consultant360/jobs/:jobId/setup-simple" element={<ConsultantJobSimpleSetupPage />} />
                     <Route path="/consultant360/jobs/:jobId" element={<ConsultantJobDetailPage />} />
                     <Route path="/consultant360/leads" element={<OpportunitiesPage />} />
                     <Route path="/consultant360/pipeline" element={<SalesPipelinePage />} />

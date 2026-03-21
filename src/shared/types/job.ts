@@ -110,6 +110,10 @@ export interface Job {
   termsAccepted?: boolean;
   termsAcceptedAt?: Date;
   termsAcceptedBy?: string;
+  setupType?: 'simple' | 'advanced';
+  managementType?: string;
+  setupComplete?: boolean;
+  pendingConsultantAssignment?: boolean;
 
   // Post-Launch Configuration
   alertsEnabled?: {

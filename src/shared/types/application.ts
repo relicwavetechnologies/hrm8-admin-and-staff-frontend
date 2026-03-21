@@ -262,6 +262,14 @@ export interface Application {
   shortlisted: boolean;
   shortlistedAt?: Date;
   shortlistedBy?: string;
+  consultantActionType?: 'ADVANCED' | 'REJECTED';
+  consultantActionedAt?: Date;
+  consultantActionedBy?: string;
+  consultantActionRoundId?: string;
+  managedPipelineOwner?: 'CONSULTANT' | 'COMPANY' | null;
+  offerHandoffAt?: string | Date;
+  offerHandoffBy?: string;
+  offerHandoffNote?: string;
   manuallyAdded: boolean;
   addedBy?: string;
   addedAt?: Date;

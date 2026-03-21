@@ -10,7 +10,7 @@ import * as z from 'zod';
 import { useAuth } from '@/shared/contexts/AuthContext';
 import { UserType } from '@/shared/services/authService';
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
@@ -29,11 +29,20 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
+    const [searchParams] = useSearchParams();
     const { login, isAuthenticated, userType, user } = useAuth();
     const navigate = useNavigate();
 
+    const isExtensionMode = searchParams.get('extension') === '1';
+    const extId = searchParams.get('ext_id') || '';
+
     useEffect(() => {
         if (isAuthenticated && userType && user) {
+            if (isExtensionMode && extId) {
+                const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '');
+                window.location.href = `${apiBase}/api/extension/callback?ext_id=${encodeURIComponent(extId)}`;
+                return;
+            }
             const raw = user.rawUser as { requiresCurrencySetup?: boolean };
             const needsCurrencySetup = userType !== 'ADMIN' && raw?.requiresCurrencySetup === true;
 
@@ -58,7 +67,7 @@ export default function LoginPage() {
                     navigate('/hrm8/dashboard');
             }
         }
-    }, [isAuthenticated, userType, user, navigate]);
+    }, [isAuthenticated, userType, user, navigate, isExtensionMode, extId]);
 
     const {
         register,

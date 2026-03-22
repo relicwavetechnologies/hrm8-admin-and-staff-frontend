@@ -1020,10 +1020,10 @@ export default function ExecutiveSearchWorkspacePage() {
                         <p className="font-medium">
                           {p.candidate
                             ? `${p.candidate.firstName} ${p.candidate.lastName}`
-                            : p.externalDisplayName || p.email || 'External prospect'}
+                            : p.externalDisplayName || 'External prospect'}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {p.candidate?.email || p.email}
+                          {p.candidate?.email || p.email || ''}
                         </p>
                       </div>
                       <Badge variant="outline">{p.stage}</Badge>

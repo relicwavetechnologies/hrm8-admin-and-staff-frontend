@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { SafeExternalLink } from '@/shared/components/SafeExternalLink';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
@@ -367,9 +368,9 @@ export default function Hrm8CompanyDetailPage() {
                       <dt className="text-muted-foreground">Website</dt>
                       <dd className="font-medium truncate">
                         {overview.company.website ? (
-                          <a href={overview.company.website} target="_blank" rel="noreferrer" className="text-primary hover:underline">
+                          <SafeExternalLink href={overview.company.website} className="text-primary hover:underline">
                             {overview.company.website}
-                          </a>
+                          </SafeExternalLink>
                         ) : '—'}
                       </dd>
                     </div>

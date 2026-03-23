@@ -1,5 +1,6 @@
 // @ts-nocheck
 import React, { useState, useEffect, useCallback } from 'react';
+import { SafeExternalLink } from '@/shared/components/SafeExternalLink';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
@@ -419,9 +420,9 @@ export function InterviewsTab({ application }: InterviewsTabProps) {
                       {interview.meetingLink && (
                         <>
                           <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1 bg-background" asChild>
-                            <a href={interview.meetingLink} target="_blank" rel="noopener noreferrer">
+                            <SafeExternalLink href={interview.meetingLink}>
                               <Video className="h-3 w-3" /> Join Meeting
-                            </a>
+                            </SafeExternalLink>
                           </Button>
                           <Button
                             variant="outline"
@@ -444,9 +445,9 @@ export function InterviewsTab({ application }: InterviewsTabProps) {
                       )}
                       {interview.recordingUrl && (
                         <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1 bg-background" asChild>
-                          <a href={interview.recordingUrl} target="_blank" rel="noopener noreferrer">
+                          <SafeExternalLink href={interview.recordingUrl}>
                             <PlayCircle className="h-3 w-3" /> Recording
-                          </a>
+                          </SafeExternalLink>
                         </Button>
                       )}
                     </div>

@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useEffect, useState } from 'react';
+import { SafeExternalLink } from '@/shared/components/SafeExternalLink';
 import { ResumeAnnotations } from '../ResumeAnnotations';
 import { applicationService } from '@/shared/lib/applicationService';
 import { Loader2, FileText, ExternalLink, Highlighter } from 'lucide-react';
@@ -72,10 +73,10 @@ export function ResumeAnnotationsTab({ candidateId, application }: ResumeAnnotat
         <p className="text-muted-foreground text-center max-w-md">{error}</p>
         {resumeUrl && (
           <Button variant="outline" asChild>
-            <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+            <SafeExternalLink href={resumeUrl} className="flex items-center gap-2">
               <ExternalLink className="h-4 w-4" />
               View Original Resume
-            </a>
+            </SafeExternalLink>
           </Button>
         )}
       </div>

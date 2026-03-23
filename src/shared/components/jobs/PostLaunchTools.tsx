@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { safeOpenExternal } from "@/shared/lib/safeExternalLink";
 import { Job } from "@/shared/types/job";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card";
@@ -140,13 +141,13 @@ export function PostLaunchTools({
   const handleShareLinkedIn = () => {
     const url = encodeURIComponent(shareLink);
     const text = encodeURIComponent(`Check out this job: ${job.title}`);
-    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}&text=${text}`, "_blank");
+    safeOpenExternal(`https://www.linkedin.com/sharing/share-offsite/?url=${url}&text=${text}`);
   };
 
   const handleShareTwitter = () => {
     const url = encodeURIComponent(shareLink);
     const text = encodeURIComponent(`Check out this job: ${job.title}`);
-    window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, "_blank");
+    safeOpenExternal(`https://twitter.com/intent/tweet?url=${url}&text=${text}`);
   };
 
 
@@ -396,7 +397,7 @@ export function PostLaunchTools({
                 variant="outline"
                 className="w-full justify-start"
                 onClick={() => {
-                  window.open(shareLink, "_blank");
+                  safeOpenExternal(shareLink);
                 }}
               >
                 <ExternalLink className="h-4 w-4 mr-2" />
@@ -407,7 +408,7 @@ export function PostLaunchTools({
                 variant="outline"
                 className="w-full justify-start"
                 onClick={() => {
-                  window.open(`/jobs/${job.id}`, "_blank");
+                  safeOpenExternal(`/jobs/${job.id}`);
                 }}
               >
                 <Users className="h-4 w-4 mr-2" />

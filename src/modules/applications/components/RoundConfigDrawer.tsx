@@ -4,6 +4,7 @@
  * General | Interview | Assessment | Email — all settings configurable in one flow
  */
 import { useState, useEffect } from "react";
+import { safeOpenExternal } from "@/shared/lib/safeExternalLink";
 import { FormDrawer } from "@/shared/components/ui/form-drawer";
 import { Button } from "@/shared/components/ui/button";
 import { Label } from "@/shared/components/ui/label";
@@ -1191,7 +1192,7 @@ export function RoundConfigDrawer({
                           <Button variant="outline" size="sm" onClick={() => setAiDialogOpen(true)} className="gap-1" title="Create with AI">
                             <Sparkles className="h-4 w-4" /> AI
                           </Button>
-                          <Button variant="outline" size="icon" onClick={() => window.open("/email-templates", "_blank")} title="Email Hub">
+                          <Button variant="outline" size="icon" onClick={() => safeOpenExternal("/email-templates")} title="Email Hub">
                             <Plus className="h-4 w-4" />
                           </Button>
                         </div>

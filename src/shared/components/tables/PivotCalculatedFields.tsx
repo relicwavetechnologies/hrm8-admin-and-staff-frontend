@@ -6,6 +6,7 @@ import { Card } from "@/shared/components/ui/card";
 import { Plus, Trash2, Calculator } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import { toast } from "@/shared/hooks/use-toast";
+import { safeArithmeticEval } from "@/shared/lib/safeArithmeticEval";
 
 export interface CalculatedField {
   id: string;
@@ -208,13 +209,8 @@ export function evaluateCalculatedField(
     expression = expression.replace(/MIN\(([^)]+)\)/g, "$1");
     expression = expression.replace(/MAX\(([^)]+)\)/g, "$1");
 
-    // Evaluate the expression safely (basic validation)
-    if (!/^[0-9+\-*/(). ]+$/.test(expression)) {
-      throw new Error("Invalid formula");
-    }
-
-     
-    return eval(expression);
+    // Evaluate with safe parser (no eval)
+    return safeArithmeticEval(expression);
   } catch (error) {
     console.error("Formula evaluation error:", error);
     return 0;

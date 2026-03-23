@@ -4,6 +4,7 @@ import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Application } from "@/shared/types/application";
 import { Mail, Phone, Linkedin, MapPin, Calendar, Star, Flag, Bell, BellOff, Tag, Globe } from "lucide-react";
+import { SafeExternalLink } from "@/shared/components/SafeExternalLink";
 import { AIMatchBadge } from "@/shared/components/applications/AIMatchBadge";
 import { formatDistanceToNow } from "date-fns";
 
@@ -202,10 +203,10 @@ export function CandidateProfileHeader({ application, jobTitle }: CandidateProfi
                 className="gap-2"
                 asChild
               >
-                <a href={application.linkedInUrl} target="_blank" rel="noopener noreferrer">
+                <SafeExternalLink href={application.linkedInUrl}>
                   <Linkedin className="h-4 w-4" />
                   LinkedIn
-                </a>
+                </SafeExternalLink>
               </Button>
             )}
 
@@ -217,10 +218,10 @@ export function CandidateProfileHeader({ application, jobTitle }: CandidateProfi
                 className="gap-2"
                 asChild
               >
-                <a href={application.portfolioUrl} target="_blank" rel="noopener noreferrer">
+                <SafeExternalLink href={application.portfolioUrl}>
                   <Globe className="h-4 w-4" />
                   Portfolio
-                </a>
+                </SafeExternalLink>
               </Button>
             )}
           </div>

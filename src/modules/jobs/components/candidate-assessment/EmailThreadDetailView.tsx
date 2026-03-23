@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { SafeHtml } from '@/shared/components/SafeHtml';
 import { Button } from '@/shared/components/ui/button';
 import { ScrollArea } from '@/shared/components/ui/scroll-area';
 import { Badge } from '@/shared/components/ui/badge';
@@ -75,9 +76,10 @@ export function EmailThreadDetailView({
                   </Badge>
                 </div>
 
-                <div
+                <SafeHtml
+                  html={message.body || ''}
+                  config="email"
                   className="mt-1 text-xs text-foreground leading-relaxed prose prose-sm dark:prose-invert max-w-none"
-                  dangerouslySetInnerHTML={{ __html: message.body }}
                 />
               </Card>
             ))}

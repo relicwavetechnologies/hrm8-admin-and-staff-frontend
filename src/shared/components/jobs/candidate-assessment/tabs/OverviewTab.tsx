@@ -1,4 +1,5 @@
 import React from "react";
+import { safeOpenExternal } from "@/shared/lib/safeExternalLink";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Progress } from "@/shared/components/ui/progress";
@@ -81,7 +82,7 @@ export function OverviewTab({ application }: OverviewTabProps) {
             className="w-full shadow-sm" 
             size="sm" 
             variant="outline"
-            onClick={() => window.open(application.resumeUrl, '_blank')}
+            onClick={() => safeOpenExternal(application.resumeUrl)}
           >
             <FileText className="h-4 w-4 mr-2" />
             View Original Resume

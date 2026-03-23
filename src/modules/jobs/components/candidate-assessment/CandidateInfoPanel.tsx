@@ -1,5 +1,6 @@
 // @ts-nocheck
 import React, { useEffect, useMemo, useState } from 'react';
+import { safeOpenExternal } from '@/shared/lib/safeExternalLink';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
@@ -370,7 +371,7 @@ export function CandidateInfoPanel({
                       size="sm"
                       variant="outline"
                       className="flex-1 text-xs"
-                      onClick={() => window.open(application.resumeUrl, '_blank')}
+                      onClick={() => safeOpenExternal(application.resumeUrl)}
                     >
                       <Eye className="h-3 w-3 mr-1" />
                       View

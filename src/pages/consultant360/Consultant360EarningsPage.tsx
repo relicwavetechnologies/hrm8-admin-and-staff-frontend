@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useState } from "react";
+import { safeOpenExternal } from "@/shared/lib/safeExternalLink";
 import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
@@ -198,7 +199,7 @@ export default function Consultant360EarningsPage() {
     async function handleStripeLogin() {
         const response = await consultant360Service.getStripeLoginLink();
         if (response.success && response.data?.url) {
-            window.open(response.data.url, "_blank");
+            safeOpenExternal(response.data.url);
         } else {
             toast.error(response.error || "Failed to get Stripe login link");
         }

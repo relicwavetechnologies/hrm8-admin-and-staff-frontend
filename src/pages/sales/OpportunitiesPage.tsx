@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { SafeExternalLink } from "@/shared/components/SafeExternalLink";
 import { Button } from "@/shared/components/ui/button";
 import { DataTable } from "@/shared/components/tables/DataTable";
 import { Plus, ArrowRight, Building2, Mail, Phone, Globe, Loader2, CheckCircle2, Brain, FileText, Send, Database, Clock } from "lucide-react";
@@ -346,9 +347,9 @@ export default function OpportunitiesPage() {
         <div className="flex flex-col">
           <span className="font-medium">{lead.company_name}</span>
           {lead.website && (
-            <a href={lead.website} target="_blank" rel="noreferrer" className="text-xs text-muted-foreground hover:underline flex items-center gap-1">
+            <SafeExternalLink href={lead.website} className="text-xs text-muted-foreground hover:underline flex items-center gap-1">
               <Globe className="h-3 w-3" /> {lead.website}
-            </a>
+            </SafeExternalLink>
           )}
         </div>
       ),

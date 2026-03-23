@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { SafeExternalLink } from "@/shared/components/SafeExternalLink";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
@@ -167,10 +168,10 @@ export function CandidateInfoPanel({
                   </Button>
                   <Button variant="outline" className="flex-1 rounded-xl" asChild={Boolean(application.resumeUrl)}>
                     {application.resumeUrl ? (
-                      <a href={application.resumeUrl} target="_blank" rel="noreferrer">
+                      <SafeExternalLink href={application.resumeUrl}>
                         <Download className="mr-2 h-4 w-4" />
                         Download
-                      </a>
+                      </SafeExternalLink>
                     ) : (
                       <span>
                         <Download className="mr-2 h-4 w-4" />

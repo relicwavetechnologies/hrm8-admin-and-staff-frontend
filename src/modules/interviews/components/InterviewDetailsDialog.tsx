@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { SafeExternalLink } from '@/shared/components/SafeExternalLink';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog';
 import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
@@ -103,10 +104,10 @@ export function InterviewDetailsDialog({
               )}
               {interview.meetingLink && (
                 <Button variant="outline" size="sm" className="w-full" asChild>
-                  <a href={interview.meetingLink} target="_blank" rel="noopener noreferrer">
+                  <SafeExternalLink href={interview.meetingLink}>
                     <ExternalLink className="h-4 w-4 mr-2" />
                     Join Meeting
-                  </a>
+                  </SafeExternalLink>
                 </Button>
               )}
             </div>
@@ -125,9 +126,9 @@ export function InterviewDetailsDialog({
                     <p className="text-sm text-muted-foreground capitalize">{interviewer.role}</p>
                   </div>
                   <Button variant="ghost" size="sm" asChild>
-                    <a href={`mailto:${interviewer.email}`}>
+                    <SafeExternalLink href={`mailto:${interviewer.email}`} openInNewTab={false}>
                       <Mail className="h-4 w-4" />
-                    </a>
+                    </SafeExternalLink>
                   </Button>
                 </div>
               ))}

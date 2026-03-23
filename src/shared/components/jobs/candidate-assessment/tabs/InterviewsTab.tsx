@@ -1,4 +1,4 @@
-
+import { SafeExternalLink } from '@/shared/components/SafeExternalLink';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
@@ -180,20 +180,20 @@ export function InterviewsTab({ application }: InterviewsTabProps) {
             <div className="flex gap-2">
               {interview.meetingLink && interview.status === 'scheduled' && (
                 <Button variant="outline" size="sm" asChild>
-                  <a href={interview.meetingLink} target="_blank" rel="noopener noreferrer">
+                  <SafeExternalLink href={interview.meetingLink}>
                     <Video className="h-4 w-4 mr-2" />
                     Join
                     <ExternalLink className="h-3 w-3 ml-1" />
-                  </a>
+                  </SafeExternalLink>
                 </Button>
               )}
               {interview.recordingUrl && interview.status === 'completed' && (
                 <Button variant="outline" size="sm" asChild>
-                  <a href={interview.recordingUrl} target="_blank" rel="noopener noreferrer">
+                  <SafeExternalLink href={interview.recordingUrl}>
                     <PlayCircle className="h-4 w-4 mr-2" />
                     Recording
                     <ExternalLink className="h-3 w-3 ml-1" />
-                  </a>
+                  </SafeExternalLink>
                 </Button>
               )}
             </div>

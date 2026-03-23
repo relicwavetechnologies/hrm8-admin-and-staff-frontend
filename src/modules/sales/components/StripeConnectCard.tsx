@@ -1,5 +1,5 @@
-
 import { useState, useEffect } from "react";
+import { safeOpenExternal } from "@/shared/lib/safeExternalLink";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
@@ -60,7 +60,7 @@ export function StripeConnectCard({ onStatusChange }: StripeConnectCardProps) {
             const response = await salesService.getStripeLoginLink();
             const url = response.data?.url || response.data?.loginLink;
             if (response.success && url) {
-                window.open(url, "_blank");
+                safeOpenExternal(url);
             } else {
                 toast.error("Failed to get login link");
             }

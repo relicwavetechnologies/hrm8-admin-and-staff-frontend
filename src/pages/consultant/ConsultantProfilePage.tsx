@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { SafeExternalLink } from '@/shared/components/SafeExternalLink';
 import { useSearchParams } from 'react-router-dom';
 // import { useAuth } from '@/shared/contexts/AuthContext';
 import { consultantService, ConsultantProfile } from '@/shared/lib/consultant/consultantService';
@@ -646,9 +647,9 @@ export default function ConsultantProfilePage() {
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-emerald-900">Current Resume</p>
-                  <a href={profile.resume_url} target="_blank" rel="noopener noreferrer" className="text-xs text-emerald-600 hover:underline">
+                  <SafeExternalLink href={profile.resume_url} className="text-xs text-emerald-600 hover:underline">
                     View / Download
-                  </a>
+                  </SafeExternalLink>
                 </div>
                 <Button
                   variant="outline"

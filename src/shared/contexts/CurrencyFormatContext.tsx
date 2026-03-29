@@ -1,131 +1,99 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { useAuth } from './AuthContext';
+import type { ConsultantUser } from '@/shared/lib/consultantAuthService';
 
 type CurrencyFormat = 'whole' | 'decimal';
-type CurrencyCode = 'USD' | 'EUR' | 'GBP';
-
-interface ExchangeRates {
-  EUR: number;
-  GBP: number;
-}
-
-interface CurrencyFormatContextType {
-  currencyFormat: CurrencyFormat;
-  setCurrencyFormat: (format: CurrencyFormat) => void;
-  selectedCurrency: CurrencyCode;
-  setSelectedCurrency: (currency: CurrencyCode) => void;
-  formatCurrency: (value: number, sourceCurrency?: string) => string;
-  exchangeRates: ExchangeRates;
-}
-
-const CurrencyFormatContext = createContext<CurrencyFormatContextType | undefined>(undefined);
 
 const CURRENCY_FORMAT_KEY = 'hrm8_currency_format';
-const SELECTED_CURRENCY_KEY = 'hrm8_selected_currency';
 
-// Fallback exchange rates (updated periodically)
-const FALLBACK_RATES: ExchangeRates = {
-  EUR: 0.92,
-  GBP: 0.79,
-};
+function localeForCurrency(code: string): string {
+  const c = code.toUpperCase();
+  if (c === 'EUR') return 'de-DE';
+  if (c === 'GBP') return 'en-GB';
+  if (c === 'INR') return 'en-IN';
+  return 'en-US';
+}
+
+function staffDisplayCurrency(user: ReturnType<typeof useAuth>['user']): string {
+  if (!user) return 'USD';
+  if (user.type === 'ADMIN') return 'USD';
+  const raw = user.rawUser as ConsultantUser;
+  const code = String(raw.payoutCurrency || raw.defaultCurrency || 'USD')
+    .trim()
+    .toUpperCase();
+  return /^[A-Z]{3}$/.test(code) ? code : 'USD';
+}
+
+export interface StaffCurrencyFormatContextType {
+  currencyFormat: CurrencyFormat;
+  setCurrencyFormat: (format: CurrencyFormat) => void;
+  /** Consultant payout / staff display currency, or USD for HRM8 admin. */
+  billingCurrency: string;
+  formatCurrency: (value: number, amountCurrency?: string) => string;
+}
+
+const CurrencyFormatContext = createContext<StaffCurrencyFormatContextType | undefined>(undefined);
 
 export function CurrencyFormatProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  const billingCurrency = useMemo(() => staffDisplayCurrency(user), [user]);
+
+  useEffect(() => {
+    try {
+      localStorage.removeItem('hrm8_selected_currency');
+    } catch {
+      /* noop */
+    }
+  }, []);
+
   const [currencyFormat, setCurrencyFormatState] = useState<CurrencyFormat>(() => {
     const stored = localStorage.getItem(CURRENCY_FORMAT_KEY);
-    return (stored as CurrencyFormat) || 'whole';
+    return stored === 'decimal' || stored === 'whole' ? stored : 'whole';
   });
-
-  const [selectedCurrency, setSelectedCurrencyState] = useState<CurrencyCode>(() => {
-    const stored = localStorage.getItem(SELECTED_CURRENCY_KEY);
-    return (stored as CurrencyCode) || 'USD';
-  });
-
-  const [exchangeRates, setExchangeRates] = useState<ExchangeRates>(FALLBACK_RATES);
-
-  // Fetch exchange rates on mount
-  useEffect(() => {
-    const fetchExchangeRates = async () => {
-      try {
-        const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
-        if (response.ok) {
-          const data = await response.json();
-          setExchangeRates({
-            EUR: data.rates.EUR || FALLBACK_RATES.EUR,
-            GBP: data.rates.GBP || FALLBACK_RATES.GBP,
-          });
-        }
-      } catch (error) {
-        console.log('Using fallback exchange rates');
-        // Keep using fallback rates
-      }
-    };
-
-    fetchExchangeRates();
-    // Refresh rates every hour
-    const interval = setInterval(fetchExchangeRates, 3600000);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     localStorage.setItem(CURRENCY_FORMAT_KEY, currencyFormat);
   }, [currencyFormat]);
 
-  useEffect(() => {
-    localStorage.setItem(SELECTED_CURRENCY_KEY, selectedCurrency);
-  }, [selectedCurrency]);
-
-  const setCurrencyFormat = (format: CurrencyFormat) => {
+  const setCurrencyFormat = useCallback((format: CurrencyFormat) => {
     setCurrencyFormatState(format);
-  };
+  }, []);
 
-  const setSelectedCurrency = (currency: CurrencyCode) => {
-    setSelectedCurrencyState(currency);
-  };
-
-  const formatCurrency = (value: number, sourceCurrency: string = 'USD'): string => {
-    const normalizedValue = Number(value);
-    let convertedValue = Number.isFinite(normalizedValue) ? normalizedValue : 0;
-
-    // Convert value to selected currency
-    // First convert to USD if source is different
-    if (sourceCurrency !== 'USD') {
-      if (sourceCurrency === 'EUR') {
-        convertedValue = convertedValue / exchangeRates.EUR;
-      } else if (sourceCurrency === 'GBP') {
-        convertedValue = convertedValue / exchangeRates.GBP;
+  const formatCurrency = useCallback(
+    (value: number, amountCurrency?: string) => {
+      const code = (amountCurrency || billingCurrency).toUpperCase();
+      const locale = localeForCurrency(code);
+      const opts: Intl.NumberFormatOptions = {
+        style: 'currency',
+        currency: code,
+        minimumFractionDigits: currencyFormat === 'whole' ? 0 : 2,
+        maximumFractionDigits: currencyFormat === 'whole' ? 0 : 2,
+      };
+      try {
+        return new Intl.NumberFormat(locale, opts).format(value);
+      } catch {
+        return new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: 'USD',
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 2,
+        }).format(value);
       }
-    }
-
-    // Then convert from USD to selected currency
-    if (selectedCurrency === 'EUR') {
-      convertedValue = convertedValue * exchangeRates.EUR;
-    } else if (selectedCurrency === 'GBP') {
-      convertedValue = convertedValue * exchangeRates.GBP;
-    }
-
-    const options: Intl.NumberFormatOptions = {
-      style: 'currency',
-      currency: selectedCurrency,
-      minimumFractionDigits: currencyFormat === 'whole' ? 0 : 2,
-      maximumFractionDigits: currencyFormat === 'whole' ? 0 : 2,
-    };
-
-    // Use appropriate locale for currency
-    const locale = selectedCurrency === 'EUR' ? 'de-DE' : selectedCurrency === 'GBP' ? 'en-GB' : 'en-US';
-    return new Intl.NumberFormat(locale, options).format(convertedValue);
-  };
-
-  return (
-    <CurrencyFormatContext.Provider value={{ 
-      currencyFormat, 
-      setCurrencyFormat, 
-      selectedCurrency,
-      setSelectedCurrency,
-      formatCurrency,
-      exchangeRates
-    }}>
-      {children}
-    </CurrencyFormatContext.Provider>
+    },
+    [billingCurrency, currencyFormat]
   );
+
+  const value = useMemo(
+    () => ({
+      currencyFormat,
+      setCurrencyFormat,
+      billingCurrency,
+      formatCurrency,
+    }),
+    [currencyFormat, setCurrencyFormat, billingCurrency, formatCurrency]
+  );
+
+  return <CurrencyFormatContext.Provider value={value}>{children}</CurrencyFormatContext.Provider>;
 }
 
 export function useCurrencyFormat() {

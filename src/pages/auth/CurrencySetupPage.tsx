@@ -22,7 +22,8 @@ const FALLBACK_CURRENCIES = ['USD', 'GBP', 'EUR', 'AUD', 'INR', 'NZD', 'SGD', 'C
 export default function CurrencySetupPage() {
     const [loading, setLoading] = useState(false);
     const [currenciesLoading, setCurrenciesLoading] = useState(true);
-    const [availableCurrencies, setAvailableCurrencies] = useState<string[]>(FALLBACK_CURRENCIES as unknown as string[]);
+    const [availableCurrencies, setAvailableCurrencies] = useState<string[]>([]);
+    const [currenciesError, setCurrenciesError] = useState<string | null>(null);
     const [selectedCurrency, setSelectedCurrency] = useState<string>('');
     const { user, userType, refreshUser } = useAuth();
     const navigate = useNavigate();
@@ -56,10 +57,25 @@ export default function CurrencySetupPage() {
     useEffect(() => {
         getAvailableCurrencies()
             .then((currencies) => {
-                setAvailableCurrencies(currencies.length > 0 ? currencies : (FALLBACK_CURRENCIES as unknown as string[]));
+                if (currencies.length > 0) {
+                    setAvailableCurrencies(currencies);
+                    setCurrenciesError(null);
+                } else if (import.meta.env.PROD) {
+                    setCurrenciesError('No billing currencies are configured yet. Contact support.');
+                    setAvailableCurrencies([]);
+                } else {
+                    setAvailableCurrencies([...FALLBACK_CURRENCIES]);
+                    setCurrenciesError('Using dev fallback list — pricing API returned no currencies.');
+                }
             })
             .catch(() => {
-                setAvailableCurrencies(FALLBACK_CURRENCIES as unknown as string[]);
+                if (import.meta.env.PROD) {
+                    setCurrenciesError('Could not load available currencies. Retry shortly or contact support.');
+                    setAvailableCurrencies([]);
+                } else {
+                    setAvailableCurrencies([...FALLBACK_CURRENCIES]);
+                    setCurrenciesError('Pricing API failed — using dev fallback list.');
+                }
             })
             .finally(() => setCurrenciesLoading(false));
     }, []);
@@ -121,6 +137,11 @@ export default function CurrencySetupPage() {
                 </CardHeader>
                 <form onSubmit={handleSubmit}>
                     <CardContent className="space-y-4">
+                        {currenciesError ? (
+                            <p className="text-sm text-destructive" role="alert">
+                                {currenciesError}
+                            </p>
+                        ) : null}
                         <div className="space-y-2">
                             <Label htmlFor="currency">Payout Currency</Label>
                             <Select
@@ -129,7 +150,7 @@ export default function CurrencySetupPage() {
                                     (availableCurrencies.includes(suggestedCurrency) ? suggestedCurrency : availableCurrencies[0] ?? 'USD')
                                 }
                                 onValueChange={setSelectedCurrency}
-                                disabled={loading || currenciesLoading}
+                                disabled={loading || currenciesLoading || availableCurrencies.length === 0}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder={currenciesLoading ? 'Loading currencies…' : 'Select currency'} />
@@ -148,11 +169,15 @@ export default function CurrencySetupPage() {
                                 type="button"
                                 variant="outline"
                                 onClick={handleUseDefault}
-                                disabled={loading}
+                                disabled={loading || availableCurrencies.length === 0}
                             >
                                 Use default ({suggestedCurrency})
                             </Button>
-                            <Button type="submit" disabled={loading} className="flex-1">
+                            <Button
+                                type="submit"
+                                disabled={loading || currenciesLoading || availableCurrencies.length === 0}
+                                className="flex-1"
+                            >
                                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 Save & Continue
                             </Button>

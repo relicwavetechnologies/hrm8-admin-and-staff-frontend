@@ -17,8 +17,9 @@ import { EntityReference } from "@/shared/types/ai-references";
 import { ConfirmationCard } from "@/shared/components/common/ConfirmationCard";
 import { UpgradePlanDialog } from "@/shared/components/UpgradePlanDialog";
 
-// Use empty string to leverage Vite's proxy configuration for /api requests
-const API_BASE_URL = "";
+// Prefer VITE_API_URL (same as api.ts / Hrm8AiAssistantSidebar) so streaming hits the API in dev;
+// empty string falls back to same-origin + Vite `/api` proxy when unset.
+const API_BASE_URL = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 
 const AssistantToolVizChartLazy = lazy(() => import("@/shared/components/common/AssistantToolVizChart"));
 
@@ -453,6 +454,12 @@ export function AiAssistantSidebar({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const lastUserMessageRef = useRef<HTMLDivElement>(null);
+  /** Holds the same instance as `recognition` state — used for cleanup without re-running the init effect */
+  const recognitionRef = useRef<{
+    start(): void;
+    stop(): void;
+    setRestartFlag?(v: boolean): void;
+  } | null>(null);
 
   const lastUserMessageId = useMemo(() => {
     for (let i = chatMessages.length - 1; i >= 0; i--) {
@@ -529,22 +536,25 @@ export function AiAssistantSidebar({
           shouldRestart = value;
         };
 
+        recognitionRef.current = recognitionInstance;
         setRecognition(recognitionInstance);
       }
     }
 
-    // Cleanup: stop recording when component unmounts
+    // Cleanup: stop recording when component unmounts (use ref — do not depend on `recognition` state or this effect loops)
     return () => {
-      if (recognition) {
+      const r = recognitionRef.current;
+      recognitionRef.current = null;
+      if (r) {
         try {
-          recognition.setRestartFlag?.(false);
-          recognition.stop();
+          r.setRestartFlag?.(false);
+          r.stop();
         } catch (e) {
           console.error("Cleanup error:", e);
         }
       }
     };
-  }, [setInput, recognition]);
+  }, [setInput]);
 
   // Stop recording when streaming starts
   useEffect(() => {

@@ -33,6 +33,12 @@ import {
   AlertDialogTitle,
 } from '@/shared/components/ui/alert-dialog';
 
+/** Controlled ISO 4217 codes for price books and country maps (avoids free-text typos). */
+const ISO_4217_BILLING_CURRENCIES = [
+  'USD', 'EUR', 'GBP', 'AUD', 'CAD', 'CHF', 'CNY', 'HKD', 'INR', 'JPY', 'KRW', 'MXN', 'NZD', 'SGD', 'SEK', 'NOK',
+  'DKK', 'PLN', 'ZAR', 'AED', 'SAR', 'ILS', 'TRY', 'THB', 'MYR', 'PHP', 'IDR', 'BRL', 'CZK', 'HUF',
+] as const;
+
 export default function PricingPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [priceBooks, setPriceBooks] = useState<PriceBook[]>([]);
@@ -832,8 +838,22 @@ export default function PricingPage() {
               </div>
             )}
             <div className="space-y-1">
-              <Label>Currency</Label>
-              <Input value={priceBookForm.currency} onChange={(e) => setPriceBookForm({ ...priceBookForm, currency: e.target.value })} />
+              <Label>Currency (ISO 4217)</Label>
+              <Select
+                value={priceBookForm.currency}
+                onValueChange={(v) => setPriceBookForm({ ...priceBookForm, currency: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60">
+                  {ISO_4217_BILLING_CURRENCIES.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1">
               <Label>Status</Label>
@@ -1013,20 +1033,40 @@ export default function PricingPage() {
               />
             </div>
             <div className="space-y-1">
-              <Label>Pricing Peg</Label>
-              <Input
+              <Label>Pricing Peg (currency)</Label>
+              <Select
                 value={countryMapForm.pricingPeg}
-                onChange={(e) => setCountryMapForm({ ...countryMapForm, pricingPeg: e.target.value.toUpperCase() })}
-                placeholder="AUD"
-              />
+                onValueChange={(v) => setCountryMapForm({ ...countryMapForm, pricingPeg: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60">
+                  {ISO_4217_BILLING_CURRENCIES.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1">
               <Label>Billing Currency</Label>
-              <Input
+              <Select
                 value={countryMapForm.billingCurrency}
-                onChange={(e) => setCountryMapForm({ ...countryMapForm, billingCurrency: e.target.value.toUpperCase() })}
-                placeholder="AUD"
-              />
+                onValueChange={(v) => setCountryMapForm({ ...countryMapForm, billingCurrency: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60">
+                  {ISO_4217_BILLING_CURRENCIES.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>

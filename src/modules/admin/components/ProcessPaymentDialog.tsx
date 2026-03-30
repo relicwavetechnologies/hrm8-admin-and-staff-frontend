@@ -60,7 +60,8 @@ export function ProcessPaymentDialog({ open, onOpenChange, withdrawal, onSuccess
                 <DialogHeader>
                     <DialogTitle>Process Payment</DialogTitle>
                     <DialogDescription>
-                        Mark this withdrawal as paid and provide payment reference
+                        Record an <strong>offline</strong> payment (wire, cash, or external transfer). For Airwallex payouts,
+                        use <strong>Execute Airwallex payout</strong> on the withdrawals list instead.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -68,7 +69,9 @@ export function ProcessPaymentDialog({ open, onOpenChange, withdrawal, onSuccess
                     <div className="bg-blue-50 border border-blue-200 p-3 rounded-md">
                         <div className="text-sm text-blue-900">
                             <div className="font-medium">{withdrawal.consultantName}</div>
-                            <div className="text-2xl font-bold mt-1">{formatCurrency(withdrawal.amount)}</div>
+                            <div className="text-2xl font-bold mt-1">
+                                {formatCurrency(withdrawal.payoutAmount ?? withdrawal.amount, withdrawal.payoutCurrency || withdrawal.currency || undefined)}
+                            </div>
                         </div>
                     </div>
 
@@ -76,7 +79,7 @@ export function ProcessPaymentDialog({ open, onOpenChange, withdrawal, onSuccess
                         <Label htmlFor="paymentReference">Payment Reference / Transaction ID *</Label>
                         <Input
                             id="paymentReference"
-                            placeholder="e.g., TXN-123456, Stripe: pi_xxx, Wire: REF-xxx"
+                            placeholder="e.g., Wire REF-123456, ACH trace ID, bank confirmation"
                             value={paymentReference}
                             onChange={(e) => setPaymentReference(e.target.value)}
                             required

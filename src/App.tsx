@@ -1,7 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from '@/shared/components/ui/toaster'
 import { Toaster as Sonner } from '@/shared/components/ui/sonner'
-import { CurrencyFormatProvider } from '@/contexts/CurrencyFormatContext'
 import LoginPage from './pages/auth/LoginPage'
 import { RoleGuard } from '@/shared/components/auth/RoleGuard'
 import { Outlet } from 'react-router-dom'
@@ -115,7 +114,7 @@ function App() {
     }, [checkAuth]);
 
     return (
-        <CurrencyFormatProvider>
+        <>
             <Routes>
                 {/* Auth Routes */}
                 <Route path="/login" element={<LoginPage />} />
@@ -277,7 +276,7 @@ function App() {
             </Routes>
             <Toaster />
             <Sonner position="top-right" expand={false} richColors />
-        </CurrencyFormatProvider>
+        </>
     )
 }
 

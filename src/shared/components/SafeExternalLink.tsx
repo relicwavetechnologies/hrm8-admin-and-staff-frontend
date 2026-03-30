@@ -1,11 +1,11 @@
 import React from 'react';
 import { isSafeUrl } from '@/shared/lib/safeExternalLink';
 
-interface SafeExternalLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+export type SafeExternalLinkProps = Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> & {
   href: string | null | undefined;
   openInNewTab?: boolean;
   children: React.ReactNode;
-}
+};
 
 /** Renders a safe external link. If href is unsafe, renders as span (no click). */
 export function SafeExternalLink({

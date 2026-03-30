@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useState } from 'react';
+import { SafeHtml } from '@/shared/components/SafeHtml';
 import { Button } from '@/shared/components/ui/button';
 import { RichTextEditor } from '@/shared/components/ui/rich-text-editor';
 import { Card } from '@/shared/components/ui/card';
@@ -77,7 +78,7 @@ export function InterviewNotesSection({ interview, onSave }: InterviewNotesSecti
       ) : (
         <div className="prose prose-sm max-w-none">
           {notes ? (
-            <div dangerouslySetInnerHTML={{ __html: notes }} />
+            <SafeHtml html={notes} config="notes" className="prose prose-sm max-w-none" />
           ) : (
             <p className="text-muted-foreground italic">
               No notes added yet. Click "Edit Notes" to start taking notes.

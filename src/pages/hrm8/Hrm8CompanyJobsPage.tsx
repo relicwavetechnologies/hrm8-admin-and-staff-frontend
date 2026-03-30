@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect, useMemo } from 'react';
+import { SafeExternalLink } from '@/shared/components/SafeExternalLink';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
@@ -286,9 +287,9 @@ export default function Hrm8CompanyJobsPage() {
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
               {company.industry && <span>{company.industry}</span>}
               {company.website && (
-                <a href={company.website} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                <SafeExternalLink href={company.website} className="hover:underline">
                   {company.website}
-                </a>
+                </SafeExternalLink>
               )}
             </div>
           </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { safeOpenExternal } from '@/shared/lib/safeExternalLink';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog';
 import { Button } from '@/shared/components/ui/button';
 import { Separator } from '@/shared/components/ui/separator';
@@ -48,7 +49,7 @@ export function ExternalPromotionDialog({ open, onOpenChange, job, onSuccess }: 
     if (job.salaryMax) jobTargetUrl.searchParams.set('salaryMax', job.salaryMax.toString());
     
     // Open JobTarget in new tab
-    window.open(jobTargetUrl.toString(), '_blank');
+    safeOpenExternal(jobTargetUrl.toString());
     
     toast({
       title: "Redirected to JobTarget",

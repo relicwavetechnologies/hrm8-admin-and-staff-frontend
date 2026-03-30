@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { SafeHtml } from '@/shared/components/SafeHtml';
 import { DashboardPageLayout } from '@/shared/components/layouts/DashboardPageLayout';
 import { AtsPageHeader } from '@/shared/components/layouts/AtsPageHeader';
 import { consultantService } from '@/shared/lib/consultant/consultantService';
@@ -760,7 +761,7 @@ export default function ConsultantJobDetailPage() {
                       <CardTitle className="text-sm font-semibold">Description</CardTitle>
                     </CardHeader>
                     <CardContent className="pt-0 px-3 pb-3">
-                      <div className="prose prose-sm max-w-none text-xs leading-6" dangerouslySetInnerHTML={{ __html: frontendJob.description }} />
+                      <SafeHtml html={frontendJob.description || ''} config="richText" className="prose prose-sm max-w-none text-xs leading-6" />
                     </CardContent>
                   </Card>
 

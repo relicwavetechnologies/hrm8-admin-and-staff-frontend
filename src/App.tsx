@@ -1,7 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from '@/shared/components/ui/toaster'
 import { Toaster as Sonner } from '@/shared/components/ui/sonner'
-import { CurrencyFormatProvider } from '@/contexts/CurrencyFormatContext'
 import LoginPage from './pages/auth/LoginPage'
 import { RoleGuard } from '@/shared/components/auth/RoleGuard'
 import { Outlet } from 'react-router-dom'
@@ -49,6 +48,7 @@ import SalesPipelinePage from './pages/sales/SalesPipelinePage'
 import ConsultantProfilePage from './pages/consultant/ConsultantProfilePage'
 import ConsultantJobDetailPage from './pages/consultant/ConsultantJobDetailPage'
 import ConsultantJobSimpleSetupPage from './pages/consultant/ConsultantJobSimpleSetupPage'
+import ExecutiveSearchWorkspacePage from './pages/consultant/ExecutiveSearchWorkspacePage'
 import ConsultantCommissionsPage from './pages/consultant/ConsultantCommissionsPage'
 import ConsultantSettingsPage from './pages/consultant360/ConsultantSettingsPage'
 import ConsultantHelpPage from './pages/consultant360/ConsultantHelpPage'
@@ -114,7 +114,7 @@ function App() {
     }, [checkAuth]);
 
     return (
-        <CurrencyFormatProvider>
+        <>
             <Routes>
                 {/* Auth Routes */}
                 <Route path="/login" element={<LoginPage />} />
@@ -220,6 +220,7 @@ function App() {
                     {/* Consultant Portal */}
                     <Route path="/consultant/dashboard" element={<ConsultantDashboard />} />
                     <Route path="/consultant/jobs" element={<ConsultantJobsPage />} />
+                    <Route path="/consultant/jobs/:jobId/executive-search" element={<ExecutiveSearchWorkspacePage />} />
                     <Route path="/consultant/jobs/:jobId/setup-simple" element={<ConsultantJobSimpleSetupPage />} />
                     <Route path="/consultant/jobs/:jobId" element={<ConsultantJobDetailPage />} />
                     <Route path="/consultant/messages" element={<ConsultantMessagesPage />} />
@@ -253,6 +254,7 @@ function App() {
                     <Route path="/consultant360/dashboard" element={<Consultant360Dashboard />} />
                     <Route path="/consultant360/earnings" element={<Consultant360EarningsPage />} />
                     <Route path="/consultant360/jobs" element={<ConsultantJobsPage />} />
+                    <Route path="/consultant360/jobs/:jobId/executive-search" element={<ExecutiveSearchWorkspacePage />} />
                     <Route path="/consultant360/jobs/:jobId/setup-simple" element={<ConsultantJobSimpleSetupPage />} />
                     <Route path="/consultant360/jobs/:jobId" element={<ConsultantJobDetailPage />} />
                     <Route path="/consultant360/leads" element={<OpportunitiesPage />} />
@@ -274,7 +276,7 @@ function App() {
             </Routes>
             <Toaster />
             <Sonner position="top-right" expand={false} richColors />
-        </CurrencyFormatProvider>
+        </>
     )
 }
 

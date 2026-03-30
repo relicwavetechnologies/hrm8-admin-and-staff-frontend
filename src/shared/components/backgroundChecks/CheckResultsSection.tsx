@@ -1,4 +1,5 @@
 import { CheckCircle, XCircle, AlertTriangle, Clock, FileText, Shield } from 'lucide-react';
+import { SafeExternalLink } from '@/shared/components/SafeExternalLink';
 import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
 import { Separator } from '@/shared/components/ui/separator';
@@ -119,10 +120,10 @@ export default function CheckResultsSection({ check }: CheckResultsSectionProps)
             <>
               <Separator />
               <Button variant="outline" className="w-full gap-2" asChild>
-                <a href={check.reportUrl} target="_blank" rel="noopener noreferrer">
+                <SafeExternalLink href={check.reportUrl}>
                   <FileText className="h-4 w-4" />
                   View Full Report
-                </a>
+                </SafeExternalLink>
               </Button>
             </>
           )}
@@ -203,10 +204,10 @@ export default function CheckResultsSection({ check }: CheckResultsSectionProps)
                               className="w-full justify-start gap-2"
                               asChild
                             >
-                              <a href={doc.url} target="_blank" rel="noopener noreferrer">
+                              <SafeExternalLink href={doc.url}>
                                 <FileText className="h-4 w-4" />
                                 {doc.name}
-                              </a>
+                              </SafeExternalLink>
                             </Button>
                           ))}
                         </div>

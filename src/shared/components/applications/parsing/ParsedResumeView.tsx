@@ -1,3 +1,4 @@
+import { safeOpenExternal } from "@/shared/lib/safeExternalLink";
 import { ParsedResume, WorkExperience, Education, Skill, Certification } from "@/shared/types/application";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
@@ -209,7 +210,7 @@ export function ParsedResumeView({ parsedResume, resumeUrl }: ParsedResumeViewPr
             <Button
               variant="outline"
               className="w-full"
-              onClick={() => window.open(resumeUrl, '_blank')}
+              onClick={() => safeOpenExternal(resumeUrl)}
             >
               <ExternalLink className="h-4 w-4 mr-2" />
               View Original Resume
@@ -398,7 +399,7 @@ function CertificationItem({ certification }: { certification: Certification }) 
           variant="ghost"
           size="sm"
           className="h-7 text-xs"
-          onClick={() => window.open(certification.verificationUrl, '_blank')}
+          onClick={() => safeOpenExternal(certification.verificationUrl)}
         >
           <ExternalLink className="h-3 w-3 mr-1" />
           Verify

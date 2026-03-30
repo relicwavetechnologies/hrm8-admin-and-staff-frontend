@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useState, useEffect } from "react";
+import { safeOpenExternal } from "@/shared/lib/safeExternalLink";
 import { Application } from "@/shared/types/application";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/shared/components/ui/sheet";
 import { Button } from "@/shared/components/ui/button";
@@ -165,7 +166,7 @@ export function CandidateEvaluationView({ application, isOpen, onClose, onEvalua
                 onClick={() => {
                   const url = application.resumeUrl || (application as any).resume_url;
                   if (url) {
-                    window.open(url, '_blank');
+                    safeOpenExternal(url);
                   } else {
                     toast({
                       title: "Resume missing",

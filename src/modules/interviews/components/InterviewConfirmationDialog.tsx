@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useState } from 'react';
+import { SafeExternalLink } from '@/shared/components/SafeExternalLink';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog';
 import { Button } from '@/shared/components/ui/button';
 import { Textarea } from '@/shared/components/ui/textarea';
@@ -96,9 +97,9 @@ export function InterviewConfirmationDialog({
             {interview.meetingLink && (
               <div className="flex items-center gap-2 text-sm">
                 <Video className="h-4 w-4 text-muted-foreground" />
-                <a href={interview.meetingLink} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                <SafeExternalLink href={interview.meetingLink} className="text-primary hover:underline">
                   Join Video Call
-                </a>
+                </SafeExternalLink>
               </div>
             )}
 

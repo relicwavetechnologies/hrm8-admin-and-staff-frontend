@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { SafeHtml } from '@/shared/components/SafeHtml';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { Checkbox } from '@/shared/components/ui/checkbox';
@@ -137,9 +138,7 @@ export function ConsentFormView({
             className="h-64 border rounded-lg p-4 bg-muted/20"
             onScrollCapture={handleScroll}
           >
-            <div className="prose prose-sm max-w-none text-foreground">
-              <div dangerouslySetInnerHTML={{ __html: consentRequest.legalDisclosure }} />
-            </div>
+            <SafeHtml html={consentRequest.legalDisclosure || ''} config="legal" className="prose prose-sm max-w-none text-foreground" />
           </ScrollArea>
 
           {!scrolledToBottom && (

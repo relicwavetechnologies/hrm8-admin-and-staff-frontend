@@ -7,6 +7,7 @@ import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Input } from "@/shared/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
+import { SafeExternalLink } from "@/shared/components/SafeExternalLink";
 import { Application } from "@/shared/types/application";
 import { applicationService } from "@/shared/lib/applicationService";
 import { useToast } from "@/shared/hooks/use-toast";
@@ -948,18 +949,18 @@ export function ManualScreeningPanel({
                     <div className="flex items-center gap-2">
                       <ExternalLink className="h-4 w-4 text-muted-foreground" />
                       <span className="text-muted-foreground">Portfolio:</span>
-                      <a href={selectedApplication.portfolioUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                      <SafeExternalLink href={selectedApplication.portfolioUrl} className="text-primary hover:underline">
                         View
-                      </a>
+                      </SafeExternalLink>
                     </div>
                   )}
                   {selectedApplication.linkedInUrl && (
                     <div className="flex items-center gap-2">
                       <ExternalLink className="h-4 w-4 text-muted-foreground" />
                       <span className="text-muted-foreground">LinkedIn:</span>
-                      <a href={selectedApplication.linkedInUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                      <SafeExternalLink href={selectedApplication.linkedInUrl} className="text-primary hover:underline">
                         View
-                      </a>
+                      </SafeExternalLink>
                     </div>
                   )}
                 </div>

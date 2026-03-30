@@ -4,19 +4,21 @@ import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { useToast } from "@/shared/hooks/use-toast";
 import { useCurrencyFormat } from "@/shared/contexts/CurrencyFormatContext";
-import { adminWithdrawalService, AdminWithdrawalRequest } from "@/shared/lib/admin/withdrawalService";
+import { adminWithdrawalService, AdminWithdrawalRequest, type PayoutConfigResponse } from "@/shared/lib/admin/withdrawalService";
 import { format } from "date-fns";
 import { CheckCircle, XCircle, DollarSign, Eye, Loader2 } from "lucide-react";
 import { ProcessPaymentDialog } from "@/modules/admin/components/ProcessPaymentDialog";
 import { RejectWithdrawalDialog } from "@/modules/admin/components/RejectWithdrawalDialog";
 import { WithdrawalDetailsDialog } from "@/modules/admin/components/WithdrawalDetailsDialog";
 import { Card } from "@/shared/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/shared/components/ui/alert";
 
 export default function WithdrawalsPage() {
     const { toast } = useToast();
     const { formatCurrency } = useCurrencyFormat();
     const [withdrawals, setWithdrawals] = useState<AdminWithdrawalRequest[]>([]);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
+    const [payoutConfig, setPayoutConfig] = useState<PayoutConfigResponse | null>(null);
 
     // Dialog states
     const [selectedWithdrawal, setSelectedWithdrawal] = useState<AdminWithdrawalRequest | null>(null);
@@ -55,8 +57,16 @@ export default function WithdrawalsPage() {
         return () => clearInterval(interval);
     }, [fetchWithdrawals]);
 
+    useEffect(() => {
+        adminWithdrawalService.getPayoutConfig().then(setPayoutConfig).catch(() => setPayoutConfig(null));
+    }, []);
+
     const handleApprove = async (withdrawal: AdminWithdrawalRequest) => {
-        if (!confirm(`Approve withdrawal of ${formatCurrency(withdrawal.amount)} for ${withdrawal.consultantName}?`)) {
+        if (
+            !confirm(
+                `Approve withdrawal of ${formatCurrency(withdrawal.payoutAmount ?? withdrawal.amount, withdrawal.payoutCurrency || withdrawal.currency || undefined)} for ${withdrawal.consultantName}?`
+            )
+        ) {
             return;
         }
 
@@ -79,6 +89,30 @@ export default function WithdrawalsPage() {
     const handleProcessClick = (withdrawal: AdminWithdrawalRequest) => {
         setSelectedWithdrawal(withdrawal);
         setProcessOpen(true);
+    };
+
+    const handleExecuteAirwallex = async (withdrawal: AdminWithdrawalRequest) => {
+        if (
+            !confirm(
+                `Execute Airwallex transfer for ${formatCurrency(withdrawal.payoutAmount ?? withdrawal.amount, withdrawal.payoutCurrency || withdrawal.currency || undefined)} to ${withdrawal.consultantName}?`
+            )
+        ) {
+            return;
+        }
+        setActionLoading(withdrawal.id);
+        try {
+            await adminWithdrawalService.executeAirwallexPayout(withdrawal.id);
+            toast({ title: "Payout initiated", description: "Airwallex transfer pipeline completed or started." });
+            fetchWithdrawals();
+        } catch (error: any) {
+            toast({
+                title: "Payout failed",
+                description: error.response?.data?.error || error.message || "Execute Airwallex payout failed",
+                variant: "destructive",
+            });
+        } finally {
+            setActionLoading(null);
+        }
     };
 
     const handleRejectClick = (withdrawal: AdminWithdrawalRequest) => {
@@ -127,7 +161,11 @@ export default function WithdrawalsPage() {
         {
             key: "amount",
             label: "Amount",
-            render: (item) => <span className="font-semibold text-lg">{formatCurrency(item.amount)}</span>,
+            render: (item) => (
+                <span className="font-semibold text-lg">
+                    {formatCurrency(item.payoutAmount ?? item.amount, item.payoutCurrency || item.currency || undefined)}
+                </span>
+            ),
         },
         {
             key: "paymentMethod",
@@ -184,16 +222,34 @@ export default function WithdrawalsPage() {
                     )}
 
                     {item.status === 'APPROVED' && (
-                        <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => handleProcessClick(item)}
-                            disabled={!!actionLoading}
-                            className="bg-blue-600 hover:bg-blue-700"
-                        >
-                            <DollarSign className="h-4 w-4 mr-1" />
-                            Process Payment
-                        </Button>
+                        <>
+                            <Button
+                                variant="default"
+                                size="sm"
+                                onClick={() => handleExecuteAirwallex(item)}
+                                disabled={!!actionLoading}
+                                className="bg-blue-600 hover:bg-blue-700"
+                            >
+                                {actionLoading === item.id ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    <>
+                                        <DollarSign className="h-4 w-4 mr-1" />
+                                        Execute Airwallex
+                                    </>
+                                )}
+                            </Button>
+                            {payoutConfig?.MANUAL_OFFLINE_PAYOUT_MODE || payoutConfig?.BILLING_PROVIDER_MODE === "mock" ? (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleProcessClick(item)}
+                                    disabled={!!actionLoading}
+                                >
+                                    Offline / manual
+                                </Button>
+                            ) : null}
+                        </>
                     )}
                 </div>
             ),
@@ -207,6 +263,41 @@ export default function WithdrawalsPage() {
                 <h1 className="text-2xl font-bold tracking-tight">Withdrawal Management</h1>
                 <p className="text-muted-foreground">Manage sales agent commission withdrawal requests</p>
             </div>
+
+            {payoutConfig ? (
+                <Alert
+                    variant="default"
+                    className={
+                        payoutConfig.BILLING_PROVIDER_MODE === "live"
+                            ? undefined
+                            : "border-amber-500/40 bg-amber-50/50 dark:bg-amber-950/20"
+                    }
+                >
+                    <AlertTitle>Billing mode</AlertTitle>
+                    <AlertDescription className="text-sm space-y-1">
+                        <div>
+                            Provider: <strong>{payoutConfig.BILLING_PROVIDER_MODE}</strong>
+                            {payoutConfig.BILLING_STRICT_LIVE ? (
+                                <span> — live Airwallex errors will fail hard (no mock fallback).</span>
+                            ) : payoutConfig.BILLING_PROVIDER_MODE === "live" ? (
+                                <span className="text-amber-700 dark:text-amber-300">
+                                    {" "}
+                                    — mock fallback on errors is <strong>enabled</strong> (dev/sandbox only; disable in
+                                    production).
+                                </span>
+                            ) : (
+                                <span> — synthetic checkout and transfers (no real money).</span>
+                            )}
+                        </div>
+                        <div>
+                            Manual offline completion:{" "}
+                            {payoutConfig.MANUAL_OFFLINE_PAYOUT_MODE || payoutConfig.BILLING_PROVIDER_MODE === "mock"
+                                ? "allowed"
+                                : "disabled — use Execute Airwallex only"}
+                        </div>
+                    </AlertDescription>
+                </Alert>
+            ) : null}
 
             <Card className="p-1">
                 <DataTable

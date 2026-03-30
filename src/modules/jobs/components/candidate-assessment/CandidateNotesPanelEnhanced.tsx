@@ -192,14 +192,11 @@ export function CandidateNotesPanelEnhanced({
         }
       } catch (error) {
         console.error('Failed to fetch notes:', error);
-        const storedNotes = localStorage.getItem(`candidate_notes_${applicationId}`);
-        if (storedNotes) {
-          try {
-            setNotes(JSON.parse(storedNotes));
-          } catch {
-            setNotes([]);
-          }
-        }
+        toast({
+          title: 'Failed to load notes',
+          description: 'Please try again.',
+          variant: 'destructive',
+        });
       }
     };
 
@@ -293,23 +290,11 @@ export function CandidateNotesPanelEnhanced({
       }
     } catch (error) {
       console.error('Failed to submit note:', error);
-      const mentionRegex2 = /@(\w+\s?\w*)/g;
-      const mentions2: string[] = [];
-      let match2: RegExpExecArray | null;
-      while ((match2 = mentionRegex2.exec(noteContent)) !== null) {
-        mentions2.push(match2[1]);
-      }
-      const newNote: Note = {
-        id: Date.now().toString(),
-        content: noteContent.trim(),
-        authorId: 'current-user',
-        authorName: 'You',
-        createdAt: new Date().toISOString(),
-        mentions: mentions2,
-      };
-      setNotes(prev => [newNote, ...prev]);
-      localStorage.setItem(`candidate_notes_${applicationId}`, JSON.stringify([newNote, ...notes]));
-      setNoteContent('');
+      toast({
+        title: 'Failed to save note',
+        description: 'Please try again. Notes are not saved locally.',
+        variant: 'destructive',
+      });
     } finally {
       setIsSubmitting(false);
     }

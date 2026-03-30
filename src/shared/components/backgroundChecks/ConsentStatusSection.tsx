@@ -1,4 +1,5 @@
 import { CheckCircle, XCircle, Clock, Mail, Eye, Calendar, Globe } from 'lucide-react';
+import { SafeExternalLink } from '@/shared/components/SafeExternalLink';
 import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
 import { Separator } from '@/shared/components/ui/separator';
@@ -208,9 +209,9 @@ export default function ConsentStatusSection({ check: _check, consents }: Consen
         </div>
         {latestConsent.privacyPolicyUrl && (
           <Button variant="link" className="mt-4 p-0 h-auto" asChild>
-            <a href={latestConsent.privacyPolicyUrl} target="_blank" rel="noopener noreferrer">
+            <SafeExternalLink href={latestConsent.privacyPolicyUrl}>
               View Privacy Policy →
-            </a>
+            </SafeExternalLink>
           </Button>
         )}
       </Card>

@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { FormDrawer } from "@/shared/components/ui/form-drawer";
+import { SafeExternalLink } from "@/shared/components/SafeExternalLink";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
@@ -301,10 +302,10 @@ export function InterviewDetailPanel({
             {interview.recordingUrl && (
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" asChild>
-                  <a href={interview.recordingUrl} target="_blank" rel="noopener noreferrer">
+                  <SafeExternalLink href={interview.recordingUrl}>
                     <PlayCircle className="h-4 w-4 mr-2" />
                     View Recording
-                  </a>
+                  </SafeExternalLink>
                 </Button>
               </div>
             )}

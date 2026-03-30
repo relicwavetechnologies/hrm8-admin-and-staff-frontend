@@ -1,3 +1,4 @@
+import { SafeHtml } from "@/shared/components/SafeHtml";
 import { JobFormData } from "@/shared/types/job";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
@@ -154,9 +155,10 @@ export function JobBoardPublicPreview({ formData }: JobBoardPublicPreviewProps) 
             <CardTitle>Description</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div
+            <SafeHtml
+              html={formData.description || ''}
+              config="richText"
               className="prose prose-sm max-w-none dark:prose-invert"
-              dangerouslySetInnerHTML={{ __html: formData.description }}
             />
           </CardContent>
         </Card>

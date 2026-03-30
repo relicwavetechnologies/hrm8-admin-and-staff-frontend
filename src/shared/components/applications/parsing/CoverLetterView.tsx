@@ -1,3 +1,4 @@
+import { safeOpenExternal } from "@/shared/lib/safeExternalLink";
 import { Application } from "@/shared/types/application";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
@@ -79,7 +80,7 @@ export function CoverLetterView({ application }: CoverLetterViewProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => window.open(application.coverLetterUrl, '_blank')}
+                  onClick={() => safeOpenExternal(application.coverLetterUrl)}
                 >
                   <ExternalLink className="h-4 w-4 mr-2" />
                   View Original

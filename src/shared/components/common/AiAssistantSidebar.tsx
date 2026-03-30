@@ -4,7 +4,7 @@
  * Works for all user types (HRM8, Consultant, Company)
  */
 
-import { FormEvent, useMemo, useState, useEffect, useRef } from "react";
+import { FormEvent, useMemo, useState, useEffect, useRef, lazy, Suspense } from "react";
 import { useChat } from "@ai-sdk/react";
 import { Button } from "@/shared/components/ui/button";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
@@ -17,8 +17,55 @@ import { EntityReference } from "@/shared/types/ai-references";
 import { ConfirmationCard } from "@/shared/components/common/ConfirmationCard";
 import { UpgradePlanDialog } from "@/shared/components/UpgradePlanDialog";
 
-// Use empty string to leverage Vite's proxy configuration for /api requests
-const API_BASE_URL = "";
+// Prefer VITE_API_URL (same as api.ts / Hrm8AiAssistantSidebar) so streaming hits the API in dev;
+// empty string falls back to same-origin + Vite `/api` proxy when unset.
+const API_BASE_URL = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+
+const AssistantToolVizChartLazy = lazy(() => import("@/shared/components/common/AssistantToolVizChart"));
+
+function extractAssistantVizFromToolResult(result: unknown): unknown {
+  if (result === null || typeof result !== "object") return null;
+
+  const pickViz = (obj: Record<string, unknown>): unknown => {
+    if ("_viz" in obj && obj._viz !== null && obj._viz !== undefined) return obj._viz;
+    const data = obj.data;
+    if (data && typeof data === "object" && data !== null && "_viz" in (data as object)) {
+      return (data as Record<string, unknown>)._viz;
+    }
+    const output = obj.output;
+    if (output && typeof output === "object" && output !== null) {
+      const o = output as Record<string, unknown>;
+      if ("_viz" in o) return o._viz;
+      const inner = o.result ?? o.value;
+      if (inner && typeof inner === "object" && inner !== null && "_viz" in (inner as object)) {
+        return (inner as Record<string, unknown>)._viz;
+      }
+    }
+    return null;
+  };
+
+  const r = result as Record<string, unknown>;
+  const direct = pickViz(r);
+  if (direct) return direct;
+
+  const toolPayload = r.data;
+  if (toolPayload && typeof toolPayload === "object" && !Array.isArray(toolPayload)) {
+    const fromData = pickViz(toolPayload as Record<string, unknown>);
+    if (fromData) return fromData;
+    const nestedViz = (toolPayload as Record<string, unknown>)._viz;
+    if (nestedViz !== undefined && nestedViz !== null) return nestedViz;
+  }
+
+  for (const key of ["result", "value", "payload"] as const) {
+    const inner = r[key];
+    if (inner && typeof inner === "object" && inner !== null) {
+      const v = pickViz(inner as Record<string, unknown>);
+      if (v) return v;
+    }
+  }
+
+  return null;
+}
 
 interface ToolInvocation {
   toolCallId: string;
@@ -40,8 +87,41 @@ interface ChatMessage {
   id: string;
   role: "user" | "assistant" | "system" | "data";
   content?: string;
-  parts?: Array<{ type?: string; text?: string }>;
+  parts?: Array<Record<string, unknown>>;
   toolInvocations?: ToolInvocation[];
+}
+
+function getMessageToolInvocations(message: ChatMessage): ToolInvocation[] {
+  const direct = message.toolInvocations;
+  if (Array.isArray(direct) && direct.length > 0) return direct;
+
+  const parts = message.parts;
+  if (!Array.isArray(parts)) return [];
+
+  const out: ToolInvocation[] = [];
+  for (const raw of parts) {
+    if (!raw || typeof raw !== "object") continue;
+    const part = raw as Record<string, unknown>;
+    const inv = part.toolInvocation;
+    if (part.type === "tool-invocation" && inv && typeof inv === "object") {
+      out.push(inv as ToolInvocation);
+      continue;
+    }
+    const type = part.type;
+    if (typeof type === "string" && type.startsWith("tool-") && typeof part.toolCallId === "string") {
+      const state = part.state;
+      if (state === "partial-call" || state === "call" || state === "result") {
+        out.push({
+          toolCallId: part.toolCallId,
+          toolName: type.slice("tool-".length),
+          args: (part.args as Record<string, unknown>) ?? {},
+          state,
+          result: part.result,
+        });
+      }
+    }
+  }
+  return out;
 }
 
 function renderText(message: ChatMessage): string {
@@ -54,6 +134,14 @@ function renderText(message: ChatMessage): string {
     .filter((part) => part?.type === "text" && typeof part?.text === "string")
     .map((part) => part.text as string)
     .join("\n");
+}
+
+function toolResultPayload(result: unknown): unknown {
+  if (result === null || typeof result !== "object" || Array.isArray(result)) return result;
+  const r = result as Record<string, unknown>;
+  const data = r.data;
+  if (data && typeof data === "object" && !Array.isArray(data)) return data;
+  return result;
 }
 
 /**
@@ -134,33 +222,47 @@ function ToolInvocationDisplay({ invocation }: { invocation: ToolInvocation }) {
   const { toolName, state } = invocation;
   const displayName = formatToolName(toolName);
   const isDone = state === 'result';
+  const viz = isDone ? extractAssistantVizFromToolResult(invocation.result) : null;
 
   return (
-    <div className="mb-1.5 flex items-center gap-1.5 py-0.5">
-      {/* Tiny status dot */}
-      <span
-        className={[
-          "h-1.5 w-1.5 rounded-full shrink-0 transition-colors duration-700",
-          isDone
-            ? "bg-muted-foreground/30"
-            : "bg-muted-foreground/50 animate-pulse",
-        ].join(" ")}
-      />
+    <div className="mb-1.5 py-0.5">
+      <div className="flex items-center gap-1.5">
+        {/* Tiny status dot */}
+        <span
+          className={[
+            "h-1.5 w-1.5 rounded-full shrink-0 transition-colors duration-700",
+            isDone
+              ? "bg-muted-foreground/30"
+              : "bg-muted-foreground/50 animate-pulse",
+          ].join(" ")}
+        />
 
-      {/* Tool name — shimmering while running, static when done */}
-      {isDone ? (
-        <span className="text-[11px] font-medium text-muted-foreground/50">
-          {displayName}
-        </span>
-      ) : (
-        <TextShimmer
-          className="text-[11px] font-medium"
-          duration={1.6}
-          spread={3}
+        {/* Tool name — shimmering while running, static when done */}
+        {isDone ? (
+          <span className="text-[11px] font-medium text-muted-foreground/50">
+            {displayName}
+          </span>
+        ) : (
+          <TextShimmer
+            className="text-[11px] font-medium"
+            duration={1.6}
+            spread={3}
+          >
+            {displayName}
+          </TextShimmer>
+        )}
+      </div>
+      {viz ? (
+        <Suspense
+          fallback={
+            <div className="mt-2 h-[120px] w-full animate-pulse rounded-md bg-muted/30 text-center text-[11px] leading-[120px] text-muted-foreground">
+              Loading chart…
+            </div>
+          }
         >
-          {displayName}
-        </TextShimmer>
-      )}
+          <AssistantToolVizChartLazy recipe={viz} />
+        </Suspense>
+      ) : null}
     </div>
   );
 }
@@ -352,6 +454,12 @@ export function AiAssistantSidebar({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const lastUserMessageRef = useRef<HTMLDivElement>(null);
+  /** Holds the same instance as `recognition` state — used for cleanup without re-running the init effect */
+  const recognitionRef = useRef<{
+    start(): void;
+    stop(): void;
+    setRestartFlag?(v: boolean): void;
+  } | null>(null);
 
   const lastUserMessageId = useMemo(() => {
     for (let i = chatMessages.length - 1; i >= 0; i--) {
@@ -428,22 +536,25 @@ export function AiAssistantSidebar({
           shouldRestart = value;
         };
 
+        recognitionRef.current = recognitionInstance;
         setRecognition(recognitionInstance);
       }
     }
 
-    // Cleanup: stop recording when component unmounts
+    // Cleanup: stop recording when component unmounts (use ref — do not depend on `recognition` state or this effect loops)
     return () => {
-      if (recognition) {
+      const r = recognitionRef.current;
+      recognitionRef.current = null;
+      if (r) {
         try {
-          recognition.setRestartFlag?.(false);
-          recognition.stop();
+          r.setRestartFlag?.(false);
+          r.stop();
         } catch (e) {
           console.error("Cleanup error:", e);
         }
       }
     };
-  }, [setInput, recognition]);
+  }, [setInput]);
 
   // Stop recording when streaming starts
   useEffect(() => {
@@ -732,7 +843,8 @@ export function AiAssistantSidebar({
               {chatMessages.map((message) => {
                 const text = renderText(message);
                 const isUser = message.role === "user";
-                const hasToolInvocations = message.toolInvocations && message.toolInvocations.length > 0;
+                const toolInvocations = getMessageToolInvocations(message);
+                const hasToolInvocations = toolInvocations.length > 0;
 
                 // Skip rendering if no text and no tool invocations
                 if (!text && !hasToolInvocations) return null;
@@ -753,8 +865,10 @@ export function AiAssistantSidebar({
                     {/* Tool Invocations */}
                     {hasToolInvocations && !isUser && (
                       <div className="mb-2">
-                        {message.toolInvocations!.map((invocation) => {
-                          const requiredConfirm = invocation.state === 'result' && (invocation.result as any)?.confirmationRequired === true;
+                        {toolInvocations.map((invocation) => {
+                          const payload = toolResultPayload(invocation.result) as Record<string, unknown> | undefined;
+                          const requiredConfirm =
+                            invocation.state === "result" && payload?.confirmationRequired === true;
 
                           return (
                             <div key={invocation.toolCallId}>
@@ -762,7 +876,7 @@ export function AiAssistantSidebar({
                               {requiredConfirm && (
                                 <ConfirmationCard
                                   toolName={invocation.toolName}
-                                  message={(invocation.result as any)?.message || "Please confirm this action."}
+                                  message={(typeof payload?.message === "string" ? payload.message : null) || "Please confirm this action."}
                                   onConfirm={() => {
                                     // Call the tool again with __confirmed: true
                                     const confirmBody = {

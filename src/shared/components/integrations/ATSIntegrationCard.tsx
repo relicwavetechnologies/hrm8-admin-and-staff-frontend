@@ -7,6 +7,7 @@ import { Label } from "@/shared/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog";
 import { Link2, CheckCircle2, XCircle, RefreshCw, ExternalLink } from "lucide-react";
+import { SafeExternalLink } from "@/shared/components/SafeExternalLink";
 import { useToast } from "@/shared/hooks/use-toast";
 import {
   connectATSProvider,
@@ -169,10 +170,10 @@ export function ATSIntegrationCard({ provider }: ATSIntegrationCardProps) {
                   Connect {providerInfo.name}
                 </Button>
                 <Button variant="outline" size="sm" asChild>
-                  <a href={providerInfo.setupGuideUrl} target="_blank" rel="noopener noreferrer">
+                  <SafeExternalLink href={providerInfo.setupGuideUrl}>
                     <ExternalLink className="h-4 w-4 mr-2" />
                     Setup Guide
-                  </a>
+                  </SafeExternalLink>
                 </Button>
               </div>
             </>

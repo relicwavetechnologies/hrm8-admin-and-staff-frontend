@@ -314,9 +314,16 @@ export default function ConsultantJobsPage() {
                   searchKeys={['title', 'company', 'location']}
                   emptyMessage="No jobs found"
                   onRowClick={(row) => {
-                  const serviceType = row.serviceType ?? row.service_package ?? '';
+                  const raw = (row.serviceType ?? row.service_package ?? '').toString();
+                  const serviceType = raw.toLowerCase().replace(/_/g, '-');
                   const isManaged = MANAGED_SERVICE_TYPES.includes(serviceType);
-                  navigate(isManaged ? `${row.id}/setup-simple` : `${row.id}`);
+                  if (serviceType === 'executive-search') {
+                    navigate(`${row.id}/executive-search`);
+                  } else if (isManaged) {
+                    navigate(`${row.id}/setup-simple`);
+                  } else {
+                    navigate(`${row.id}`);
+                  }
                 }}
                   resizable={false}
                 />

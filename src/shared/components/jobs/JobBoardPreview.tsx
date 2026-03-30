@@ -1,3 +1,4 @@
+import { SafeHtml } from "@/shared/components/SafeHtml";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { MapPin, Briefcase, DollarSign, Calendar } from "lucide-react";
@@ -75,9 +76,10 @@ export function JobBoardPreview({ formData }: JobBoardPreviewProps) {
         {formData.description && (
           <div>
             <h3 className="font-semibold text-lg mb-3">About the Role</h3>
-            <div
+            <SafeHtml
+              html={formData.description || ''}
+              config="richText"
               className="prose prose-sm max-w-none"
-              dangerouslySetInnerHTML={{ __html: formData.description }}
             />
           </div>
         )}

@@ -1,5 +1,7 @@
 // @ts-nocheck
 import React, { useState, useEffect } from 'react';
+import { SafeHtml } from '@/shared/components/SafeHtml';
+import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar';
 import { Badge } from '@/shared/components/ui/badge';
@@ -93,44 +95,39 @@ function parseReferencedContent(content: string): {
 export function NotesTab({ application, scope = 'all' }: NotesTabProps) {
   const [notes, setNotes] = useState<Note[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  const fetchNotes = React.useCallback(async () => {
+    if (!application.id) return;
+    setIsLoading(true);
+    setFetchError(null);
+    try {
+      const response = await apiClient.get<{ notes: any[] }>(
+        `/api/applications/${application.id}/notes`
+      );
+      if (response.success && response.data?.notes) {
+        const mappedNotes = response.data.notes.map((note: any) => ({
+          id: note.id,
+          content: note.content,
+          authorId: note.author?.id || 'unknown',
+          authorName: note.author?.name || 'Unknown',
+          authorAvatar: note.author?.avatar,
+          createdAt: note.createdAt,
+          mentions: note.mentions || [],
+        }));
+        setNotes(mappedNotes);
+      }
+    } catch (error) {
+      console.error('Failed to fetch notes:', error);
+      setFetchError('Failed to load notes. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [application.id]);
 
   useEffect(() => {
-    const fetchNotes = async () => {
-      if (!application.id) return;
-      setIsLoading(true);
-      try {
-        const response = await apiClient.get<{ notes: any[] }>(
-          `/api/applications/${application.id}/notes`
-        );
-        if (response.success && response.data?.notes) {
-          const mappedNotes = response.data.notes.map((note: any) => ({
-            id: note.id,
-            content: note.content,
-            authorId: note.author?.id || 'unknown',
-            authorName: note.author?.name || 'Unknown',
-            authorAvatar: note.author?.avatar,
-            createdAt: note.createdAt,
-            mentions: note.mentions || [],
-          }));
-          setNotes(mappedNotes);
-        }
-      } catch (error) {
-        console.error('Failed to fetch notes:', error);
-        const storedNotes = localStorage.getItem(`candidate_notes_${application.id}`);
-        if (storedNotes) {
-          try {
-            setNotes(JSON.parse(storedNotes));
-          } catch {
-            setNotes([]);
-          }
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchNotes();
-  }, [application.id]);
+  }, [fetchNotes]);
 
   const filteredNotes = notes.filter((note) => {
     const noteScope = getNoteScope(note.content);
@@ -146,6 +143,19 @@ export function NotesTab({ application, scope = 'all' }: NotesTabProps) {
       '<span class="text-primary font-medium">@$1</span>'
     );
   };
+
+  if (fetchError) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <p className="text-destructive mb-4">{fetchError}</p>
+          <Button variant="outline" size="sm" onClick={fetchNotes}>
+            Retry
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -217,9 +227,10 @@ export function NotesTab({ application, scope = 'all' }: NotesTabProps) {
                       {parsed.label}
                     </p>
                   )}
-                  <p
+                  <SafeHtml
+                    html={highlightMentions(parsed.body)}
+                    config="notes"
                     className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap"
-                    dangerouslySetInnerHTML={{ __html: highlightMentions(parsed.body) }}
                   />
                 </>
               );

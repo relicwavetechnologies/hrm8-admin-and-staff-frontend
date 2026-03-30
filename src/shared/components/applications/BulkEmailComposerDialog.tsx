@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { SafeHtml } from '@/shared/components/SafeHtml';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/shared/components/ui/dialog';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
@@ -180,7 +181,7 @@ export function BulkEmailComposerDialog({
               <Label>Email Body *</Label>
               {showPreview ? (
                 <Card className="p-4">
-                  <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: previewBody() }} />
+                  <SafeHtml html={previewBody()} config="email" className="prose prose-sm max-w-none" />
                 </Card>
               ) : (
                 <RichTextEditor

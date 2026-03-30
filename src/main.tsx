@@ -1,3 +1,13 @@
+// Suppress chrome-extension://invalid/ fetch errors from React DevTools / extension probes
+const _fetch = window.fetch
+window.fetch = function (input: RequestInfo | URL, init?: RequestInit) {
+  const url = typeof input === 'string' ? input : input instanceof Request ? input.url : String(input)
+  if (url.startsWith('chrome-extension://invalid')) {
+    return Promise.resolve(new Response('', { status: 404 }))
+  }
+  return _fetch.call(this, input as RequestInfo, init)
+}
+
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'

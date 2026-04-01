@@ -20,7 +20,7 @@ import { Alert, AlertDescription } from "@/shared/components/ui/alert";
 import { Loader2, Wallet, AlertCircle, CreditCard } from "lucide-react";
 import { walletService } from "@/shared/services/walletService";
 import { useToast } from "@/shared/hooks/use-toast";
-import { useStripeIntegration } from "@/shared/hooks/useStripeIntegration";
+import { usePaymentProviderIntegration } from "@/shared/hooks/usePaymentProviderIntegration";
 
 interface WalletRechargeDialogProps {
     open: boolean;
@@ -39,7 +39,7 @@ export function WalletRechargeDialog({
     const [selectedPreset, setSelectedPreset] = useState<number | null>(null);
     const { toast } = useToast();
     const queryClient = useQueryClient();
-    useStripeIntegration();
+    usePaymentProviderIntegration();
 
     const rechargeMutation = useMutation({
         mutationFn: async (rechargeAmount: number) => {

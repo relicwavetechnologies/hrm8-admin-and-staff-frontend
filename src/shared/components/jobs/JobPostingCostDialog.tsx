@@ -5,7 +5,9 @@ import { Progress } from "@/shared/components/ui/progress";
 
 import { getEmployerById } from "@/shared/lib/employerService";
 import { SUBSCRIPTION_TIERS, PAYG_JOB_POSTING_COST } from "@/shared/lib/subscriptionConfig";
+import { pricingService } from "@/shared/lib/pricingService";
 import { Building2, CreditCard, AlertCircle, CheckCircle, ArrowRight } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 interface JobPostingCostDialogProps {
   open: boolean;
@@ -35,6 +37,17 @@ export function JobPostingCostDialog({
   const hasUsedFreeTier = employer.hasUsedFreeTier || false;
   const currentOpenJobs = employer.currentOpenJobs || 0;
   const maxOpenJobs = employer.maxOpenJobs || 0;
+  const { data: pricingTiers } = useQuery({
+    queryKey: ['pricing', 'admin-job-posting-cost-dialog'],
+    queryFn: () => pricingService.getSubscriptionTiers(),
+    staleTime: 5 * 60 * 1000,
+  });
+  const paygTier = pricingTiers?.find((tier) => tier.planType === 'PAYG');
+  const smallTier = pricingTiers?.find((tier) => tier.planType === 'SMALL');
+  const mediumTier = pricingTiers?.find((tier) => tier.planType === 'MEDIUM');
+  const largeTier = pricingTiers?.find((tier) => tier.planType === 'LARGE');
+  const enterpriseTier = pricingTiers?.find((tier) => tier.planType === 'ENTERPRISE');
+  const paygPriceLabel = pricingService.formatPrice(paygTier?.price ?? PAYG_JOB_POSTING_COST, paygTier?.currency ?? 'USD');
 
   // Check if at limit
   const atLimit = isLite && hasUsedFreeTier;
@@ -97,18 +110,18 @@ export function JobPostingCostDialog({
                       <div className="text-sm text-muted-foreground ml-4 space-y-0.5">
                         {subscriptionTier === 'small' && (
                           <>
-                            <p>→ Medium: 25 jobs ($495/month)</p>
-                            <p>→ Large: 50 jobs ($695/month)</p>
+                            <p>→ Medium: 25 jobs/month{mediumTier ? ` (${pricingService.formatPrice(mediumTier.price, mediumTier.currency)}/month)` : ''}</p>
+                            <p>→ Large: 50 jobs/month{largeTier ? ` (${pricingService.formatPrice(largeTier.price, largeTier.currency)}/month)` : ''}</p>
                           </>
                         )}
                         {subscriptionTier === 'medium' && (
                           <>
-                            <p>→ Large: 50 jobs ($695/month)</p>
-                            <p>→ Enterprise: Unlimited ($995/month)</p>
+                            <p>→ Large: 50 jobs/month{largeTier ? ` (${pricingService.formatPrice(largeTier.price, largeTier.currency)}/month)` : ''}</p>
+                            <p>→ Enterprise: Unlimited jobs{enterpriseTier ? ` (${pricingService.formatPrice(enterpriseTier.price, enterpriseTier.currency)}/month)` : ''}</p>
                           </>
                         )}
                         {subscriptionTier === 'large' && (
-                          <p>→ Enterprise: Unlimited ($995/month)</p>
+                          <p>→ Enterprise: Unlimited jobs{enterpriseTier ? ` (${pricingService.formatPrice(enterpriseTier.price, enterpriseTier.currency)}/month)` : ''}</p>
                         )}
                       </div>
                     </div>
@@ -204,7 +217,7 @@ export function JobPostingCostDialog({
                 <div className="text-center py-2">
                   <p className="text-sm text-muted-foreground mb-1">Job Posting Fee</p>
                   <div className="text-3xl font-bold text-primary">
-                    ${PAYG_JOB_POSTING_COST}
+                    {paygPriceLabel}
                   </div>
                 </div>
 
@@ -242,7 +255,7 @@ export function JobPostingCostDialog({
               Cancel
             </Button>
             <Button onClick={onContinue} size="sm" className="flex-1">
-              Continue - Charge ${PAYG_JOB_POSTING_COST}
+              Continue - Charge {paygPriceLabel}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
@@ -273,7 +286,7 @@ export function JobPostingCostDialog({
                 <div>
                   <h4 className="font-semibold text-sm mb-1 flex items-center gap-2">
                     <CreditCard className="h-4 w-4" />
-                    Pay-As-You-Go: ${PAYG_JOB_POSTING_COST} per job
+                    Pay-As-You-Go: {paygPriceLabel} per job
                   </h4>
                   <ul className="text-sm text-muted-foreground space-y-0.5 ml-6">
                     <li>• No commitment</li>
@@ -289,7 +302,7 @@ export function JobPostingCostDialog({
                 <div>
                   <h4 className="font-semibold text-sm mb-1 flex items-center gap-2">
                     <Building2 className="h-4 w-4" />
-                    Subscribe: From $295/month
+                    Subscribe: {smallTier ? `From ${pricingService.formatPrice(smallTier.price, smallTier.currency)}/month` : 'Monthly plans available in your billing currency'}
                   </h4>
                   <ul className="text-sm text-muted-foreground space-y-0.5 ml-6">
                     <li>• 5-50 jobs included monthly</li>
@@ -362,7 +375,7 @@ export function JobPostingCostDialog({
 
               <div className="pt-2 border-t space-y-2">
                 <p className="text-xs text-muted-foreground">
-                  Future posts: ${PAYG_JOB_POSTING_COST} each (PAYG) or subscribe for 5+ jobs starting at $295/month
+                  Future posts: {paygPriceLabel} each (PAYG) or {smallTier ? `switch to monthly plans from ${pricingService.formatPrice(smallTier.price, smallTier.currency)}/month` : 'switch to a monthly subscription plan in your billing currency'}
                 </p>
                 <Button
                   variant="outline"

@@ -194,7 +194,7 @@ export const mockSystemIntegrations: SystemIntegration[] = [
   },
   {
     id: 'int-2',
-    name: 'Stripe Payments',
+    name: 'Airwallex Payments',
     type: 'payroll',
     status: 'active',
     connectedEmployers: 156,

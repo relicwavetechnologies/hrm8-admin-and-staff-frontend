@@ -1,14 +1,14 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from '@/shared/components/ui/toaster'
 import { Toaster as Sonner } from '@/shared/components/ui/sonner'
-import LoginPage from './pages/auth/LoginPage'
 import { RoleGuard } from '@/shared/components/auth/RoleGuard'
 import { Outlet } from 'react-router-dom'
 import { UnifiedDashboardLayout } from '@/shared/layouts/UnifiedDashboardLayout'
 import { useAuthStore } from '@/shared/stores/authStore'
 import { useRegionStore } from '@/shared/stores/useRegionStore'
 import { isAllRegionsSelected } from '@/shared/lib/regionScope'
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
+import { Loader2 } from 'lucide-react'
 
 /**
  * Dashboard Wrapper to provide the unified layout to role-protected routes
@@ -27,84 +27,92 @@ function AllRegionsWorkspaceRedirect({ overviewPath, listPath }: { overviewPath:
     return <Navigate to={isAllRegionsSelected(selectedRegionId) ? overviewPath : listPath} replace />;
 }
 
-import Hrm8Overview from './pages/hrm8/Hrm8Overview'
-import AnalyticsDashboard from './pages/hrm8/AnalyticsDashboard'
-import RevenueDashboardPage from './pages/hrm8/RevenueDashboardPage'
-import CommissionsPage from './pages/hrm8/CommissionsPage'
-import LicenseesPage from './pages/hrm8/LicenseesPage'
-import LicenseesWorkspacePage from './pages/hrm8/licensees/LicenseesWorkspacePage'
-import LicenseesOverviewPage from './pages/hrm8/licensees/LicenseesOverviewPage'
-import ConsultantDashboard from './pages/consultant/ConsultantDashboard'
-import RegionalCompaniesPage from './pages/hrm8/RegionalCompaniesPage'
-import Hrm8CompanyDetailPage from './pages/hrm8/Hrm8CompanyDetailPage'
-import JobAllocationPage from './pages/hrm8/JobAllocationPage'
-import ConsultantAssignmentRequestsPage from './pages/hrm8/ConsultantAssignmentRequestsPage'
-import SalesDashboardPage from './pages/sales/SalesDashboardPage'
-import Consultant360Dashboard from './pages/consultant360/Consultant360Dashboard'
-import Consultant360EarningsPage from './pages/consultant360/Consultant360EarningsPage'
-import ConsultantJobsPage from './pages/consultant/ConsultantJobsPage'
-import OpportunitiesPage from './pages/sales/OpportunitiesPage'
-import SalesPipelinePage from './pages/sales/SalesPipelinePage'
-import ConsultantProfilePage from './pages/consultant/ConsultantProfilePage'
-import ConsultantJobDetailPage from './pages/consultant/ConsultantJobDetailPage'
-import ConsultantJobSimpleSetupPage from './pages/consultant/ConsultantJobSimpleSetupPage'
-import ExecutiveSearchWorkspacePage from './pages/consultant/ExecutiveSearchWorkspacePage'
-import ConsultantCommissionsPage from './pages/consultant/ConsultantCommissionsPage'
-import ConsultantSettingsPage from './pages/consultant360/ConsultantSettingsPage'
-import ConsultantHelpPage from './pages/consultant360/ConsultantHelpPage'
-import ConsultantMessagesPage from './pages/consultant/ConsultantMessagesPage'
-import ConsultantSetupAccountPage from './pages/consultant/ConsultantSetupAccountPage'
-import CurrencySetupPage from './pages/auth/CurrencySetupPage'
-import ConsultantNotificationsPage from './pages/consultant/NotificationsPage'
-import SalesAgentNotificationsPage from './pages/sales/NotificationsPage'
-import Consultant360NotificationsPage from './pages/consultant360/NotificationsPage'
-import ClientCompaniesPage from './pages/sales/ClientCompaniesPage'
-import SalesCommissionsPage from './pages/sales/CommissionsPage'
-import WithdrawalsPage from './pages/admin/WithdrawalsPage'
-import RefundRequestsPage from './pages/hrm8/RefundRequestsPage'
-import ConversionRequestsPage from './pages/hrm8/ConversionRequestsPage'
-import SettlementsPage from './pages/hrm8/SettlementsPage'
-import CareersRequestsPage from './pages/hrm8/CareersRequestsPage'
-import AdminEmailTemplatesPage from './pages/admin/AdminEmailTemplatesPage'
-import StaffPage from './pages/hrm8/StaffPage'
-import StaffOverviewPage from './pages/hrm8/staff/StaffOverviewPage'
-import StaffWorkspacePage from './pages/hrm8/staff/StaffWorkspacePage'
-import StaffSettlementsPage from './pages/hrm8/staff/StaffSettlementsPage'
-import StaffSettingsPage from './pages/hrm8/staff/StaffSettingsPage'
-import JobsWorkspacePage from './pages/hrm8/jobs/JobsWorkspacePage'
-import JobsOverviewPage from './pages/hrm8/jobs/JobsOverviewPage'
-import Hrm8ConsultantDetailPage from './pages/hrm8/Hrm8ConsultantDetailPage'
-import UnassignedJobsPage from './pages/hrm8/UnassignedJobsPage'
-import Hrm8JobBoardPage from './pages/hrm8/Hrm8JobBoardPage'
-import Hrm8CompanyJobsPage from './pages/hrm8/Hrm8CompanyJobsPage'
-import Hrm8JobDetailPage from './pages/hrm8/Hrm8JobDetailPage'
-import AuditLogsPage from './pages/hrm8/AuditLogsPage'
-import RegionsPage from './pages/hrm8/RegionsPage'
-import RegionsWorkspacePage from './pages/hrm8/regions/RegionsWorkspacePage'
-import RegionsOverviewPage from './pages/hrm8/regions/RegionsOverviewPage'
-import RegionalLeadsPage from './pages/hrm8/RegionalLeadsPage'
-import ReportsPage from './pages/hrm8/ReportsPage'
-import Hrm8SettingsPage from './pages/hrm8/Hrm8SettingsPage'
-import Hrm8IntegrationsPage from './pages/hrm8/Hrm8IntegrationsPage'
-import SystemWorkspacePage from './pages/hrm8/settings/SystemWorkspacePage'
-import SystemOverviewPage from './pages/hrm8/settings/SystemOverviewPage'
-import Hrm8ProfilePage from './pages/hrm8/Hrm8ProfilePage'
-import UtilsNotificationsPage from './pages/hrm8/NotificationsPage'
-import StaffProfilePage from './pages/hrm8/StaffProfilePage'
-import AttributionPage from './pages/hrm8/AttributionPage'
-import PricingPage from './pages/hrm8/PricingPage'
-import BillingPage from './pages/hrm8/BillingPage'
-import RegionalSalesDashboard from './pages/hrm8/RegionalSalesDashboard'
-import RevenuePage from './pages/hrm8/RevenuePage'
-import ConsultantOverview from './pages/consultant/ConsultantOverview'
-import ConsultantWalletPage from './pages/consultant/ConsultantWalletPage'
-import SalesOpportunityDetailPage from './pages/sales/SalesOpportunityDetailPage'
-import SalesOpportunityNewPage from './pages/sales/SalesOpportunityNewPage'
-import LeadsWorkspacePage from './pages/hrm8/leads/LeadsWorkspacePage'
-import LeadsOverviewPage from './pages/hrm8/leads/LeadsOverviewPage'
-import FinanceWorkspacePage from './pages/hrm8/finance/FinanceWorkspacePage'
-import FinanceOverviewPage from './pages/hrm8/finance/FinanceOverviewPage'
-import Hrm8ChatPage from './pages/hrm8/Hrm8ChatPage'
+const PageLoader = () => (
+    <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>
+);
+
+const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
+const ConsultantSetupAccountPage = lazy(() => import('./pages/consultant/ConsultantSetupAccountPage'));
+const CurrencySetupPage = lazy(() => import('./pages/auth/CurrencySetupPage'));
+const Hrm8Overview = lazy(() => import('./pages/hrm8/Hrm8Overview'));
+const AnalyticsDashboard = lazy(() => import('./pages/hrm8/AnalyticsDashboard'));
+const RevenueDashboardPage = lazy(() => import('./pages/hrm8/RevenueDashboardPage'));
+const CommissionsPage = lazy(() => import('./pages/hrm8/CommissionsPage'));
+const LicenseesPage = lazy(() => import('./pages/hrm8/LicenseesPage'));
+const LicenseesWorkspacePage = lazy(() => import('./pages/hrm8/licensees/LicenseesWorkspacePage'));
+const LicenseesOverviewPage = lazy(() => import('./pages/hrm8/licensees/LicenseesOverviewPage'));
+const ConsultantDashboard = lazy(() => import('./pages/consultant/ConsultantDashboard'));
+const RegionalCompaniesPage = lazy(() => import('./pages/hrm8/RegionalCompaniesPage'));
+const Hrm8CompanyDetailPage = lazy(() => import('./pages/hrm8/Hrm8CompanyDetailPage'));
+const JobAllocationPage = lazy(() => import('./pages/hrm8/JobAllocationPage'));
+const ConsultantAssignmentRequestsPage = lazy(() => import('./pages/hrm8/ConsultantAssignmentRequestsPage'));
+const SalesDashboardPage = lazy(() => import('./pages/sales/SalesDashboardPage'));
+const Consultant360Dashboard = lazy(() => import('./pages/consultant360/Consultant360Dashboard'));
+const Consultant360EarningsPage = lazy(() => import('./pages/consultant360/Consultant360EarningsPage'));
+const ConsultantJobsPage = lazy(() => import('./pages/consultant/ConsultantJobsPage'));
+const OpportunitiesPage = lazy(() => import('./pages/sales/OpportunitiesPage'));
+const SalesPipelinePage = lazy(() => import('./pages/sales/SalesPipelinePage'));
+const ConsultantProfilePage = lazy(() => import('./pages/consultant/ConsultantProfilePage'));
+const ConsultantJobDetailPage = lazy(() => import('./pages/consultant/ConsultantJobDetailPage'));
+const ConsultantJobSimpleSetupPage = lazy(() => import('./pages/consultant/ConsultantJobSimpleSetupPage'));
+const ExecutiveSearchWorkspacePage = lazy(() => import('./pages/consultant/ExecutiveSearchWorkspacePage'));
+const ConsultantCommissionsPage = lazy(() => import('./pages/consultant/ConsultantCommissionsPage'));
+const ConsultantSettingsPage = lazy(() => import('./pages/consultant360/ConsultantSettingsPage'));
+const ConsultantHelpPage = lazy(() => import('./pages/consultant360/ConsultantHelpPage'));
+const ConsultantMessagesPage = lazy(() => import('./pages/consultant/ConsultantMessagesPage'));
+const ConsultantNotificationsPage = lazy(() => import('./pages/consultant/NotificationsPage'));
+const SalesAgentNotificationsPage = lazy(() => import('./pages/sales/NotificationsPage'));
+const Consultant360NotificationsPage = lazy(() => import('./pages/consultant360/NotificationsPage'));
+const ClientCompaniesPage = lazy(() => import('./pages/sales/ClientCompaniesPage'));
+const SalesCommissionsPage = lazy(() => import('./pages/sales/CommissionsPage'));
+const WithdrawalsPage = lazy(() => import('./pages/admin/WithdrawalsPage'));
+const RefundRequestsPage = lazy(() => import('./pages/hrm8/RefundRequestsPage'));
+const ConversionRequestsPage = lazy(() => import('./pages/hrm8/ConversionRequestsPage'));
+const SettlementsPage = lazy(() => import('./pages/hrm8/SettlementsPage'));
+const CareersRequestsPage = lazy(() => import('./pages/hrm8/CareersRequestsPage'));
+const AdminEmailTemplatesPage = lazy(() => import('./pages/admin/AdminEmailTemplatesPage'));
+const StaffPage = lazy(() => import('./pages/hrm8/StaffPage'));
+const StaffOverviewPage = lazy(() => import('./pages/hrm8/staff/StaffOverviewPage'));
+const StaffWorkspacePage = lazy(() => import('./pages/hrm8/staff/StaffWorkspacePage'));
+const StaffSettlementsPage = lazy(() => import('./pages/hrm8/staff/StaffSettlementsPage'));
+const StaffSettingsPage = lazy(() => import('./pages/hrm8/staff/StaffSettingsPage'));
+const JobsWorkspacePage = lazy(() => import('./pages/hrm8/jobs/JobsWorkspacePage'));
+const JobsOverviewPage = lazy(() => import('./pages/hrm8/jobs/JobsOverviewPage'));
+const Hrm8ConsultantDetailPage = lazy(() => import('./pages/hrm8/Hrm8ConsultantDetailPage'));
+const UnassignedJobsPage = lazy(() => import('./pages/hrm8/UnassignedJobsPage'));
+const Hrm8JobBoardPage = lazy(() => import('./pages/hrm8/Hrm8JobBoardPage'));
+const Hrm8CompanyJobsPage = lazy(() => import('./pages/hrm8/Hrm8CompanyJobsPage'));
+const Hrm8JobDetailPage = lazy(() => import('./pages/hrm8/Hrm8JobDetailPage'));
+const AuditLogsPage = lazy(() => import('./pages/hrm8/AuditLogsPage'));
+const RegionsPage = lazy(() => import('./pages/hrm8/RegionsPage'));
+const RegionsWorkspacePage = lazy(() => import('./pages/hrm8/regions/RegionsWorkspacePage'));
+const RegionsOverviewPage = lazy(() => import('./pages/hrm8/regions/RegionsOverviewPage'));
+const RegionalLeadsPage = lazy(() => import('./pages/hrm8/RegionalLeadsPage'));
+const ReportsPage = lazy(() => import('./pages/hrm8/ReportsPage'));
+const Hrm8SettingsPage = lazy(() => import('./pages/hrm8/Hrm8SettingsPage'));
+const Hrm8IntegrationsPage = lazy(() => import('./pages/hrm8/Hrm8IntegrationsPage'));
+const SystemWorkspacePage = lazy(() => import('./pages/hrm8/settings/SystemWorkspacePage'));
+const SystemOverviewPage = lazy(() => import('./pages/hrm8/settings/SystemOverviewPage'));
+const Hrm8ProfilePage = lazy(() => import('./pages/hrm8/Hrm8ProfilePage'));
+const UtilsNotificationsPage = lazy(() => import('./pages/hrm8/NotificationsPage'));
+const StaffProfilePage = lazy(() => import('./pages/hrm8/StaffProfilePage'));
+const AttributionPage = lazy(() => import('./pages/hrm8/AttributionPage'));
+const PricingPage = lazy(() => import('./pages/hrm8/PricingPage'));
+const BillingPage = lazy(() => import('./pages/hrm8/BillingPage'));
+const RegionalSalesDashboard = lazy(() => import('./pages/hrm8/RegionalSalesDashboard'));
+const RevenuePage = lazy(() => import('./pages/hrm8/RevenuePage'));
+const ConsultantOverview = lazy(() => import('./pages/consultant/ConsultantOverview'));
+const ConsultantWalletPage = lazy(() => import('./pages/consultant/ConsultantWalletPage'));
+const SalesOpportunityDetailPage = lazy(() => import('./pages/sales/SalesOpportunityDetailPage'));
+const SalesOpportunityNewPage = lazy(() => import('./pages/sales/SalesOpportunityNewPage'));
+const LeadsWorkspacePage = lazy(() => import('./pages/hrm8/leads/LeadsWorkspacePage'));
+const LeadsOverviewPage = lazy(() => import('./pages/hrm8/leads/LeadsOverviewPage'));
+const FinanceWorkspacePage = lazy(() => import('./pages/hrm8/finance/FinanceWorkspacePage'));
+const FinanceOverviewPage = lazy(() => import('./pages/hrm8/finance/FinanceOverviewPage'));
+const FinanceReconciliationPage = lazy(() => import('./pages/hrm8/finance/FinanceReconciliationPage'));
+const Hrm8ChatPage = lazy(() => import('./pages/hrm8/Hrm8ChatPage'));
 
 function App() {
     const { checkAuth } = useAuthStore();
@@ -115,6 +123,7 @@ function App() {
 
     return (
         <>
+            <Suspense fallback={<PageLoader />}>
             <Routes>
                 {/* Auth Routes */}
                 <Route path="/login" element={<LoginPage />} />
@@ -174,6 +183,7 @@ function App() {
                         <Route path="commissions" element={<CommissionsPage />} />
                         <Route path="withdrawals" element={<WithdrawalsPage />} />
                         <Route path="refunds" element={<RefundRequestsPage />} />
+                        <Route path="reconciliation" element={<FinanceReconciliationPage />} />
                         <Route path="settlements" element={<SettlementsPage />} />
                         <Route path="pricing" element={<PricingPage />} />
                     </Route>
@@ -274,6 +284,7 @@ function App() {
                 {/* Fallback */}
                 <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
+            </Suspense>
             <Toaster />
             <Sonner position="top-right" expand={false} richColors />
         </>

@@ -74,10 +74,12 @@ export default function RevenueDashboardPage() {
         loadDashboard(true);
     };
 
-    const formatCurrency = (amount: number) => {
+    const reportingCurrency = data?.reportingCurrency || data?.reporting_currency || data?.summary?.reportingCurrency || data?.summary?.reporting_currency || 'USD';
+
+    const formatCurrency = (amount: number, currency: string = reportingCurrency) => {
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
-            currency: 'USD',
+            currency,
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
         }).format(amount);
@@ -184,7 +186,7 @@ export default function RevenueDashboardPage() {
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">Revenue Dashboard</h1>
                     <p className="text-muted-foreground">
-                        Platform-wide revenue analytics and commission tracking
+                        Platform-wide revenue analytics and commission tracking in {reportingCurrency}
                     </p>
                 </div>
                 <div className="flex items-center gap-3">

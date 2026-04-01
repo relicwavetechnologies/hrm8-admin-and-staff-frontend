@@ -52,24 +52,24 @@ export const SERVICE_PRICING = {
     name: 'Self-Managed'
   },
   'shortlisting': {
-    baseFee: 1990,
+    baseFee: 990,
     upfrontPercentage: 1.0,
     name: 'Shortlisting Service'
   },
   'full-service': {
-    baseFee: 5990,
+    baseFee: 3490,
     upfrontPercentage: 1.0,
     name: 'Full Service'
   },
   'executive-search': {
-    baseFeeUnder100k: 9990,
-    baseFeeOver100k: 14990,
+    baseFeeUnder100k: 6000,
+    baseFeeOver100k: 6000,
     upfrontPercentage: 1.0,
     name: 'Executive Search'
   },
   'rpo': {
-    baseFee: 25000,
-    upfrontPercentage: 0.5,
+    baseFee: 0,
+    upfrontPercentage: 0,
     name: 'Recruitment Process Outsourcing'
   }
 };
@@ -103,7 +103,7 @@ export interface JobPayment {
   upfrontServicePaymentStatus: 'pending' | 'paid' | 'not_applicable';
   upfrontServicePaymentMethod?: 'account' | 'credit_card';
   upfrontServicePaymentDate?: Date;
-  upfrontStripePaymentIntentId?: string;
+  upfrontProviderPaymentIntentId?: string;
 
   balanceServicePaymentStatus: 'pending' | 'paid' | 'waived' | 'not_applicable';
   balanceServicePaymentDate?: Date;

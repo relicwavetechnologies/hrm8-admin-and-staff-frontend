@@ -94,7 +94,7 @@ export function PaymentMethodSelector({
                 <div className="flex-1">
                   <h4 className="font-semibold text-lg">Pay with Credit Card</h4>
                   <p className="text-sm text-muted-foreground">
-                    Secure payment processed immediately via Stripe
+                    Secure payment processed immediately via Airwallex
                   </p>
                 </div>
               </div>
@@ -112,7 +112,7 @@ export function PaymentMethodSelector({
                 <div className="flex-1">
                   <h4 className="font-semibold text-lg">Pay with Credit Card</h4>
                   <p className="text-sm text-muted-foreground mb-2">
-                    Secure payment processed by Stripe
+                    Secure payment processed by Airwallex
                   </p>
                   <div className="text-2xl font-bold text-primary">
                     ${amount.toLocaleString()}

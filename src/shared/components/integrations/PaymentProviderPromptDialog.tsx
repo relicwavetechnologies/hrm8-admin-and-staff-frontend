@@ -15,17 +15,17 @@ import { Button } from '@/shared/components/ui/button';
 import { CreditCard, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-interface StripePromptDialogProps {
+interface PaymentProviderPromptDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     redirectPath?: string;
 }
 
-export function StripePromptDialog({
+export function PaymentProviderPromptDialog({
     open,
     onOpenChange,
     redirectPath = '/integrations?tab=payments'
-}: StripePromptDialogProps) {
+}: PaymentProviderPromptDialogProps) {
     const navigate = useNavigate();
 
     const handleGoToIntegrations = () => {

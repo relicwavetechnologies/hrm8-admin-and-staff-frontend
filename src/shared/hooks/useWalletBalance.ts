@@ -31,9 +31,9 @@ export function useWalletBalance() {
         // Map service packages to prices (client-side estimation, backend is source of truth)
         const prices: Record<string, number> = {
             'self-managed': 0,
-            'shortlisting': 1990,
-            'full-service': 5990,
-            'executive-search': 9990
+            'shortlisting': 990,
+            'full-service': 3490,
+            'executive-search': 6000
         };
 
         const required = prices[servicePackage] || 0;

@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { Loader2, MessageSquare, MoveRight, Send, Star } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
+import { applicationService } from "@/modules/applications/lib/applicationService";
 
 interface TeamReviewsTabProps {
   application: Application;
@@ -214,7 +215,6 @@ export function TeamReviewsTab({ application, onUpdate }: TeamReviewsTabProps) {
     setTempRows((prev) => [optimistic, ...prev]);
 
     try {
-      const { applicationService } = await import("@/modules/applications/lib/applicationService");
       const currentNotes = application.recruiterNotes || "";
       const appendText = currentNotes
         ? `${currentNotes}\n\n[${formatTimestamp(now)}]: ${content}`

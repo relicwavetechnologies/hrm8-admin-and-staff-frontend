@@ -6,6 +6,8 @@
 import { apiClient } from '../api';
 
 export interface RevenueSummary {
+    reporting_currency?: string;
+    reportingCurrency?: string;
     total_revenue: number;
     total_commissions: number;
     net_revenue: number;
@@ -49,6 +51,8 @@ export interface RevenueTimelineEntry {
 }
 
 export interface DashboardData {
+    reporting_currency?: string;
+    reportingCurrency?: string;
     summary: RevenueSummary;
     by_region: RegionRevenue[];
     by_commission_type: CommissionTypeBreakdown[];

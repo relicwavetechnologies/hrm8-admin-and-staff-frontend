@@ -68,7 +68,7 @@ export function ProcessPaymentDialog({ open, onOpenChange, withdrawal, onSuccess
                 <form onSubmit={handleSubmit} className="space-y-4 py-4">
                     <div className="bg-blue-50 border border-blue-200 p-3 rounded-md">
                         <div className="text-sm text-blue-900">
-                            <div className="font-medium">{withdrawal.consultantName}</div>
+                            <div className="font-medium">{withdrawal.recipientName || withdrawal.consultantName || withdrawal.companyName}</div>
                             <div className="text-2xl font-bold mt-1">
                                 {formatCurrency(withdrawal.payoutAmount ?? withdrawal.amount, withdrawal.payoutCurrency || withdrawal.currency || undefined)}
                             </div>

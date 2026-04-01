@@ -265,7 +265,7 @@ export async function processCreditCardPayment(
   jobId: string,
   employerId: string,
   pricing: ServicePricing,
-  stripePaymentIntentId: string
+  providerPaymentIntentId: string
 ): Promise<{ success: boolean; paymentId?: string; error?: string }> {
   const employer = getEmployerById(employerId);
   
@@ -294,7 +294,7 @@ export async function processCreditCardPayment(
     upfrontServicePaymentStatus: pricing.serviceType === 'self-managed' ? 'not_applicable' : 'paid',
     upfrontServicePaymentMethod: pricing.serviceType === 'self-managed' ? undefined : 'credit_card',
     upfrontServicePaymentDate: pricing.serviceType === 'self-managed' ? undefined : new Date(),
-    upfrontStripePaymentIntentId: pricing.serviceType === 'self-managed' ? undefined : stripePaymentIntentId,
+    upfrontProviderPaymentIntentId: pricing.serviceType === 'self-managed' ? undefined : providerPaymentIntentId,
     
     balanceServicePaymentStatus: pricing.serviceType === 'self-managed' ? 'not_applicable' : 'pending',
     

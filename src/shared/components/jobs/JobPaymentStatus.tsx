@@ -109,7 +109,7 @@ export function JobPaymentStatus({ job, onPaymentComplete: _onPaymentComplete }:
       });
 
       if (response.data?.checkoutUrl) {
-        // Redirect to Stripe checkout
+        // Redirect to Airwallex checkout
         window.location.href = response.data.checkoutUrl;
       } else {
         throw new Error('Failed to get checkout URL');
@@ -219,7 +219,6 @@ export function JobPaymentStatus({ job, onPaymentComplete: _onPaymentComplete }:
     </Card>
   );
 }
-
 
 
 

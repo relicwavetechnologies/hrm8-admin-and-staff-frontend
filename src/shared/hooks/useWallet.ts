@@ -13,7 +13,7 @@ export interface WalletBalance {
     availableForWithdrawal: number;
     totalEarned: number;
     totalWithdrawn: number;
-    stripeConnected: boolean;
+    payoutProviderConnected: boolean;
     payoutEnabled: boolean;
 }
 
@@ -38,7 +38,7 @@ export interface WalletTransaction {
     status: string;
 }
 
-export interface StripeStatus {
+export interface PayoutStatus {
     payoutEnabled: boolean;
     detailsSubmitted: boolean;
 }
@@ -88,7 +88,7 @@ export function useWallet() {
     const payoutStatusQuery = useQuery({
         queryKey: ['wallet', 'payout', 'status'],
         queryFn: async () => {
-            const response = await apiClient.get<StripeStatus>(`/api/payouts/status`);
+            const response = await apiClient.get<PayoutStatus>(`/api/payouts/status`);
             if (!response.success) throw new Error(response.error);
             return response.data;
         },
@@ -143,17 +143,12 @@ export function useWallet() {
         earnings: earningsQuery.data,
         transactions: transactionsQuery.data,
         payoutStatus: payoutStatusQuery.data,
-        /** @deprecated Use payoutStatus instead */
-        stripeStatus: payoutStatusQuery.data,
         minimumWithdrawal: minimumQuery.data || 50,
 
         // Loading states
         isLoading: balanceQuery.isLoading || earningsQuery.isLoading,
         isLoadingTransactions: transactionsQuery.isLoading,
         isLoadingPayoutStatus: payoutStatusQuery.isLoading,
-        /** @deprecated Use isLoadingPayoutStatus instead */
-        isLoadingStripe: payoutStatusQuery.isLoading,
-
         // Errors
         error: balanceQuery.error || earningsQuery.error,
 
@@ -163,13 +158,9 @@ export function useWallet() {
         withdrawError: withdrawMutation.error,
 
         onboardPayoutProvider: payoutOnboardMutation.mutateAsync,
-        /** @deprecated Use onboardPayoutProvider instead */
-        stripeOnboard: payoutOnboardMutation.mutateAsync,
         isOnboarding: payoutOnboardMutation.isPending,
 
         getPayoutDashboardLink: payoutDashboardMutation.mutateAsync,
-        /** @deprecated Use getPayoutDashboardLink instead */
-        stripeLogin: payoutDashboardMutation.mutateAsync,
         isLoggingIn: payoutDashboardMutation.isPending,
 
         // Refresh functions

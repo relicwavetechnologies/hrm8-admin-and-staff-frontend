@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { DataTable, Column } from "@/shared/components/tables/DataTable";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
@@ -12,6 +12,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Card } from "@/shared/components/ui/card";
+import { Timeline } from "@/shared/components/ui/timeline";
+import { Eye } from "lucide-react";
 
 export default function RefundRequestsPage() {
     const { toast } = useToast();
@@ -21,10 +23,11 @@ export default function RefundRequestsPage() {
 
     // Dialog states
     const [selectedRequest, setSelectedRequest] = useState<RefundRequest | null>(null);
-    const [actionType, setActionType] = useState<'approve' | 'reject' | null>(null);
+    const [actionType, setActionType] = useState<'approve' | 'secondary-approve' | 'reject' | null>(null);
     const [actionLoading, setActionLoading] = useState(false);
     const [adminNotes, setAdminNotes] = useState('');
     const [rejectionReason, setRejectionReason] = useState('');
+    const [detailsRequest, setDetailsRequest] = useState<RefundRequest | null>(null);
 
     useEffect(() => {
         loadRefundRequests();
@@ -87,6 +90,34 @@ export default function RefundRequestsPage() {
         }
     };
 
+    const handleSecondaryApprove = async () => {
+        if (!selectedRequest) return;
+
+        setActionLoading(true);
+        try {
+            const result = await hrm8RefundRequestService.secondaryApprove(selectedRequest.id, adminNotes);
+            if (result.success) {
+                toast({ title: "Success", description: "Secondary approval recorded" });
+                closeDialog();
+                loadRefundRequests();
+            } else {
+                toast({
+                    title: "Error",
+                    description: result.error || "Failed to record secondary approval",
+                    variant: "destructive"
+                });
+            }
+        } catch (err: any) {
+            toast({
+                title: "Error",
+                description: err.message || "Failed to record secondary approval",
+                variant: "destructive"
+            });
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
     const handleReject = async () => {
         if (!selectedRequest || !rejectionReason.trim()) {
             toast({
@@ -122,7 +153,7 @@ export default function RefundRequestsPage() {
         }
     };
 
-    const openDialog = (request: RefundRequest, type: 'approve' | 'reject') => {
+    const openDialog = (request: RefundRequest, type: 'approve' | 'secondary-approve' | 'reject') => {
         setSelectedRequest(request);
         setActionType(type);
         setAdminNotes('');
@@ -136,20 +167,24 @@ export default function RefundRequestsPage() {
         setRejectionReason('');
     };
 
-    const getStatusBadge = (status: string) => {
-        switch (status) {
+    const getStatusBadge = (request: RefundRequest) => {
+        switch (request.status) {
             case 'PENDING':
                 return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pending</Badge>;
             case 'APPROVED':
-                return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Approved</Badge>;
+                return request.secondary_approval_required && !request.secondary_approved_at
+                    ? <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">Awaiting second approval</Badge>
+                    : <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Approved</Badge>;
             case 'REJECTED':
                 return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Rejected</Badge>;
             case 'COMPLETED':
                 return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Completed</Badge>;
             case 'CANCELLED':
                 return <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">Cancelled</Badge>;
+            case 'WITHDRAWN':
+                return <Badge variant="outline" className="bg-slate-50 text-slate-700 border-slate-200">Withdrawn</Badge>;
             default:
-                return <Badge variant="outline">{status}</Badge>;
+                return <Badge variant="outline">{request.status}</Badge>;
         }
     };
 
@@ -170,7 +205,8 @@ export default function RefundRequestsPage() {
             label: "Company",
             render: (request) => (
                 <div className="flex flex-col">
-                   <span className="font-medium">{request.company_id}</span>
+                   <span className="font-medium">{request.company?.name || request.company_id}</span>
+                   <span className="text-xs text-muted-foreground">{request.company_id}</span>
                 </div>
             )
         },
@@ -178,8 +214,8 @@ export default function RefundRequestsPage() {
             key: "details",
             label: "Details",
             render: (request) => {
-                const isJob = request.transaction_type === 'JOB_PAYMENT';
-                const title = request.transaction_context?.title || request.reason || "Payment";
+                const isJob = request.transaction_type === 'JOB_PAYMENT' || request.transaction_type === 'MANAGED_SERVICE';
+                const title = request.invoice_number || request.transaction_context?.title || request.reason || "Payment";
 
                 return (
                     <div className="flex flex-col">
@@ -187,7 +223,7 @@ export default function RefundRequestsPage() {
                             {title}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                            {isJob ? 'Job Payment' : 'Subscription'}
+                            {isJob ? 'Job Payment' : request.transaction_type.replace(/_/g, ' ')}
                         </span>
                     </div>
                 );
@@ -196,12 +232,31 @@ export default function RefundRequestsPage() {
         {
             key: "amount",
             label: "Amount",
-            render: (request) => <span className="font-semibold">{formatCurrency(request.amount)}</span>,
+            render: (request) => <span className="font-semibold">{formatCurrency(request.amount, request.currency || undefined)}</span>,
+        },
+        {
+            key: "destination",
+            label: "Destination",
+            render: (request) => (
+                <span className="text-sm">
+                    {request.destination === 'ORIGINAL_METHOD' ? 'Original method' : 'Refund balance'}
+                </span>
+            ),
         },
         {
             key: "status",
             label: "Status",
-            render: (request) => getStatusBadge(request.status),
+            render: (request) => getStatusBadge(request),
+        },
+        {
+            key: "timeline",
+            label: "Timeline",
+            render: (request) => (
+                <Button size="sm" variant="ghost" onClick={() => setDetailsRequest(request)}>
+                    <Eye size={14} className="mr-1" />
+                    View
+                </Button>
+            ),
         },
         {
             key: "actions",
@@ -229,7 +284,18 @@ export default function RefundRequestsPage() {
                             </Button>
                         </>
                     )}
-                     {request.status === 'APPROVED' && (
+                    {request.status === 'APPROVED' && request.secondary_approval_required && !request.secondary_approved_at && (
+                        <Button
+                            size="sm"
+                            variant="default"
+                            onClick={() => openDialog(request, 'secondary-approve')}
+                            className="bg-amber-600 hover:bg-amber-700"
+                        >
+                            <CheckCircle size={14} className="mr-1" />
+                            Second approval
+                        </Button>
+                    )}
+                    {request.status === 'APPROVED' && (!request.secondary_approval_required || request.secondary_approved_at) && (
                         <span className="text-xs text-muted-foreground italic">
                             Approved
                         </span>
@@ -238,6 +304,31 @@ export default function RefundRequestsPage() {
             ),
         },
     ];
+
+    const summary = useMemo(() => ({
+        pending: refundRequests.filter((item) => item.status === 'PENDING').length,
+        completed: refundRequests.filter((item) => item.status === 'COMPLETED').length,
+        originalMethod: refundRequests.filter((item) => item.destination === 'ORIGINAL_METHOD').length,
+        walletCredit: refundRequests.filter((item) => item.destination === 'WALLET_CREDIT').length,
+    }), [refundRequests]);
+
+    const timelineItems = (detailsRequest?.timeline || [])
+        .filter((entry) => entry.at)
+        .map((entry) => ({
+            id: entry.key,
+            title: entry.label,
+            description: entry.description,
+            timestamp: new Date(entry.at as string),
+            variant: (
+                entry.tone === 'success'
+                    ? 'success'
+                    : entry.tone === 'warning'
+                        ? 'warning'
+                        : entry.tone === 'danger'
+                            ? 'destructive'
+                            : 'default'
+            ) as 'default' | 'success' | 'warning' | 'destructive',
+        }));
 
     return (
         <div className="p-6 space-y-6">
@@ -264,6 +355,25 @@ export default function RefundRequestsPage() {
                 </div>
             </div>
 
+            <div className="grid gap-4 md:grid-cols-4">
+                <Card className="p-4">
+                    <p className="text-sm text-muted-foreground">Pending review</p>
+                    <p className="text-2xl font-semibold mt-1">{summary.pending}</p>
+                </Card>
+                <Card className="p-4">
+                    <p className="text-sm text-muted-foreground">Completed</p>
+                    <p className="text-2xl font-semibold mt-1">{summary.completed}</p>
+                </Card>
+                <Card className="p-4">
+                    <p className="text-sm text-muted-foreground">Wallet credit</p>
+                    <p className="text-2xl font-semibold mt-1">{summary.walletCredit}</p>
+                </Card>
+                <Card className="p-4">
+                    <p className="text-sm text-muted-foreground">Original method</p>
+                    <p className="text-2xl font-semibold mt-1">{summary.originalMethod}</p>
+                </Card>
+            </div>
+
             <Card className="p-1">
                 <DataTable
                     columns={columns}
@@ -273,7 +383,7 @@ export default function RefundRequestsPage() {
                 />
             </Card>
 
-             <Dialog open={!!selectedRequest} onOpenChange={(open) => !open && closeDialog()}>
+            <Dialog open={!!selectedRequest} onOpenChange={(open) => !open && closeDialog()}>
                 <DialogContent className="sm:max-w-[500px]">
                     <DialogHeader>
                         <DialogTitle>
@@ -297,7 +407,7 @@ export default function RefundRequestsPage() {
                                 </div>
                             </div>
 
-                            {actionType === 'approve' && (
+                            {(actionType === 'approve' || actionType === 'secondary-approve') && (
                                 <div className="space-y-2">
                                     <Label htmlFor="admin-notes">Admin Notes (Optional)</Label>
                                     <Textarea
@@ -323,6 +433,11 @@ export default function RefundRequestsPage() {
                                     />
                                 </div>
                             )}
+                            {selectedRequest.risk_hold_reason ? (
+                                <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                                    {selectedRequest.risk_hold_reason}
+                                </div>
+                            ) : null}
                         </div>
                     )}
 
@@ -332,13 +447,90 @@ export default function RefundRequestsPage() {
                         </Button>
                         <Button 
                             variant={actionType === 'reject' ? "destructive" : "default"}
-                            onClick={actionType === 'approve' ? handleApprove : handleReject}
+                            onClick={
+                                actionType === 'approve'
+                                    ? handleApprove
+                                    : actionType === 'secondary-approve'
+                                        ? handleSecondaryApprove
+                                        : handleReject
+                            }
                             disabled={actionLoading}
                         >
                             {actionLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {actionType === 'approve' ? 'Confirm Approval' : 'Confirm Rejection'}
+                            {actionType === 'approve'
+                                ? 'Confirm Approval'
+                                : actionType === 'secondary-approve'
+                                    ? 'Confirm Second Approval'
+                                    : 'Confirm Rejection'}
                         </Button>
                     </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={!!detailsRequest} onOpenChange={(open) => !open && setDetailsRequest(null)}>
+                <DialogContent className="sm:max-w-[640px]">
+                    <DialogHeader>
+                        <DialogTitle>Refund lifecycle</DialogTitle>
+                        <DialogDescription>
+                            Review destination, approval notes, and the finance timeline for this refund.
+                        </DialogDescription>
+                    </DialogHeader>
+                    {detailsRequest ? (
+                        <div className="space-y-5">
+                            <div className="grid gap-3 md:grid-cols-2">
+                                <Card className="p-4 space-y-2 text-sm">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <span className="text-muted-foreground">Company</span>
+                                        <span className="font-medium">{detailsRequest.company?.name || detailsRequest.company_id}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between gap-3">
+                                        <span className="text-muted-foreground">Amount</span>
+                                        <span className="font-medium">{formatCurrency(detailsRequest.amount, detailsRequest.currency || undefined)}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between gap-3">
+                                        <span className="text-muted-foreground">Destination</span>
+                                        <span className="font-medium">{detailsRequest.destination === 'ORIGINAL_METHOD' ? 'Original method' : 'Refund balance'}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between gap-3">
+                                        <span className="text-muted-foreground">Status</span>
+                                        {getStatusBadge(detailsRequest)}
+                                    </div>
+                                </Card>
+                                <Card className="p-4 space-y-2 text-sm">
+                                    <div>
+                                        <p className="text-muted-foreground">Reason</p>
+                                        <p className="font-medium">{detailsRequest.reason}</p>
+                                    </div>
+                                    {detailsRequest.admin_notes ? (
+                                        <div>
+                                            <p className="text-muted-foreground">Admin notes</p>
+                                            <p>{detailsRequest.admin_notes}</p>
+                                        </div>
+                                    ) : null}
+                                    {detailsRequest.risk_hold_reason ? (
+                                        <div>
+                                            <p className="text-muted-foreground">Risk hold</p>
+                                            <p>{detailsRequest.risk_hold_reason}</p>
+                                        </div>
+                                    ) : null}
+                                    {detailsRequest.rejection_reason ? (
+                                        <div>
+                                            <p className="text-muted-foreground">Rejection reason</p>
+                                            <p>{detailsRequest.rejection_reason}</p>
+                                        </div>
+                                    ) : null}
+                                </Card>
+                            </div>
+
+                            <Card className="p-4">
+                                {timelineItems.length > 0 ? (
+                                    <Timeline items={timelineItems} />
+                                ) : (
+                                    <p className="text-sm text-muted-foreground">No finance events recorded yet.</p>
+                                )}
+                            </Card>
+                        </div>
+                    ) : null}
                 </DialogContent>
             </Dialog>
         </div>

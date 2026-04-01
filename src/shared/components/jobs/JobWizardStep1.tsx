@@ -473,10 +473,7 @@ export function JobWizardStep1({
                   <SelectItem value="EUR">EUR (€)</SelectItem>
                   <SelectItem value="GBP">GBP (£)</SelectItem>
                   <SelectItem value="AUD">AUD (A$)</SelectItem>
-                  <SelectItem value="CAD">CAD (C$)</SelectItem>
-                  <SelectItem value="NZD">NZD (NZ$)</SelectItem>
-                  <SelectItem value="SGD">SGD (S$)</SelectItem>
-                  <SelectItem value="JPY">JPY (¥)</SelectItem>
+                  <SelectItem value="INR">INR (₹)</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />

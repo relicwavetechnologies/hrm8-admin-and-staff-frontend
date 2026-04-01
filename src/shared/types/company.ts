@@ -10,7 +10,7 @@ export interface Company {
     created_at: string;
     updated_at: string;
     subscription_status?: string;
-    stripe_customer_id?: string;
+    provider_customer_id?: string;
     attribution_locked?: boolean;
     attribution_locked_at?: string;
 }

@@ -36,7 +36,7 @@ export default function ConsultantCommissionsPage() {
   const [withdrawalDialogOpen, setWithdrawalDialogOpen] = useState(false);
   const [selectedCommissions, setSelectedCommissions] = useState<string[]>([]);
   const [_withdrawalAmount, _setWithdrawalAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('STRIPE');
+  const [paymentMethod, setPaymentMethod] = useState('BANK_TRANSFER');
   const [withdrawalNotes, setWithdrawalNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -593,8 +593,7 @@ export default function ConsultantCommissionsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="STRIPE">Stripe Connect</SelectItem>
-                  <SelectItem value="BANK_TRANSFER">Bank Transfer</SelectItem>
+                  <SelectItem value="BANK_TRANSFER">Airwallex Bank Payout</SelectItem>
                   <SelectItem value="PAYPAL">PayPal</SelectItem>
                 </SelectContent>
               </Select>

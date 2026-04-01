@@ -3,26 +3,14 @@ import { Column } from '@/shared/components/tables/DataTable';
 import { Badge } from '@/shared/components/ui/badge';
 import { formatCurrency } from '@/shared/lib/utils';
 import { format } from 'date-fns';
-
-interface CompanyRevenueData {
-    id: string;
-    name: string;
-    region_id: string;
-    job_revenue: number;
-    subscription_revenue: number;
-    total_revenue: number;
-    licensee_share: number;
-    hrm8_share: number;
-    active_jobs: number;
-    last_payment_at?: string;
-}
+import type { CompanyRevenueBreakdownRow } from '@/shared/services/hrm8/revenueService';
 
 interface CompanyRevenueTableProps {
-    data: CompanyRevenueData[];
+    data: CompanyRevenueBreakdownRow[];
     loading: boolean;
 }
 
-const columns: Column<CompanyRevenueData>[] = [
+const columns: Column<CompanyRevenueBreakdownRow>[] = [
     {
         key: 'name',
         label: 'Company Name',
@@ -38,27 +26,32 @@ const columns: Column<CompanyRevenueData>[] = [
         key: 'total_revenue',
         label: 'Total Revenue',
         sortable: true,
-        render: (row) => <span className="font-bold text-green-600">{formatCurrency(row.total_revenue)}</span>,
+        render: (row) => <span className="font-bold text-green-600">{formatCurrency(row.total_revenue, row.billing_currency)}</span>,
     },
     {
         key: 'job_revenue',
         label: 'Job Rev.',
-        render: (row) => <span className="text-muted-foreground">{formatCurrency(row.job_revenue)}</span>,
+        render: (row) => <span className="text-muted-foreground">{formatCurrency(row.job_revenue, row.billing_currency)}</span>,
     },
     {
         key: 'subscription_revenue',
         label: 'Sub Rev.',
-        render: (row) => <span className="text-muted-foreground">{formatCurrency(row.subscription_revenue)}</span>,
+        render: (row) => <span className="text-muted-foreground">{formatCurrency(row.subscription_revenue, row.billing_currency)}</span>,
     },
     {
         key: 'hrm8_share',
         label: 'HRM8 Share',
-        render: (row) => <span className="text-blue-600 font-medium">{formatCurrency(row.hrm8_share)}</span>,
+        render: (row) => <span className="text-blue-600 font-medium">{formatCurrency(row.hrm8_share, row.billing_currency)}</span>,
     },
     {
         key: 'licensee_share',
         label: 'Licensee Share',
-        render: (row) => <span className="text-purple-600 font-medium">{formatCurrency(row.licensee_share)}</span>,
+        render: (row) => <span className="text-purple-600 font-medium">{formatCurrency(row.licensee_share, row.billing_currency)}</span>,
+    },
+    {
+        key: 'billing_currency',
+        label: 'Currency',
+        render: (row) => <Badge variant="secondary">{row.billing_currency}</Badge>,
     },
     {
         key: 'active_jobs',

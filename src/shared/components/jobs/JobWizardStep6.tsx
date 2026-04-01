@@ -128,7 +128,7 @@ export function JobWizardStep6({ form }: JobWizardStep6Props) {
           <AlertTitle className="text-base font-semibold">Payment Required</AlertTitle>
           <AlertDescription className="text-base mt-2">
             <p className="mb-2">
-              When you click "Pay & Publish", you will be redirected to a secure payment page to complete your payment via Stripe.
+              When you click "Pay & Publish", you will be redirected to a secure payment page to complete your payment via Airwallex.
             </p>
             <p className="text-sm text-muted-foreground">
               Your job will be published automatically after successful payment.

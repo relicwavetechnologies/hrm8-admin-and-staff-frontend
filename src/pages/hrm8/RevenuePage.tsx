@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useHrm8Auth } from '@/contexts/Hrm8AuthContext';
-import { revenueService, RegionalRevenue } from '@/shared/services/hrm8/revenueService';
+import {
+  revenueService,
+  RegionalRevenue,
+  CompanyRevenueBreakdownRow,
+} from '@/shared/services/hrm8/revenueService';
 import { useRegionStore } from '@/shared/stores/useRegionStore';
 import { DataTable } from '@/shared/components/tables/DataTable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
@@ -78,7 +82,13 @@ const columns = [
 export default function RevenuePage() {
   const { hrm8User } = useHrm8Auth();
   const [revenues, setRevenues] = useState<RegionalRevenue[]>([]);
-  const [companyRevenues, setCompanyRevenues] = useState<any[]>([]);
+  const [companyRevenues, setCompanyRevenues] = useState<CompanyRevenueBreakdownRow[]>([]);
+  const [reportingCurrency, setReportingCurrency] = useState('USD');
+  const [normalizedTotals, setNormalizedTotals] = useState({
+    total_revenue: 0,
+    hrm8_share: 0,
+    licensee_share: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [companyLoading, setCompanyLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -139,6 +149,12 @@ export default function RevenuePage() {
       });
       if (response.success && response.data?.companies) {
         setCompanyRevenues(response.data.companies);
+        setReportingCurrency(response.data.reporting_currency || 'USD');
+        setNormalizedTotals(response.data.totals || {
+          total_revenue: 0,
+          hrm8_share: 0,
+          licensee_share: 0,
+        });
       }
     } catch (error) {
       console.error('Error loading company revenues:', error);
@@ -149,16 +165,12 @@ export default function RevenuePage() {
   };
 
   // Compute stats from real-time company data (not pre-computed RegionalRevenue table)
-  const totalRevenue = companyRevenues.reduce((sum, c) => sum + (c.total_revenue || 0), 0);
-  const totalHRM8Share = companyRevenues.reduce((sum, c) => sum + (c.hrm8_share || 0), 0);
-  const totalLicenseeShare = companyRevenues.reduce((sum, c) => sum + (c.licensee_share || 0), 0);
-
   return (
     <div className="p-6 space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Revenue Tracking</h1>
-          <p className="text-muted-foreground">Track regional revenue and shares</p>
+          <p className="text-muted-foreground">Track regional revenue and shares in {reportingCurrency}</p>
         </div>
         <div className="flex items-center gap-2">
           {activeTab === 'overview' && (
@@ -183,26 +195,26 @@ export default function RevenuePage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <DashboardStatCard
           title="Total Revenue"
-          value={formatCurrency(totalRevenue)}
+          value={formatCurrency(normalizedTotals.total_revenue, reportingCurrency)}
           icon={<DollarSign className="h-6 w-6" />}
           variant="primary"
-          description="Overall"
+          description={`Normalized to ${reportingCurrency}`}
         />
 
         <DashboardStatCard
           title="HRM8 Share"
-          value={formatCurrency(totalHRM8Share)}
+          value={formatCurrency(normalizedTotals.hrm8_share, reportingCurrency)}
           icon={<TrendingUp className="h-6 w-6" />}
           variant="primary"
-          description="Total"
+          description={`Normalized to ${reportingCurrency}`}
         />
 
         <DashboardStatCard
           title="Licensee Share"
-          value={formatCurrency(totalLicenseeShare)}
+          value={formatCurrency(normalizedTotals.licensee_share, reportingCurrency)}
           icon={<CheckCircle className="h-6 w-6" />}
           variant="success"
-          description="Total"
+          description={`Normalized to ${reportingCurrency}`}
         />
       </div>
 

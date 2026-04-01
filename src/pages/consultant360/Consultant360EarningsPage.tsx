@@ -51,7 +51,7 @@ import {
     type UnifiedEarnings,
     type Commission,
     type Withdrawal,
-    type StripeAccountStatus,
+    type PayoutAccountStatus,
 } from "@/shared/services/consultant360/consultant360Service";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { format } from "date-fns";
@@ -61,7 +61,7 @@ import { toast } from "sonner";
 export default function Consultant360EarningsPage() {
     const [earnings, setEarnings] = useState<UnifiedEarnings | null>(null);
     const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
-    const [stripeStatus, setStripeStatus] = useState<StripeAccountStatus | null>(null);
+    const [payoutStatus, setPayoutStatus] = useState<PayoutAccountStatus | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [commissionFilter, setCommissionFilter] = useState<"ALL" | "RECRUITER" | "SALES">("ALL");
@@ -83,13 +83,13 @@ export default function Consultant360EarningsPage() {
     const [searchParams] = useSearchParams();
 
     useEffect(() => {
-        if (searchParams.get("airwallex_success") === "true" || searchParams.get("stripe_success") === "true") {
+        if (searchParams.get("airwallex_success") === "true") {
             toast.success("Airwallex beneficiary connected successfully!");
             // Remove the query param to prevent double toasts on reload
             const newUrl = window.location.pathname;
             window.history.replaceState({}, "", newUrl);
             loadData();
-        } else if (searchParams.get("airwallex_refresh") === "true" || searchParams.get("stripe_refresh") === "true") {
+        } else if (searchParams.get("airwallex_refresh") === "true") {
              // Just reload if they refreshed the onboarding form
              loadData();
         } else {
@@ -100,10 +100,10 @@ export default function Consultant360EarningsPage() {
     async function loadData() {
         setLoading(true);
         try {
-            const [earningsRes, withdrawalsRes, stripeRes] = await Promise.all([
+            const [earningsRes, withdrawalsRes, payoutRes] = await Promise.all([
                 consultant360Service.getEarnings(),
                 consultant360Service.getWithdrawals(),
-                consultant360Service.getStripeStatus(),
+                consultant360Service.getPayoutStatus(),
             ]);
 
             if (earningsRes.success && earningsRes.data) {
@@ -112,8 +112,8 @@ export default function Consultant360EarningsPage() {
             if (withdrawalsRes.success && withdrawalsRes.data) {
                 setWithdrawals(withdrawalsRes.data.withdrawals);
             }
-            if (stripeRes.success && stripeRes.data) {
-                setStripeStatus(stripeRes.data);
+            if (payoutRes.success && payoutRes.data) {
+                setPayoutStatus(payoutRes.data);
             }
             setError(null);
         } catch (err: any) {
@@ -170,7 +170,7 @@ export default function Consultant360EarningsPage() {
         setSubmitting(true);
         const response = await consultant360Service.requestWithdrawal({
             amount,
-            paymentMethod: "stripe",
+            paymentMethod: "BANK_TRANSFER",
             commissionIds: selectedCommissions,
             notes: withdrawalNotes,
         });
@@ -187,21 +187,21 @@ export default function Consultant360EarningsPage() {
         setSubmitting(false);
     }
 
-    async function handleStripeOnboard() {
-        const response = await consultant360Service.stripeOnboard();
+    async function handlePayoutOnboard() {
+        const response = await consultant360Service.onboardPayoutProvider();
         if (response.success && response.data?.accountLink?.url) {
             window.location.href = response.data.accountLink.url;
         } else {
-            toast.error(response.error || "Failed to start Stripe onboarding");
+            toast.error(response.error || "Failed to start Airwallex onboarding");
         }
     }
 
-    async function handleStripeLogin() {
-        const response = await consultant360Service.getStripeLoginLink();
+    async function handlePayoutLogin() {
+        const response = await consultant360Service.getPayoutDashboardLink();
         if (response.success && response.data?.url) {
             safeOpenExternal(response.data.url);
         } else {
-            toast.error(response.error || "Failed to get Stripe login link");
+            toast.error(response.error || "Failed to open Airwallex dashboard");
         }
     }
 
@@ -300,7 +300,7 @@ export default function Consultant360EarningsPage() {
                                     </Select>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>Amount (USD) *</Label>
+                                    <Label>Amount ({combined?.currency ?? 'USD'}) *</Label>
                                     <Input
                                         type="number"
                                         min="0"
@@ -361,7 +361,7 @@ export default function Consultant360EarningsPage() {
 
                         <div className="space-y-4 py-4">
                             {/* Payout Beneficiary Status Check */}
-                            {!stripeStatus?.payoutsEnabled && (
+                            {!payoutStatus?.payoutsEnabled && (
                                 <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
                                     <p className="text-amber-800 font-medium mb-2">
                                         Airwallex Setup Required
@@ -369,7 +369,7 @@ export default function Consultant360EarningsPage() {
                                     <p className="text-sm text-amber-700 mb-3">
                                         You need to complete Airwallex onboarding to receive payouts.
                                     </p>
-                                    <Button onClick={handleStripeOnboard} variant="outline" size="sm">
+                                    <Button onClick={handlePayoutOnboard} variant="outline" size="sm">
                                         <ExternalLink className="h-4 w-4 mr-2" />
                                         Complete Airwallex Setup
                                     </Button>
@@ -449,7 +449,7 @@ export default function Consultant360EarningsPage() {
                             </Button>
                             <Button
                                 onClick={handleWithdrawalSubmit}
-                                disabled={submitting || selectedCommissions.length === 0 || !stripeStatus?.payoutsEnabled}
+                                disabled={submitting || selectedCommissions.length === 0 || !payoutStatus?.payoutsEnabled}
                             >
                                 {submitting ? (
                                     <>
@@ -603,10 +603,10 @@ export default function Consultant360EarningsPage() {
                     <CardDescription>Manage your payout settings</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {stripeStatus?.hasAccount ? (
+                    {payoutStatus?.hasAccount ? (
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                {stripeStatus.payoutsEnabled ? (
+                                {payoutStatus.payoutsEnabled ? (
                                     <div className="p-2 bg-green-100 rounded-full">
                                         <CheckCircle2 className="h-5 w-5 text-green-600" />
                                     </div>
@@ -617,20 +617,20 @@ export default function Consultant360EarningsPage() {
                                 )}
                                 <div>
                                     <p className="font-medium">
-                                        {stripeStatus.payoutsEnabled
+                                        {payoutStatus.payoutsEnabled
                                             ? "Airwallex Connected"
                                             : "Setup Incomplete"}
                                     </p>
                                     <p className="text-sm text-muted-foreground">
-                                        {stripeStatus.payoutsEnabled
+                                        {payoutStatus.payoutsEnabled
                                             ? "You can receive payouts"
                                             : "Complete setup to receive payouts"}
                                     </p>
                                 </div>
                             </div>
-                            <Button variant="outline" onClick={handleStripeLogin}>
+                            <Button variant="outline" onClick={handlePayoutLogin}>
                                 <ExternalLink className="h-4 w-4 mr-2" />
-                                {stripeStatus.payoutsEnabled ? "Airwallex Dashboard" : "Complete Setup"}
+                                {payoutStatus.payoutsEnabled ? "Airwallex Dashboard" : "Complete Setup"}
                             </Button>
                         </div>
                     ) : (
@@ -646,7 +646,7 @@ export default function Consultant360EarningsPage() {
                                     </p>
                                 </div>
                             </div>
-                            <Button onClick={handleStripeOnboard}>
+                            <Button onClick={handlePayoutOnboard}>
                                 <ExternalLink className="h-4 w-4 mr-2" />
                                 Connect Airwallex
                             </Button>

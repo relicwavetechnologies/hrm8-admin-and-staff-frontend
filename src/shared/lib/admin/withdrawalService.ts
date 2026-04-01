@@ -1,13 +1,34 @@
 import { apiClient } from '@/shared/lib/apiClient';
 
+export interface BeneficiaryStatus {
+    status: 'READY' | 'INCOMPLETE' | 'PENDING_VERIFICATION' | 'RESTRICTED';
+    label: string;
+    description: string;
+    missingFields: string[];
+}
+
+export interface FinanceTimelineEntry {
+    key: string;
+    status: string;
+    label: string;
+    description: string;
+    at: string | null;
+    tone: 'neutral' | 'info' | 'success' | 'warning' | 'danger';
+}
+
 export interface AdminWithdrawalRequest {
     id: string;
-    consultantId: string;
-    consultantName: string;
-    consultantEmail: string;
+    requestKind?: 'STAFF' | 'COMPANY';
+    consultantId?: string;
+    consultantName?: string;
+    consultantEmail?: string | null;
+    companyId?: string;
+    companyName?: string;
+    recipientName?: string;
+    recipientEmail?: string | null;
     consultantRole?: string;
-    stripeConnected?: boolean;
-    stripeAccountStatus?: string;
+    payoutProviderConnected?: boolean;
+    payoutAccountStatus?: string;
     payoutEnabled?: boolean;
     regionId?: string;
     amount: number;
@@ -19,10 +40,25 @@ export interface AdminWithdrawalRequest {
     status: string;
     paymentMethod: string;
     paymentDetails?: any;
-    commissionIds: string[];
+    commissionIds?: string[];
     notes?: string;
     createdAt: string;
     updatedAt: string;
+    processedAt?: string | null;
+    secondaryApprovalRequired?: boolean;
+    secondaryApprovedBy?: string | null;
+    secondaryApprovedAt?: string | null;
+    riskHoldReason?: string | null;
+    transferInitiatedAt?: string | null;
+    transferCompletedAt?: string | null;
+    rejectedAt?: string | null;
+    rejectionReason?: string | null;
+    transferFailedReason?: string | null;
+    paymentReference?: string | null;
+    providerTransferId?: string | null;
+    xeroBillId?: string | null;
+    beneficiaryStatus?: BeneficiaryStatus;
+    timeline?: FinanceTimelineEntry[];
 }
 
 export interface ProcessPaymentData {
@@ -56,6 +92,11 @@ export const adminWithdrawalService = {
 
     approveWithdrawal: async (id: string) => {
         const response = await apiClient.post<{ message: string }>(`/api/hrm8/admin/billing/withdrawals/${id}/approve`);
+        return response.data;
+    },
+
+    secondaryApproveWithdrawal: async (id: string) => {
+        const response = await apiClient.post<{ message: string }>(`/api/hrm8/admin/billing/withdrawals/${id}/secondary-approve`);
         return response.data;
     },
 

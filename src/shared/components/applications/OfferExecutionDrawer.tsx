@@ -513,7 +513,6 @@ export function OfferExecutionDrawer({
                             <SelectItem value="USD">USD</SelectItem>
                             <SelectItem value="EUR">EUR</SelectItem>
                             <SelectItem value="GBP">GBP</SelectItem>
-                            <SelectItem value="CAD">CAD</SelectItem>
                             <SelectItem value="AUD">AUD</SelectItem>
                             <SelectItem value="INR">INR</SelectItem>
                           </SelectContent>
@@ -680,4 +679,3 @@ export function OfferExecutionDrawer({
     </FormDrawer>
   );
 }
-

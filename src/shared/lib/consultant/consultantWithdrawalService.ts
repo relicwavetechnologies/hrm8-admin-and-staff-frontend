@@ -47,16 +47,16 @@ class ConsultantWithdrawalService {
     }
 
     /**
-     * Execute withdrawal (trigger Stripe payout)
+     * Execute withdrawal through the payout provider
      */
     async executeWithdrawal(withdrawalId: string) {
         return apiClient.post<{ transfer: any }>(`/api/consultant/commissions/withdrawals/${withdrawalId}/execute`, {});
     }
 
     /**
-     * Get Stripe Connect status
+     * Get payout provider status
      */
-    async getStripeStatus() {
+    async getPayoutStatus() {
         return apiClient.get<{
             hasAccount: boolean;
             isComplete: boolean;
@@ -68,18 +68,19 @@ class ConsultantWithdrawalService {
     }
 
     /**
-     * Initiate Stripe Connect onboarding
+     * Initiate payout provider onboarding
      */
-    async initiateStripeOnboarding() {
+    async onboardPayoutProvider() {
         return apiClient.post<{ url: string }>('/api/payouts/beneficiaries', {});
     }
 
     /**
-     * Get Stripe dashboard login link
+     * Get payout dashboard login link
      */
-    async getStripeLoginLink() {
+    async getPayoutDashboardLink() {
         return apiClient.post<{ url: string }>('/api/payouts/login-link', {});
     }
+
 }
 
 export const consultantWithdrawalService = new ConsultantWithdrawalService();

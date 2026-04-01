@@ -140,7 +140,7 @@ export interface WithdrawalRequest {
     notes?: string;
 }
 
-export interface StripeAccountStatus {
+export interface PayoutAccountStatus {
     hasAccount: boolean;
     accountId?: string;
     payoutsEnabled: boolean;
@@ -148,6 +148,8 @@ export interface StripeAccountStatus {
     detailsSubmitted: boolean;
     requiresAction: boolean;
 }
+
+/** @deprecated Use PayoutAccountStatus instead. */
 
 // ==================== API Functions ====================
 
@@ -302,7 +304,7 @@ export const consultant360Service = {
     },
 
     /**
-     * Execute withdrawal (Stripe payout)
+     * Execute withdrawal through the payout provider
      */
     async executeWithdrawal(id: string): Promise<{
         success: boolean;
@@ -314,9 +316,9 @@ export const consultant360Service = {
     },
 
     /**
-     * Start Stripe Connect onboarding
+     * Start payout provider onboarding
      */
-    async stripeOnboard(): Promise<{
+    async onboardPayoutProvider(): Promise<{
         success: boolean;
         data?: { accountLink: { url: string } };
         error?: string;
@@ -326,21 +328,21 @@ export const consultant360Service = {
     },
 
     /**
-     * Get Stripe account status
+     * Get payout account status
      */
-    async getStripeStatus(): Promise<{
+    async getPayoutStatus(): Promise<{
         success: boolean;
-        data?: StripeAccountStatus;
+        data?: PayoutAccountStatus;
         error?: string;
     }> {
-        const response = await apiClient.get<StripeAccountStatus>('/api/payouts/status');
+        const response = await apiClient.get<PayoutAccountStatus>('/api/payouts/status');
         return response;
     },
 
     /**
-     * Get Stripe dashboard login link
+     * Get payout provider dashboard link
      */
-    async getStripeLoginLink(): Promise<{
+    async getPayoutDashboardLink(): Promise<{
         success: boolean;
         data?: { url: string };
         error?: string;
@@ -348,4 +350,5 @@ export const consultant360Service = {
         const response = await apiClient.post<{ url: string }>('/api/payouts/login-link');
         return response;
     },
+
 };

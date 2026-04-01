@@ -37,6 +37,8 @@ export interface Commission {
   fxRate?: number;
   fxRateLockedAt?: string;
   fxSource?: string;
+  fxQuoteId?: string | null;
+  fxQuoteValidUntil?: string | null;
 }
 
 export interface CommissionReviewContext {
@@ -191,6 +193,8 @@ const normalizeCommission = (raw: any): Commission => ({
   fxRate: raw.fxRate != null ? Number(raw.fxRate) : (raw.fx_rate != null ? Number(raw.fx_rate) : undefined),
   fxRateLockedAt: raw.fxRateLockedAt ?? raw.fx_rate_locked_at ?? undefined,
   fxSource: raw.fxSource ?? raw.fx_source ?? undefined,
+  fxQuoteId: raw.fxQuoteId ?? raw.fx_quote_id ?? null,
+  fxQuoteValidUntil: raw.fxQuoteValidUntil ?? raw.fx_quote_valid_until ?? null,
 });
 
 class CommissionService {

@@ -194,12 +194,12 @@ export const salesService = {
     return await apiClient.post<{ message: string }>(`/api/sales/commissions/withdrawals/${id}/cancel`);
   },
 
-  // Stripe Connect
-  stripeOnboard: async () => {
+  // Airwallex payout connectivity
+  onboardPayoutProvider: async () => {
     return await apiClient.post<{ accountId: string; onboardingUrl: string }>('/api/payouts/beneficiaries');
   },
 
-  getStripeStatus: async () => {
+  getPayoutStatus: async () => {
     return await apiClient.get<{
       payoutEnabled?: boolean;
       detailsSubmitted?: boolean;
@@ -208,7 +208,7 @@ export const salesService = {
     }>('/api/payouts/status');
   },
 
-  getStripeLoginLink: async () => {
+  getPayoutDashboardLink: async () => {
     return await apiClient.post<{ url?: string; loginLink?: string }>('/api/payouts/login-link');
   },
 

@@ -103,8 +103,8 @@ export interface Job {
   servicePackage?: string;
   paymentAmount?: number;
   paymentCurrency?: string;
-  stripeSessionId?: string;
-  stripePaymentIntentId?: string;
+  providerCheckoutSessionId?: string;
+  providerPaymentIntentId?: string;
   paymentCompletedAt?: Date | string;
   paymentFailedAt?: Date | string;
   termsAccepted?: boolean;

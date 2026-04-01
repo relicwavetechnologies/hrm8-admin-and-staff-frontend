@@ -207,6 +207,13 @@ export const financeNestedRoutes: NestedRoute[] = [
         parentPath: '/hrm8/finance',
     },
     {
+        id: 'finance-reconciliation',
+        label: 'Reconciliation',
+        path: '/hrm8/finance/reconciliation',
+        icon: FileText,
+        parentPath: '/hrm8/finance',
+    },
+    {
         id: 'finance-settlements',
         label: 'Settlements',
         path: '/hrm8/finance/settlements',

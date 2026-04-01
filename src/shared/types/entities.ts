@@ -48,7 +48,7 @@ export interface Employer {
   billingEmail?: string;
   approvedAt?: Date;
   approvedBy?: string;
-  stripeCustomerId?: string;
+  providerCustomerId?: string;
 
   // Subscription Management
   subscriptionTier: 'ats-lite' | 'payg' | 'small' | 'medium' | 'large' | 'enterprise';

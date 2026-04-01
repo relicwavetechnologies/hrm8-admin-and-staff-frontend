@@ -7,7 +7,7 @@ import { Badge } from "@/shared/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
 import { BalanceCard } from "@/modules/sales/components/BalanceCard";
 import { WithdrawalHistory } from "@/modules/sales/components/WithdrawalHistory";
-import { StripeConnectCard } from "@/modules/sales/components/StripeConnectCard";
+import { PayoutConnectCard } from "@/modules/sales/components/PayoutConnectCard";
 import { WithdrawalDialog } from "@/modules/sales/components/WithdrawalDialog";
 import { WithdrawalBalance, CommissionWithdrawal } from "@/shared/types/withdrawal";
 import { Card } from "@/shared/components/ui/card";
@@ -129,7 +129,7 @@ export default function CommissionsPage() {
           isLoading={isLoading}
         />
         <div className="md:col-span-2 lg:col-span-2">
-          <StripeConnectCard onStatusChange={fetchData} />
+          <PayoutConnectCard onStatusChange={fetchData} />
         </div>
       </div>
 

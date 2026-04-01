@@ -141,7 +141,7 @@ class WalletService {
     async createSubscription(subscriptionData: {
         planType: string;
         name: string;
-        basePrice: number;
+        basePrice?: number;
         billingCycle: 'MONTHLY' | 'ANNUAL';
         jobQuota?: number;
         autoRenew?: boolean;
@@ -161,6 +161,56 @@ class WalletService {
         }
 
         return response.json();
+    }
+
+    async createSubscriptionCheckout(data: {
+        planType: string;
+        name: string;
+        amount: number;
+        billingCycle?: string;
+        jobQuota?: number | null;
+        currency?: string;
+    }) {
+        const ccy = data.currency || 'USD';
+        const origin = window.location.origin;
+        const response = await fetch(`${this.apiUrl}/api/billing/checkout`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: 'subscription',
+                amount: data.amount,
+                currency: ccy,
+                planType: data.planType,
+                planName: data.name,
+                billingCycle: data.billingCycle || 'MONTHLY',
+                jobQuota: data.jobQuota ?? undefined,
+                description: `${data.name} - ${new Intl.NumberFormat(undefined, {
+                    style: 'currency',
+                    currency: ccy,
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2,
+                }).format(data.amount)}`,
+                successUrl: `${origin}/subscriptions?subscription_success=true`,
+                cancelUrl: `${origin}/subscriptions?canceled=true`,
+            }),
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            const errorObj: any = new Error(error.message || 'Failed to create checkout');
+            errorObj.response = { status: response.status };
+            errorObj.errorCode = error.errorCode;
+            throw errorObj;
+        }
+
+        const result = await response.json();
+        if (result.data?.url) {
+            window.location.href = result.data.url;
+        } else {
+            throw new Error('No checkout URL returned');
+        }
+        return result;
     }
 
     async renewSubscription(subscriptionId: string) {
@@ -189,16 +239,21 @@ class WalletService {
         amount: number;
         paymentMethod: string;
     }) {
+        const idempotencyKey = typeof crypto !== 'undefined' && 'randomUUID' in crypto
+            ? crypto.randomUUID()
+            : `wallet-recharge-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
         const response = await fetch(`${this.apiUrl}/api/billing/checkout`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify({
                 type: 'wallet_recharge',
+                idempotencyKey,
                 amount: data.amount,
                 description: `Wallet recharge - $${data.amount.toFixed(2)}`,
                 metadata: {
                     type: 'wallet_recharge',
+                    idempotencyKey,
                 },
             }),
         });

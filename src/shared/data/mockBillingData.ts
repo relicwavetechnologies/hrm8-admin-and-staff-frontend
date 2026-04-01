@@ -24,15 +24,15 @@ export const mockInvoices: Invoice[] = [
         id: 'li-2',
         description: 'Senior Software Engineer - Standard Recruitment',
         quantity: 1,
-        unitPrice: 5990,
-        total: 5990,
+        unitPrice: 3490,
+        total: 3490,
         type: 'recruitment_service',
         metadata: { jobId: 'job-1', serviceType: 'full-service' }
       }
     ],
-    subtotal: 6485,
-    tax: 648.5,
-    total: 7133.5,
+    subtotal: 3985,
+    tax: 398.5,
+    total: 4383.5,
     notes: 'Thank you for your business!',
     paymentMethod: 'credit_card',
     createdAt: new Date('2025-01-01'),
@@ -143,7 +143,7 @@ export const mockTransactions: Transaction[] = [
   {
     id: 'txn-1',
     type: 'payment',
-    amount: 7133.5,
+    amount: 4383.5,
     description: 'Payment for Invoice INV-2025-0001',
     date: new Date('2025-01-10'),
     status: 'completed',
@@ -162,7 +162,7 @@ export const mockTransactions: Transaction[] = [
   {
     id: 'txn-3',
     type: 'service_fee',
-    amount: 5990,
+    amount: 3490,
     description: 'Standard Recruitment Service - Senior Software Engineer',
     date: new Date('2025-01-05'),
     status: 'completed',

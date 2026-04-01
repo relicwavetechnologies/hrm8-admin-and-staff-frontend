@@ -60,6 +60,14 @@ export interface Commission {
     confirmedAt?: string;
     paidAt?: string;
     paymentReference?: string;
+    currency?: string;
+    payoutCurrency?: string;
+    payoutAmount?: number;
+    fxRate?: number;
+    fxRateLockedAt?: string;
+    fxSource?: string;
+    fxQuoteId?: string | null;
+    fxQuoteValidUntil?: string | null;
     notes?: string;
     createdAt: string;
     updatedAt: string;
@@ -146,7 +154,7 @@ export interface WithdrawalRequest {
     notes?: string;
 }
 
-export interface StripeAccountStatus {
+export interface PayoutAccountStatus {
     hasAccount: boolean;
     accountId?: string;
     payoutsEnabled: boolean;
@@ -155,8 +163,7 @@ export interface StripeAccountStatus {
     requiresAction: boolean;
 }
 
-/** Provider-neutral alias for StripeAccountStatus */
-export type PayoutAccountStatus = StripeAccountStatus;
+/** @deprecated Use PayoutAccountStatus instead. */
 
 export interface Message {
     id: string;
@@ -329,7 +336,7 @@ export const consultant360Service = {
     },
 
     /**
-     * Execute withdrawal (Stripe payout)
+     * Execute withdrawal through the payout provider
      */
     async executeWithdrawal(id: string): Promise<{
         success: boolean;
@@ -353,37 +360,15 @@ export const consultant360Service = {
     },
 
     /**
-     * @deprecated Use onboardPayoutProvider instead
-     */
-    async stripeOnboard(): Promise<{
-        success: boolean;
-        data?: { accountLink: { url: string } };
-        error?: string;
-    }> {
-        return this.onboardPayoutProvider();
-    },
-
-    /**
      * Get payout account status
      */
     async getPayoutStatus(): Promise<{
         success: boolean;
-        data?: StripeAccountStatus;
+        data?: PayoutAccountStatus;
         error?: string;
     }> {
-        const response = await apiClient.get<StripeAccountStatus>('/api/payouts/status');
+        const response = await apiClient.get<PayoutAccountStatus>('/api/payouts/status');
         return response;
-    },
-
-    /**
-     * @deprecated Use getPayoutStatus instead
-     */
-    async getStripeStatus(): Promise<{
-        success: boolean;
-        data?: StripeAccountStatus;
-        error?: string;
-    }> {
-        return this.getPayoutStatus();
     },
 
     /**
@@ -396,17 +381,6 @@ export const consultant360Service = {
     }> {
         const response = await apiClient.post<{ url: string }>('/api/payouts/login-link');
         return response;
-    },
-
-    /**
-     * @deprecated Use getPayoutDashboardLink instead
-     */
-    async getStripeLoginLink(): Promise<{
-        success: boolean;
-        data?: { url: string };
-        error?: string;
-    }> {
-        return this.getPayoutDashboardLink();
     },
 
     /**

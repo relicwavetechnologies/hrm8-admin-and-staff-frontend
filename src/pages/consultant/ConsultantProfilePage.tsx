@@ -536,7 +536,7 @@ export default function ConsultantProfilePage() {
                   <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
                   <SelectItem value="paypal">PayPal</SelectItem>
                   <SelectItem value="wise">Wise</SelectItem>
-                  <SelectItem value="stripe">Stripe</SelectItem>
+                  <SelectItem value="airwallex">Airwallex</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>

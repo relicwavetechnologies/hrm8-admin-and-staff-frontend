@@ -37,9 +37,9 @@ export const SUBSCRIPTION_TIERS = {
   'payg': {
     id: 'payg',
     name: 'Pay As You Go',
-    monthlyPrice: 195,
-    annualPrice: 195 * 12,
-    monthlyFee: 195, // Backward compatibility
+    monthlyPrice: 0,
+    annualPrice: 0,
+    monthlyFee: 0, // Backward compatibility
     jobPostingCost: 195, // Backward compatibility
     maxOpenJobs: 9999, // Unlimited
     maxUsers: 9999, // Unlimited
@@ -240,13 +240,13 @@ export const ADDON_SERVICES = {
   },
   referenceChecking: {
     name: 'Reference Checking',
-    perCandidateCost: 69,
+    perCandidateCost: 85,
     description: 'Automated reference verification - per candidate'
   },
   videoInterviewing: {
-    name: 'Video Interviewing',
-    perJobCost: 99,
-    description: 'One-way and live video interviews - per job posting'
+    name: 'AI Interview',
+    perJobCost: 25,
+    description: 'AI interview screening - priced per candidate'
   }
 } as const;
 
@@ -257,27 +257,27 @@ export const RECRUITMENT_SERVICES = {
     name: 'Self-Managed (FREE)'
   },
   'shortlisting': {
-    baseFee: 1990,
+    baseFee: 990,
     upfrontPercentage: 1.0,
     name: 'Shortlisting Service'
   },
   'full-service': {
-    baseFee: 5990,
+    baseFee: 3490,
     upfrontPercentage: 1.0,
     name: 'Standard Recruitment Service'
   },
   'executive-search': {
-    baseFeeUnder100k: 9990,
-    baseFeeOver100k: 14990,
+    baseFeeUnder100k: 6000,
+    baseFeeOver100k: 6000,
     upfrontPercentage: 1.0,
-    name: 'Executive Search'
+    name: 'Search (10% salary, minimum fee applies)'
   },
   'rpo': {
-    baseMonthlyPerConsultant: 5990, // Guide price
-    basePerVacancy: 3990, // Guide price
+    baseMonthlyPerConsultant: 0,
+    basePerVacancy: 0,
     upfrontPercentage: 0,
     name: 'RPO (Recruitment Process Outsourcing)',
-    description: 'Pricing tailored to employer needs - guide prices shown',
+    description: 'Pricing tailored to employer needs',
     isTailored: true,
     minimumConsultants: 1,
     minimumContract: 6, // months
@@ -289,8 +289,8 @@ export const PRICING_NOTES = {
   annualPayment: 'Subscription fees paid annually',
   hrmsBlocks: 'HRMS charged in blocks of 50 employees paid annually',
   optionalServices: 'Optional services - additional charges apply',
-  currency: 'Pricing in USD',
-  rpoCustom: 'RPO pricing is tailored to each employer - guide prices shown for reference'
+  currency: 'Subscription pricing is USD-based and converts live into supported billing currencies',
+  rpoCustom: 'RPO pricing is tailored to each employer'
 } as const;
 
 export function getServiceBaseFee(serviceType: 'shortlisting' | 'full-service' | 'executive-search' | 'rpo'): number {

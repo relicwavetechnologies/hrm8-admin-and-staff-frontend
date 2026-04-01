@@ -36,8 +36,8 @@ const services = [
   {
     id: 'shortlisting' as const,
     name: 'Shortlisting Service',
-    price: '$1,990',
-    priceSubtext: 'Per hire',
+    price: 'From USD 990',
+    priceSubtext: 'Fixed regional price',
     description: 'We find and screen the best candidates for you',
     features: [
       'Job posting configuration',
@@ -52,8 +52,8 @@ const services = [
   {
     id: 'full-service' as const,
     name: 'Full Service',
-    price: '$5,990',
-    priceSubtext: 'Per hire',
+    price: 'From USD 3,490',
+    priceSubtext: 'Fixed regional price',
     description: 'Complete recruitment from start to finish',
     features: [
       'End-to-end recruitment support',
@@ -68,8 +68,8 @@ const services = [
   {
     id: 'executive-search' as const,
     name: 'Executive Search',
-    price: '$9,990 | $14,990',
-    priceSubtext: '≤$100k | >$100k salary',
+    price: 'From USD 6,000',
+    priceSubtext: 'Minimum search fee by region',
     description: 'Specialized search for leadership roles',
     features: [
       'Senior & C-level positions',
@@ -200,43 +200,14 @@ export function ServiceTypeSelectionDialog({ open, companyId, onServiceTypeSelec
 
                   {/* Center: Price */}
                   <div className="text-center lg:min-w-[280px] flex-shrink-0">
-                    {service.id === 'executive-search' ? (
-                      <div className="flex items-start justify-center gap-6">
-                        {/* Left tier */}
-                        <div className="flex flex-col items-center">
-                          <div className="text-3xl font-bold text-primary">
-                            $9,990
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            ≤$100k salary
-                          </div>
-                        </div>
-
-                        {/* Divider */}
-                        <div className="text-2xl font-light text-muted-foreground self-center">
-                          |
-                        </div>
-
-                        {/* Right tier */}
-                        <div className="flex flex-col items-center">
-                          <div className="text-3xl font-bold text-primary">
-                            $14,990
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            {'>'}$100k salary
-                          </div>
-                        </div>
+                    <>
+                      <div className="text-3xl font-bold text-primary">
+                        {service.price}
                       </div>
-                    ) : (
-                      <>
-                        <div className="text-3xl font-bold text-primary">
-                          {service.price}
-                        </div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {service.priceSubtext}
-                        </div>
-                      </>
-                    )}
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {service.priceSubtext}
+                      </div>
+                    </>
                   </div>
 
                   {/* Right: Features */}

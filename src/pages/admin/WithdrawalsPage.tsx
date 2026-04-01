@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { DataTable, Column } from "@/shared/components/tables/DataTable";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
@@ -19,6 +19,7 @@ export default function WithdrawalsPage() {
     const [withdrawals, setWithdrawals] = useState<AdminWithdrawalRequest[]>([]);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
     const [payoutConfig, setPayoutConfig] = useState<PayoutConfigResponse | null>(null);
+    const [activeBucket, setActiveBucket] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'SECONDARY' | 'PROCESSING' | 'BENEFICIARY' | 'FAILED'>('ALL');
 
     // Dialog states
     const [selectedWithdrawal, setSelectedWithdrawal] = useState<AdminWithdrawalRequest | null>(null);
@@ -64,7 +65,7 @@ export default function WithdrawalsPage() {
     const handleApprove = async (withdrawal: AdminWithdrawalRequest) => {
         if (
             !confirm(
-                `Approve withdrawal of ${formatCurrency(withdrawal.payoutAmount ?? withdrawal.amount, withdrawal.payoutCurrency || withdrawal.currency || undefined)} for ${withdrawal.consultantName}?`
+                `Approve withdrawal of ${formatCurrency(withdrawal.payoutAmount ?? withdrawal.amount, withdrawal.payoutCurrency || withdrawal.currency || undefined)} for ${withdrawal.recipientName || withdrawal.consultantName || withdrawal.companyName || 'recipient'}?`
             )
         ) {
             return;
@@ -86,6 +87,31 @@ export default function WithdrawalsPage() {
         }
     };
 
+    const handleSecondaryApprove = async (withdrawal: AdminWithdrawalRequest) => {
+        if (
+            !confirm(
+                `Record the second approval for ${formatCurrency(withdrawal.payoutAmount ?? withdrawal.amount, withdrawal.payoutCurrency || withdrawal.currency || undefined)}?`
+            )
+        ) {
+            return;
+        }
+
+        setActionLoading(withdrawal.id);
+        try {
+            await adminWithdrawalService.secondaryApproveWithdrawal(withdrawal.id);
+            toast({ title: "Success", description: "Second approval recorded" });
+            fetchWithdrawals();
+        } catch (error: any) {
+            toast({
+                title: "Error",
+                description: error.response?.data?.error || "Failed to record second approval",
+                variant: "destructive"
+            });
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
     const handleProcessClick = (withdrawal: AdminWithdrawalRequest) => {
         setSelectedWithdrawal(withdrawal);
         setProcessOpen(true);
@@ -94,7 +120,7 @@ export default function WithdrawalsPage() {
     const handleExecuteAirwallex = async (withdrawal: AdminWithdrawalRequest) => {
         if (
             !confirm(
-                `Execute Airwallex transfer for ${formatCurrency(withdrawal.payoutAmount ?? withdrawal.amount, withdrawal.payoutCurrency || withdrawal.currency || undefined)} to ${withdrawal.consultantName}?`
+                `Execute Airwallex transfer for ${formatCurrency(withdrawal.payoutAmount ?? withdrawal.amount, withdrawal.payoutCurrency || withdrawal.currency || undefined)} to ${withdrawal.recipientName || withdrawal.consultantName || withdrawal.companyName || 'recipient'}?`
             )
         ) {
             return;
@@ -149,12 +175,14 @@ export default function WithdrawalsPage() {
             render: (item) => <span>{format(new Date(item.createdAt), "MMM d, yyyy")}</span>,
         },
         {
-            key: "consultantName",
-            label: "Sales Agent",
+            key: "recipientName",
+            label: "Recipient",
             render: (item) => (
                 <div>
-                    <div className="font-medium">{item.consultantName}</div>
-                    <div className="text-xs text-muted-foreground">{item.consultantEmail}</div>
+                    <div className="font-medium">{item.recipientName || item.consultantName || item.companyName}</div>
+                    <div className="text-xs text-muted-foreground">
+                        {item.requestKind === 'COMPANY' ? 'Company refund balance' : item.consultantEmail}
+                    </div>
                 </div>
             ),
         },
@@ -175,7 +203,15 @@ export default function WithdrawalsPage() {
         {
             key: "status",
             label: "Status",
-            render: (item) => getStatusBadge(item.status),
+            render: (item) => {
+                const itemNeedsSecondApproval = item.secondaryApprovalRequired && !item.secondaryApprovedAt;
+                switch (item.status) {
+                    case 'APPROVED':
+                        return <Badge variant="outline" className={itemNeedsSecondApproval ? "bg-orange-50 text-orange-700 border-orange-200" : "bg-blue-50 text-blue-700 border-blue-200"}>{itemNeedsSecondApproval ? 'Awaiting second approval' : 'Approved'}</Badge>;
+                    default:
+                        return getStatusBadge(item.status);
+                }
+            },
         },
         {
             key: "actions",
@@ -223,28 +259,47 @@ export default function WithdrawalsPage() {
 
                     {item.status === 'APPROVED' && (
                         <>
-                            <Button
-                                variant="default"
-                                size="sm"
-                                onClick={() => handleExecuteAirwallex(item)}
-                                disabled={!!actionLoading}
-                                className="bg-blue-600 hover:bg-blue-700"
-                            >
-                                {actionLoading === item.id ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                    <>
-                                        <DollarSign className="h-4 w-4 mr-1" />
-                                        Execute Airwallex
-                                    </>
-                                )}
-                            </Button>
+                            {item.secondaryApprovalRequired && !item.secondaryApprovedAt ? (
+                                <Button
+                                    variant="default"
+                                    size="sm"
+                                    onClick={() => handleSecondaryApprove(item)}
+                                    disabled={!!actionLoading}
+                                    className="bg-amber-600 hover:bg-amber-700"
+                                >
+                                    {actionLoading === item.id ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <>
+                                            <CheckCircle className="h-4 w-4 mr-1" />
+                                            Second approval
+                                        </>
+                                    )}
+                                </Button>
+                            ) : (
+                                <Button
+                                    variant="default"
+                                    size="sm"
+                                    onClick={() => handleExecuteAirwallex(item)}
+                                    disabled={!!actionLoading}
+                                    className="bg-blue-600 hover:bg-blue-700"
+                                >
+                                    {actionLoading === item.id ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <>
+                                            <DollarSign className="h-4 w-4 mr-1" />
+                                            Execute Airwallex
+                                        </>
+                                    )}
+                                </Button>
+                            )}
                             {payoutConfig?.MANUAL_OFFLINE_PAYOUT_MODE || payoutConfig?.BILLING_PROVIDER_MODE === "mock" ? (
                                 <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={() => handleProcessClick(item)}
-                                    disabled={!!actionLoading}
+                                    disabled={!!actionLoading || !!(item.secondaryApprovalRequired && !item.secondaryApprovedAt)}
                                 >
                                     Offline / manual
                                 </Button>
@@ -256,12 +311,40 @@ export default function WithdrawalsPage() {
         },
     ];
 
+    const summary = useMemo(() => ({
+        pending: withdrawals.filter((item) => item.status === 'PENDING').length,
+        approved: withdrawals.filter((item) => item.status === 'APPROVED').length,
+        awaitingSecondApproval: withdrawals.filter((item) => item.status === 'APPROVED' && item.secondaryApprovalRequired && !item.secondaryApprovedAt).length,
+        processing: withdrawals.filter((item) => item.status === 'PROCESSING').length,
+        beneficiaryAttention: withdrawals.filter((item) => item.beneficiaryStatus && item.beneficiaryStatus.status !== 'READY').length,
+        failed: withdrawals.filter((item) => item.status === 'REJECTED' || !!item.transferFailedReason).length,
+    }), [withdrawals]);
+
+    const filteredWithdrawals = useMemo(() => {
+        switch (activeBucket) {
+            case 'PENDING':
+                return withdrawals.filter((item) => item.status === 'PENDING');
+            case 'APPROVED':
+                return withdrawals.filter((item) => item.status === 'APPROVED');
+            case 'SECONDARY':
+                return withdrawals.filter((item) => item.status === 'APPROVED' && item.secondaryApprovalRequired && !item.secondaryApprovedAt);
+            case 'PROCESSING':
+                return withdrawals.filter((item) => item.status === 'PROCESSING');
+            case 'BENEFICIARY':
+                return withdrawals.filter((item) => item.beneficiaryStatus && item.beneficiaryStatus.status !== 'READY');
+            case 'FAILED':
+                return withdrawals.filter((item) => item.status === 'REJECTED' || !!item.transferFailedReason);
+            default:
+                return withdrawals;
+        }
+    }, [activeBucket, withdrawals]);
+
     return (
 
         <div className="p-6 space-y-6">
             <div>
                 <h1 className="text-2xl font-bold tracking-tight">Withdrawal Management</h1>
-                <p className="text-muted-foreground">Manage sales agent commission withdrawal requests</p>
+                <p className="text-muted-foreground">Manage staff payouts and company refund-balance withdrawals</p>
             </div>
 
             {payoutConfig ? (
@@ -300,11 +383,33 @@ export default function WithdrawalsPage() {
             ) : null}
 
             <Card className="p-1">
+                <div className="grid gap-4 p-4 md:grid-cols-7">
+                    {[
+                        { key: 'ALL', label: 'All requests', value: withdrawals.length },
+                        { key: 'PENDING', label: 'Pending review', value: summary.pending },
+                        { key: 'APPROVED', label: 'Ready to send', value: summary.approved },
+                        { key: 'SECONDARY', label: 'Second approval', value: summary.awaitingSecondApproval },
+                        { key: 'PROCESSING', label: 'Provider processing', value: summary.processing },
+                        { key: 'BENEFICIARY', label: 'Beneficiary issues', value: summary.beneficiaryAttention },
+                        { key: 'FAILED', label: 'Failed / reversed', value: summary.failed },
+                    ].map((item) => (
+                        <Button
+                            key={item.key}
+                            type="button"
+                            variant={activeBucket === item.key ? "default" : "outline"}
+                            className="h-auto flex-col items-start gap-1 p-4"
+                            onClick={() => setActiveBucket(item.key as typeof activeBucket)}
+                        >
+                            <span className="text-xs uppercase tracking-wide text-muted-foreground">{item.label}</span>
+                            <span className="text-2xl font-semibold">{item.value}</span>
+                        </Button>
+                    ))}
+                </div>
                 <DataTable
                     columns={columns}
-                    data={withdrawals}
+                    data={filteredWithdrawals}
                     searchable={true}
-                    searchKeys={['consultantName', 'consultantEmail']}
+                    searchKeys={['recipientName', 'consultantName', 'consultantEmail', 'companyName']}
                 />
             </Card>
 

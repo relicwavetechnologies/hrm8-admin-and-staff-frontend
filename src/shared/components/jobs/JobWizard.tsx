@@ -478,19 +478,19 @@ export function JobWizard({ serviceType, defaultValues, jobId: initialJobId, onS
     },
     'shortlisting': {
       name: 'Shortlisting Service',
-      price: '$1,990',
+      price: 'From USD 990',
       icon: Users,
       color: 'text-blue-600'
     },
     'full-service': {
       name: 'Full Service',
-      price: '$5,990',
+      price: 'From USD 3,490',
       icon: Star,
       color: 'text-primary'
     },
     'executive-search': {
       name: 'Executive Search',
-      price: '$9,990+',
+      price: 'From USD 6,000',
       icon: Crown,
       color: 'text-amber-600'
     },
@@ -1083,7 +1083,7 @@ export function JobWizard({ serviceType, defaultValues, jobId: initialJobId, onS
                     disabled={(() => {
                       const formData = form.watch();
                       const isSelfManagedJob = formData.serviceType === 'self-managed' || formData.serviceType === 'rpo';
-                      // For paid packages, allow submission if terms are accepted OR if we're redirecting to Stripe
+                      // For paid packages, allow submission if terms are accepted OR if we're redirecting to checkout
                       // For self-managed, require terms acceptance
                       if (isSelfManagedJob) {
                         return !formData.termsAccepted || isPublishing || isSavingTemplate;

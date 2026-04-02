@@ -14,10 +14,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useHrm8Auth } from '@/contexts/Hrm8AuthContext';
 import { staffService, StaffCreateResponse } from '@/shared/services/hrm8/staffService';
 import { regionService } from '@/shared/services/hrm8/regionService';
+import { HRM8_SUPPORTED_CURRENCIES } from '@/shared/lib/supportedCurrencies';
 import { toast } from 'sonner';
 import { Loader2, Mail } from 'lucide-react';
 
-const SUPPORTED_CURRENCIES = ['USD', 'GBP', 'EUR', 'AUD', 'INR', 'NZD', 'SGD', 'CAD'] as const;
+const SUPPORTED_CURRENCIES = HRM8_SUPPORTED_CURRENCIES;
 
 export const staffSchema = z.object({
   email: z.string().email('Invalid email'),
@@ -375,5 +376,4 @@ export function StaffForm({ consultantId, onSave, onCancel }: StaffFormProps) {
     </form>
   );
 }
-
 

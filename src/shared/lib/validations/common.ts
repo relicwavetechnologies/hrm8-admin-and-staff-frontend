@@ -88,7 +88,7 @@ export const commonEnums = {
   
   priority: z.enum(["low", "medium", "high", "urgent"]),
   
-  currency: z.enum(["USD", "EUR", "GBP", "CAD", "AUD"]),
+  currency: z.enum(["USD", "EUR", "GBP", "AUD", "INR"]),
 };
 
 /**

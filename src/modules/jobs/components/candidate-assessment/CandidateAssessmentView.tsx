@@ -29,6 +29,7 @@ import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/shared/c
 import { useToast } from "@/shared/hooks/use-toast";
 import { AiAssistantSidebar } from "@/shared/components/common/AiAssistantSidebar";
 import { useCanUseAiFeatures } from "@/shared/hooks/useCanUseAiFeatures";
+import { applicationService } from "@/modules/applications/lib/applicationService";
 
 interface CandidateAssessmentViewProps {
   application: Application;
@@ -95,7 +96,6 @@ export function CandidateAssessmentView({
     const fetchFullDetails = async () => {
       if (!application.id) return;
       try {
-        const { applicationService } = await import("@/modules/applications/lib/applicationService");
         const response = await applicationService.getApplication(application.id);
         if (response.success && response.data && response.data.application) {
           setFullApplication(prev => ({ ...prev, ...response.data!.application }));
@@ -190,7 +190,6 @@ export function CandidateAssessmentView({
 
     setIsUpdatingStatus(true);
     try {
-      const { applicationService } = await import("@/modules/applications/lib/applicationService");
       const response = await applicationService.updateStage(fullApplication.id, nextStage);
 
       if (!response.success) {
@@ -431,7 +430,6 @@ export function CandidateAssessmentView({
                               onUpdate={async () => {
                                 if (!application.id) return;
                                 try {
-                                  const { applicationService } = await import("@/modules/applications/lib/applicationService");
                                   const response = await applicationService.getApplication(application.id);
                                   if (response.success && response.data && response.data.application) {
                                     setFullApplication(prev => ({ ...prev, ...response.data!.application }));

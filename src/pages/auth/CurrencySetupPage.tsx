@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/shared/contexts/AuthContext';
 import { consultantAuthService } from '@/shared/lib/consultantAuthService';
 import { getAvailableCurrencies } from '@/shared/lib/availableCurrenciesService';
+import { HRM8_SUPPORTED_CURRENCIES } from '@/shared/lib/supportedCurrencies';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
@@ -17,7 +18,7 @@ import { AuthLayout } from '@/shared/components/auth/AuthLayout';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-const FALLBACK_CURRENCIES = ['USD', 'GBP', 'EUR', 'AUD', 'INR', 'NZD', 'SGD', 'CAD'] as const;
+const FALLBACK_CURRENCIES = HRM8_SUPPORTED_CURRENCIES;
 
 export default function CurrencySetupPage() {
     const [loading, setLoading] = useState(false);

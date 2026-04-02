@@ -22,6 +22,7 @@ import { useRegionStore } from '@/shared/stores/useRegionStore';
 import { apiClient } from '@/shared/lib/api';
 
 interface FinanceOverview {
+    reportingCurrency: string;
     totalRevenue: number;
     totalCommissions: number;
     totalWithdrawals: number;
@@ -58,10 +59,10 @@ interface FinanceOverview {
     };
 }
 
-const formatCurrency = (value: number) =>
+const formatCurrency = (value: number, currency: string = 'USD') =>
     new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'USD',
+        currency,
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
     }).format(value);
@@ -164,17 +165,19 @@ function RevenueBar({
     label,
     amount,
     total,
+    currency,
 }: {
     label: string;
     amount: number;
     total: number;
+    currency: string;
 }) {
     const pct = total > 0 ? (amount / total) * 100 : 0;
     return (
         <div className="space-y-1.5">
             <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">{label}</span>
-                <span className="font-medium">{formatCurrency(amount)}</span>
+                <span className="font-medium">{formatCurrency(amount, currency)}</span>
             </div>
             <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                 <div
@@ -259,8 +262,11 @@ export default function FinanceOverviewPage() {
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Finance Overview</h1>
                     <p className="text-muted-foreground mt-1">
-                        Comprehensive view of all revenue and financial operations
+                        Comprehensive view of all revenue and financial operations in {overview.reportingCurrency}
                     </p>
+                    <div className="mt-3">
+                        <Badge variant="secondary">Reporting currency: {overview.reportingCurrency}</Badge>
+                    </div>
                 </div>
                 {totalPendingItems > 0 && (
                     <Badge variant="destructive" className="px-3 py-1.5 text-sm">
@@ -273,7 +279,7 @@ export default function FinanceOverviewPage() {
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 <FinanceStatCard
                     title="Total Revenue"
-                    value={formatCurrency(overview.totalRevenue)}
+                    value={formatCurrency(overview.totalRevenue, overview.reportingCurrency)}
                     subtitle="Current month"
                     trend={overview.revenueGrowth >= 0 ? 'up' : 'down'}
                     trendValue={formatPercentage(overview.revenueGrowth)}
@@ -282,7 +288,7 @@ export default function FinanceOverviewPage() {
                 />
                 <FinanceStatCard
                     title="Total Commissions"
-                    value={formatCurrency(overview.totalCommissions)}
+                    value={formatCurrency(overview.totalCommissions, overview.reportingCurrency)}
                     subtitle="Current month"
                     trend={overview.commissionsGrowth >= 0 ? 'up' : 'down'}
                     trendValue={formatPercentage(overview.commissionsGrowth)}
@@ -291,14 +297,14 @@ export default function FinanceOverviewPage() {
                 />
                 <FinanceStatCard
                     title="Net Cash Flow"
-                    value={formatCurrency(overview.netCashFlow)}
+                    value={formatCurrency(overview.netCashFlow, overview.reportingCurrency)}
                     subtitle="Revenue minus payouts"
                     icon={<BarChart3 className="h-6 w-6" />}
                     onClick={() => navigate('/hrm8/finance/revenue-analytics')}
                 />
                 <FinanceStatCard
                     title="Projected Payouts"
-                    value={formatCurrency(overview.projectedPayouts)}
+                    value={formatCurrency(overview.projectedPayouts, overview.reportingCurrency)}
                     subtitle="Pending items total"
                     icon={<Wallet className="h-6 w-6" />}
                 />
@@ -317,16 +323,19 @@ export default function FinanceOverviewPage() {
                             label="Subscriptions"
                             amount={overview.revenueBySource.subscriptions}
                             total={overview.totalRevenue}
+                            currency={overview.reportingCurrency}
                         />
                         <RevenueBar
                             label="Placements"
                             amount={overview.revenueBySource.placements}
                             total={overview.totalRevenue}
+                            currency={overview.reportingCurrency}
                         />
                         <RevenueBar
                             label="Other"
                             amount={overview.revenueBySource.other}
                             total={overview.totalRevenue}
+                            currency={overview.reportingCurrency}
                         />
                     </CardContent>
                 </Card>
@@ -342,16 +351,18 @@ export default function FinanceOverviewPage() {
                             label="Recruitment"
                             amount={overview.commissionsByType.recruitment}
                             total={overview.totalCommissions}
+                            currency={overview.reportingCurrency}
                         />
                         <RevenueBar
                             label="Sales"
                             amount={overview.commissionsByType.sales}
                             total={overview.totalCommissions}
+                            currency={overview.reportingCurrency}
                         />
                         <div className="pt-2 border-t">
                             <div className="flex items-center justify-between text-sm">
                                 <span className="font-medium">Total</span>
-                                <span className="font-semibold">{formatCurrency(overview.totalCommissions)}</span>
+                                <span className="font-semibold">{formatCurrency(overview.totalCommissions, overview.reportingCurrency)}</span>
                             </div>
                         </div>
                     </CardContent>
@@ -371,7 +382,7 @@ export default function FinanceOverviewPage() {
                                     Withdrawals
                                 </div>
                                 <span className="font-medium text-red-500">
-                                    -{formatCurrency(overview.totalWithdrawals)}
+                                    -{formatCurrency(overview.totalWithdrawals, overview.reportingCurrency)}
                                 </span>
                             </div>
                             <div className="flex items-center justify-between text-sm">
@@ -380,7 +391,7 @@ export default function FinanceOverviewPage() {
                                     Refunds
                                 </div>
                                 <span className="font-medium text-red-500">
-                                    -{formatCurrency(overview.totalRefunds)}
+                                    -{formatCurrency(overview.totalRefunds, overview.reportingCurrency)}
                                 </span>
                             </div>
                             <div className="flex items-center justify-between text-sm">
@@ -389,7 +400,7 @@ export default function FinanceOverviewPage() {
                                     Settlements
                                 </div>
                                 <span className="font-medium text-red-500">
-                                    -{formatCurrency(overview.totalSettlements)}
+                                    -{formatCurrency(overview.totalSettlements, overview.reportingCurrency)}
                                 </span>
                             </div>
                             <div className="pt-3 border-t">
@@ -401,7 +412,7 @@ export default function FinanceOverviewPage() {
                                             overview.netCashFlow >= 0 ? 'text-emerald-600' : 'text-red-500'
                                         )}
                                     >
-                                        {formatCurrency(overview.netCashFlow)}
+                                        {formatCurrency(overview.netCashFlow, overview.reportingCurrency)}
                                     </span>
                                 </div>
                             </div>
@@ -432,7 +443,7 @@ export default function FinanceOverviewPage() {
                                             {overview.pendingWithdrawals.count}
                                         </span>
                                         <span className="text-sm text-muted-foreground">
-                                            · {formatCurrency(overview.pendingWithdrawals.totalAmount)}
+                                            · {formatCurrency(overview.pendingWithdrawals.totalAmount, overview.reportingCurrency)}
                                         </span>
                                     </div>
                                 </div>
@@ -459,7 +470,7 @@ export default function FinanceOverviewPage() {
                                             {overview.pendingRefunds.count}
                                         </span>
                                         <span className="text-sm text-muted-foreground">
-                                            · {formatCurrency(overview.pendingRefunds.totalAmount)}
+                                            · {formatCurrency(overview.pendingRefunds.totalAmount, overview.reportingCurrency)}
                                         </span>
                                     </div>
                                 </div>
@@ -486,7 +497,7 @@ export default function FinanceOverviewPage() {
                                             {overview.pendingSettlements.count}
                                         </span>
                                         <span className="text-sm text-muted-foreground">
-                                            · {formatCurrency(overview.pendingSettlements.totalAmount)}
+                                            · {formatCurrency(overview.pendingSettlements.totalAmount, overview.reportingCurrency)}
                                         </span>
                                     </div>
                                 </div>
@@ -500,7 +511,7 @@ export default function FinanceOverviewPage() {
             {/* ── Quick Navigation ── */}
             <div>
                 <h2 className="text-lg font-semibold mb-4">Quick Navigation</h2>
-                <div className="grid gap-3 md:grid-cols-4">
+                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
                     {[
                         {
                             label: 'Revenue',
@@ -533,6 +544,14 @@ export default function FinanceOverviewPage() {
                             path: '/hrm8/finance/pricing',
                             color: 'text-chart-3',
                             bg: 'bg-chart-3/10',
+                        },
+                        {
+                            label: 'Reconciliation',
+                            description: 'Trace provider and ledger state',
+                            icon: <Wallet className="h-5 w-5" />,
+                            path: '/hrm8/finance/reconciliation',
+                            color: 'text-emerald-600',
+                            bg: 'bg-emerald-500/10',
                         },
                     ].map((item) => (
                         <Card

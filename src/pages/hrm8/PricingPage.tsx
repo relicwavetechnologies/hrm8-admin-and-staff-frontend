@@ -35,8 +35,7 @@ import {
 
 /** Controlled ISO 4217 codes for price books and country maps (avoids free-text typos). */
 const ISO_4217_BILLING_CURRENCIES = [
-  'USD', 'EUR', 'GBP', 'AUD', 'CAD', 'CHF', 'CNY', 'HKD', 'INR', 'JPY', 'KRW', 'MXN', 'NZD', 'SGD', 'SEK', 'NOK',
-  'DKK', 'PLN', 'ZAR', 'AED', 'SAR', 'ILS', 'TRY', 'THB', 'MYR', 'PHP', 'IDR', 'BRL', 'CZK', 'HUF',
+  'USD', 'EUR', 'GBP', 'AUD', 'INR',
 ] as const;
 
 export default function PricingPage() {

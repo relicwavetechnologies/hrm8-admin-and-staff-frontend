@@ -53,6 +53,8 @@ export interface Commission {
   fxRate?: number;
   fxRateLockedAt?: string;
   fxSource?: string;
+  fxQuoteId?: string | null;
+  fxQuoteValidUntil?: string | null;
 }
 
 export interface CommissionStructureConfig {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { SafeHtml } from '@/shared/components/SafeHtml';
 import { DashboardPageLayout } from '@/shared/components/layouts/DashboardPageLayout';
@@ -27,6 +27,7 @@ import {
   Globe,
   Inbox,
   List,
+  Loader2,
   Lock,
   MapPin,
   MessageSquarePlus,
@@ -39,22 +40,63 @@ import { JobStatusBadge } from '@/modules/jobs/components/JobStatusBadge';
 import { EmploymentTypeBadge } from '@/modules/jobs/components/EmploymentTypeBadge';
 import { ServiceTypeBadge } from '@/modules/jobs/components/ServiceTypeBadge';
 import { JobActivityFeed } from '@/modules/jobs/components/JobActivityFeed';
-import { ApplicationPipeline } from '@/modules/applications/components/ApplicationPipeline';
 import {
   JobApplicationsFilterBar,
   type JobApplicationsFilters,
 } from '@/modules/applications/components/JobApplicationsFilterBar';
-import { RoundDetailView } from '@/modules/applications/components/RoundDetailView';
-import { InitialScreeningTab } from '@/modules/applications/components/InitialScreeningTab';
-import { CandidatesTab } from '@/modules/applications/components/CandidatesTab';
-import { JobAIInterviewsTab } from '@/modules/jobs/components/aiInterview/JobAIInterviewsTab';
-import { JobOffersTab } from '@/modules/jobs/components/offers/JobOffersTab';
-import { JobTasksTab } from '@/modules/jobs/components/tasks/JobTasksTab';
-import { JobInboxTab } from '@/modules/jobs/components/JobInboxTab';
-import { JobMessagesTab } from '@/modules/jobs/components/JobMessagesTab';
-import { CandidateAssessmentView } from '@/modules/jobs/components/candidate-assessment/CandidateAssessmentView';
 import { JobDetailPageSkeleton } from '@/shared/components/jobs/JobDetailPageSkeleton';
 import { normalizeServicePackage } from '@/shared/lib/managedServicePolicy';
+
+const ApplicationPipeline = lazy(() =>
+  import('@/modules/applications/components/ApplicationPipeline').then((module) => ({
+    default: module.ApplicationPipeline,
+  }))
+);
+const RoundDetailView = lazy(() =>
+  import('@/modules/applications/components/RoundDetailView').then((module) => ({
+    default: module.RoundDetailView,
+  }))
+);
+const InitialScreeningTab = lazy(() =>
+  import('@/modules/applications/components/InitialScreeningTab').then((module) => ({
+    default: module.InitialScreeningTab,
+  }))
+);
+const CandidatesTab = lazy(() =>
+  import('@/modules/applications/components/CandidatesTab').then((module) => ({
+    default: module.CandidatesTab,
+  }))
+);
+const JobAIInterviewsTab = lazy(() =>
+  import('@/modules/jobs/components/aiInterview/JobAIInterviewsTab').then((module) => ({
+    default: module.JobAIInterviewsTab,
+  }))
+);
+const JobOffersTab = lazy(() =>
+  import('@/modules/jobs/components/offers/JobOffersTab').then((module) => ({
+    default: module.JobOffersTab,
+  }))
+);
+const JobTasksTab = lazy(() =>
+  import('@/modules/jobs/components/tasks/JobTasksTab').then((module) => ({
+    default: module.JobTasksTab,
+  }))
+);
+const JobInboxTab = lazy(() =>
+  import('@/modules/jobs/components/JobInboxTab').then((module) => ({
+    default: module.JobInboxTab,
+  }))
+);
+const JobMessagesTab = lazy(() =>
+  import('@/modules/jobs/components/JobMessagesTab').then((module) => ({
+    default: module.JobMessagesTab,
+  }))
+);
+const CandidateAssessmentView = lazy(() =>
+  import('@/modules/jobs/components/candidate-assessment/CandidateAssessmentView').then((module) => ({
+    default: module.CandidateAssessmentView,
+  }))
+);
 
 type ConsultantJobDetailsResponse = {
   job: any;
@@ -337,8 +379,12 @@ function buildFrontendJob(jobData: ConsultantJobDetailsResponse | null, applicat
     hasJobTargetPromotion: Boolean(rawJob.hasJobTargetPromotion),
     paymentId: rawJob.payment_id || rawJob.paymentId,
     requiresPayment: Boolean(rawJob.requires_payment || rawJob.requiresPayment),
-    stripeSessionId: rawJob.stripe_session_id || rawJob.stripeSessionId,
-    stripePaymentIntentId: rawJob.stripe_payment_intent_id || rawJob.stripePaymentIntentId,
+    providerCheckoutSessionId:
+      rawJob.provider_checkout_session_id ||
+      rawJob.providerCheckoutSessionId,
+    providerPaymentIntentId:
+      rawJob.provider_payment_intent_id ||
+      rawJob.providerPaymentIntentId,
     termsAccepted: Boolean(rawJob.terms_accepted || rawJob.termsAccepted),
     setupType: (rawJob.setup_type || rawJob.setupType || 'simple') as 'simple' | 'advanced',
     managementType: rawJob.management_type || rawJob.managementType,
@@ -361,6 +407,17 @@ function AiLockedCard({ message, title }: { message: string; title: string }) {
         <p>Consultants see the same AI lock state as the company for this job.</p>
       </CardContent>
     </Card>
+  );
+}
+
+function SectionLoader({ label = 'Loading section...' }: { label?: string }) {
+  return (
+    <div className="flex min-h-[240px] items-center justify-center">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Loader2 className="h-4 w-4 animate-spin" />
+        <span>{label}</span>
+      </div>
+    </div>
   );
 }
 
@@ -876,15 +933,17 @@ export default function ConsultantJobDetailPage() {
                     </div>
                   </div>
 
-                  <ApplicationPipeline
-                    jobId={frontendJob.id}
-                    jobTitle={frontendJob.title}
-                    jobServiceType={frontendJob.serviceType}
-                    jobManagementType={frontendJob.managementType}
-                    applications={filteredApplications}
-                    enableMultiSelect={false}
-                    isConsultantView={true}
-                  />
+                  <Suspense fallback={<SectionLoader label="Loading pipeline..." />}>
+                    <ApplicationPipeline
+                      jobId={frontendJob.id}
+                      jobTitle={frontendJob.title}
+                      jobServiceType={frontendJob.serviceType}
+                      jobManagementType={frontendJob.managementType}
+                      applications={filteredApplications}
+                      enableMultiSelect={false}
+                      isConsultantView={true}
+                    />
+                  </Suspense>
                 </div>
               ) : (
                 (() => {
@@ -892,101 +951,121 @@ export default function ConsultantJobDetailPage() {
                   if (!round) return null;
 
                   return (
-                    <RoundDetailView
-                      key={round.id}
-                      jobId={frontendJob.id}
-                      round={round}
-                      applications={allApplications}
-                      onRefresh={handleRefresh}
-                      onApplicationClick={handleOpenCandidate}
-                      allRounds={rounds}
-                      onMoveToRound={async (applicationId, roundId) => {
-                        try {
-                          await moveCandidateToRound(applicationId, roundId);
-                        } catch (error) {
-                          toast.error(error instanceof Error ? error.message : 'Failed to move candidate');
-                        }
-                      }}
-                      onMoveToNextRound={async (applicationId) => {
-                        const currentIndex = rounds.findIndex((item) => item.id === round.id);
-                        if (currentIndex === -1 || currentIndex === rounds.length - 1) {
-                          toast.info('No next round available.');
-                          return;
-                        }
+                    <Suspense fallback={<SectionLoader label="Loading round details..." />}>
+                      <RoundDetailView
+                        key={round.id}
+                        jobId={frontendJob.id}
+                        round={round}
+                        applications={allApplications}
+                        onRefresh={handleRefresh}
+                        onApplicationClick={handleOpenCandidate}
+                        allRounds={rounds}
+                        onMoveToRound={async (applicationId, roundId) => {
+                          try {
+                            await moveCandidateToRound(applicationId, roundId);
+                          } catch (error) {
+                            toast.error(error instanceof Error ? error.message : 'Failed to move candidate');
+                          }
+                        }}
+                        onMoveToNextRound={async (applicationId) => {
+                          const currentIndex = rounds.findIndex((item) => item.id === round.id);
+                          if (currentIndex === -1 || currentIndex === rounds.length - 1) {
+                            toast.info('No next round available.');
+                            return;
+                          }
 
-                        const nextRound = rounds[currentIndex + 1];
-                        if (nextRound.fixedKey === 'HIRED') {
-                          toast.error('Use the Offer tab to move candidates into Hired.');
-                          return;
-                        }
+                          const nextRound = rounds[currentIndex + 1];
+                          if (nextRound.fixedKey === 'HIRED') {
+                            toast.error('Use the Offer tab to move candidates into Hired.');
+                            return;
+                          }
 
-                        try {
-                          await moveCandidateToRound(applicationId, nextRound.id);
-                        } catch (error) {
-                          toast.error(error instanceof Error ? error.message : 'Failed to move candidate');
-                        }
-                      }}
-                      isSimpleFlow={frontendJob.setupType === 'simple'}
-                    />
+                          try {
+                            await moveCandidateToRound(applicationId, nextRound.id);
+                          } catch (error) {
+                            toast.error(error instanceof Error ? error.message : 'Failed to move candidate');
+                          }
+                        }}
+                        isSimpleFlow={frontendJob.setupType === 'simple'}
+                      />
+                    </Suspense>
                   );
                 })()
               )}
             </TabsContent>
 
             <TabsContent value="screening" className="mt-6">
-              <InitialScreeningTab
-                jobId={frontendJob.id}
-                jobTitle={frontendJob.title}
-                jobRequirements={frontendJob.requirements}
-                jobDescription={frontendJob.description}
-                job={frontendJob}
-                canUseAiOverride={companyAiEnabled}
-              />
+              <Suspense fallback={<SectionLoader label="Loading screening..." />}>
+                <InitialScreeningTab
+                  jobId={frontendJob.id}
+                  jobTitle={frontendJob.title}
+                  jobRequirements={frontendJob.requirements}
+                  jobDescription={frontendJob.description}
+                  job={frontendJob}
+                  canUseAiOverride={companyAiEnabled}
+                />
+              </Suspense>
             </TabsContent>
 
             <TabsContent value="candidates" className="mt-2">
-              <CandidatesTab
-                applications={allApplications}
-                jobId={frontendJob.id}
-                jobTitle={frontendJob.title}
-                rounds={rounds.map((round) => ({ id: round.id, name: round.name }))}
-                onRefresh={handleRefresh}
-              />
+              <Suspense fallback={<SectionLoader label="Loading candidates..." />}>
+                <CandidatesTab
+                  applications={allApplications}
+                  jobId={frontendJob.id}
+                  jobTitle={frontendJob.title}
+                  rounds={rounds.map((round) => ({ id: round.id, name: round.name }))}
+                  onRefresh={handleRefresh}
+                />
+              </Suspense>
             </TabsContent>
 
             <TabsContent value="ai-interviews" className="h-full overflow-hidden p-6 pt-0">
-              {!companyAiEnabled ? <AiLockedCard title="AI Interviews locked" message={aiLockMessage} /> : <JobAIInterviewsTab job={frontendJob} />}
+              {!companyAiEnabled ? (
+                <AiLockedCard title="AI Interviews locked" message={aiLockMessage} />
+              ) : (
+                <Suspense fallback={<SectionLoader label="Loading AI interviews..." />}>
+                  <JobAIInterviewsTab job={frontendJob} />
+                </Suspense>
+              )}
             </TabsContent>
 
             <TabsContent value="offers" className="h-full overflow-hidden p-6 pt-0">
-              <JobOffersTab
-                jobId={frontendJob.id}
-                jobTitle={frontendJob.title}
-                applications={allApplications}
-                rounds={rounds}
-                onRefresh={handleRefresh}
-                readOnly={isFullServiceHandoff}
-              />
+              <Suspense fallback={<SectionLoader label="Loading offers..." />}>
+                <JobOffersTab
+                  jobId={frontendJob.id}
+                  jobTitle={frontendJob.title}
+                  applications={allApplications}
+                  rounds={rounds}
+                  onRefresh={handleRefresh}
+                  readOnly={isFullServiceHandoff}
+                />
+              </Suspense>
             </TabsContent>
 
             <TabsContent value="hired" className="h-full overflow-hidden p-6 pt-0">
-              <JobOffersTab
-                mode="hired"
-                jobId={frontendJob.id}
-                jobTitle={frontendJob.title}
-                applications={allApplications}
-                rounds={rounds}
-                onRefresh={handleRefresh}
-                readOnly={isFullServiceHandoff}
-              />
+              <Suspense fallback={<SectionLoader label="Loading hired candidates..." />}>
+                <JobOffersTab
+                  mode="hired"
+                  jobId={frontendJob.id}
+                  jobTitle={frontendJob.title}
+                  applications={allApplications}
+                  rounds={rounds}
+                  onRefresh={handleRefresh}
+                  readOnly={isFullServiceHandoff}
+                />
+              </Suspense>
             </TabsContent>
 
             <TabsContent value="tasks" className="h-full overflow-hidden p-6 pt-0">
-              <JobTasksTab job={frontendJob} applications={allApplications} onRefresh={handleRefresh} />
+              <Suspense fallback={<SectionLoader label="Loading tasks..." />}>
+                <JobTasksTab job={frontendJob} applications={allApplications} onRefresh={handleRefresh} />
+              </Suspense>
             </TabsContent>
 
             <TabsContent value="inbox" className="h-full overflow-hidden p-6 pt-0">
-              <JobInboxTab jobId={frontendJob.id} jobTitle={frontendJob.title} applications={allApplications} />
+              <Suspense fallback={<SectionLoader label="Loading inbox..." />}>
+                <JobInboxTab jobId={frontendJob.id} jobTitle={frontendJob.title} applications={allApplications} />
+              </Suspense>
             </TabsContent>
 
             <TabsContent value="candidate-messages" className="h-full overflow-hidden p-6 pt-0">
@@ -997,7 +1076,9 @@ export default function ConsultantJobDetailPage() {
                     <p className="text-muted-foreground">Shared conversations with candidates and the hiring team</p>
                   </div>
                 </div>
-                <JobMessagesTab jobId={frontendJob.id} channelType="CANDIDATE_EMPLOYER" />
+                <Suspense fallback={<SectionLoader label="Loading candidate messages..." />}>
+                  <JobMessagesTab jobId={frontendJob.id} channelType="CANDIDATE_EMPLOYER" />
+                </Suspense>
               </div>
             </TabsContent>
 
@@ -1009,7 +1090,9 @@ export default function ConsultantJobDetailPage() {
                     <p className="text-muted-foreground">Private discussion with {frontendJob.employerName}</p>
                   </div>
                 </div>
-                <JobMessagesTab jobId={frontendJob.id} channelType="COMPANY_CONSULTANT" />
+                <Suspense fallback={<SectionLoader label="Loading company chat..." />}>
+                  <JobMessagesTab jobId={frontendJob.id} channelType="COMPANY_CONSULTANT" />
+                </Suspense>
               </div>
             </TabsContent>
           </div>
@@ -1017,22 +1100,24 @@ export default function ConsultantJobDetailPage() {
       </Tabs>
 
       {selectedApplication && (
-        <CandidateAssessmentView
-          key={selectedApplication.id}
-          application={selectedApplication}
-          open={detailPanelOpen}
-          onOpenChange={setDetailPanelOpen}
-          jobTitle={frontendJob.title}
-          jobId={frontendJob.id}
-          onNext={handleOpenNextCandidate}
-          onPrevious={handleOpenPreviousCandidate}
-          hasNext={selectedApplicationIndex >= 0 && selectedApplicationIndex < filteredApplications.length - 1}
-          hasPrevious={selectedApplicationIndex > 0}
-          isSimpleFlow={frontendJob.setupType === 'simple'}
-          canUseAiOverride={companyAiEnabled}
-          statusUpdateDisabled
-          statusUpdateDisabledReason="Use the kanban to manage candidates in this flow."
-        />
+        <Suspense fallback={<SectionLoader label="Loading candidate review..." />}>
+          <CandidateAssessmentView
+            key={selectedApplication.id}
+            application={selectedApplication}
+            open={detailPanelOpen}
+            onOpenChange={setDetailPanelOpen}
+            jobTitle={frontendJob.title}
+            jobId={frontendJob.id}
+            onNext={handleOpenNextCandidate}
+            onPrevious={handleOpenPreviousCandidate}
+            hasNext={selectedApplicationIndex >= 0 && selectedApplicationIndex < filteredApplications.length - 1}
+            hasPrevious={selectedApplicationIndex > 0}
+            isSimpleFlow={frontendJob.setupType === 'simple'}
+            canUseAiOverride={companyAiEnabled}
+            statusUpdateDisabled
+            statusUpdateDisabledReason="Use the kanban to manage candidates in this flow."
+          />
+        </Suspense>
       )}
     </DashboardPageLayout>
   );

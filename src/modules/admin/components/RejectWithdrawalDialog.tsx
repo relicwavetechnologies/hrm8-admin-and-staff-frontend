@@ -63,8 +63,10 @@ export function RejectWithdrawalDialog({ open, onOpenChange, withdrawal, onSucce
                 <form onSubmit={handleSubmit} className="space-y-4 py-4">
                     <div className="bg-red-50 border border-red-200 p-3 rounded-md">
                         <div className="text-sm text-red-900">
-                            <div className="font-medium">{withdrawal.consultantName}</div>
-                            <div className="text-2xl font-bold mt-1">{formatCurrency(withdrawal.amount)}</div>
+                            <div className="font-medium">{withdrawal.recipientName || withdrawal.consultantName || withdrawal.companyName}</div>
+                            <div className="text-2xl font-bold mt-1">
+                                {formatCurrency(withdrawal.payoutAmount ?? withdrawal.amount, withdrawal.payoutCurrency || withdrawal.currency || undefined)}
+                            </div>
                         </div>
                     </div>
 
@@ -84,7 +86,7 @@ export function RejectWithdrawalDialog({ open, onOpenChange, withdrawal, onSucce
                     </div>
 
                     <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-md text-sm text-yellow-900">
-                        <strong>Note:</strong> Rejecting this withdrawal will return the commissions to the agent's available balance.
+                        <strong>Note:</strong> Rejecting this withdrawal will return the reserved amount to the originating balance.
                     </div>
 
                     <DialogFooter>

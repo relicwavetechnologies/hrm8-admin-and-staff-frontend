@@ -1,6 +1,6 @@
 /**
- * Mock Stripe Onboarding Page
- * Simulates Stripe Connect onboarding flow in development mode
+ * Mock Airwallex Onboarding Page
+ * Simulates Airwallex payout onboarding flow in development mode
  */
 
 import { useState } from 'react';
@@ -13,7 +13,7 @@ import { Alert, AlertDescription } from '@/shared/components/ui/alert';
 import { apiClient } from '@/shared/lib/api';
 import { CheckCircle2, CreditCard, Building2, MapPin, Loader2 } from 'lucide-react';
 
-export default function StripeMockOnboarding() {
+export default function AirwallexMockOnboarding() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
@@ -72,7 +72,7 @@ export default function StripeMockOnboarding() {
                             <CreditCard className="h-12 w-12 text-white" />
                         </div>
                     </div>
-                    <CardTitle className="text-3xl font-bold">Mock Stripe Onboarding</CardTitle>
+                    <CardTitle className="text-3xl font-bold">Mock Airwallex Onboarding</CardTitle>
                     <CardDescription className="text-white/90 text-base">
                         🎭 Development Mode - Complete setup to connect your account
                     </CardDescription>
@@ -84,7 +84,7 @@ export default function StripeMockOnboarding() {
                         <CheckCircle2 className="h-5 w-5 text-blue-600" />
                         <AlertDescription className="text-blue-900 dark:text-blue-100">
                             <strong>Development Mode Active</strong><br />
-                            This is a mock onboarding flow. In production, this would be the real Stripe Connect onboarding.
+                            This is a mock onboarding flow. In production, this would be the real Airwallex beneficiary onboarding.
                             <br /><br />
                             <code className="text-xs bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded">
                                 Account ID: {accountId}

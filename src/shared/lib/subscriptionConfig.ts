@@ -40,7 +40,11 @@ export const SUBSCRIPTION_TIERS = {
     monthlyPrice: 0,
     annualPrice: 0,
     monthlyFee: 0, // Backward compatibility
+<<<<<<< HEAD
     jobPostingCost: 195, // Per job posting
+=======
+    jobPostingCost: 195, // Backward compatibility
+>>>>>>> origin/main
     maxOpenJobs: 9999, // Unlimited
     maxUsers: 9999, // Unlimited
     features: {
@@ -276,7 +280,7 @@ export const RECRUITMENT_SERVICES = {
     baseFeeUnder100k: 6000,
     baseFeeOver100k: 6000,
     upfrontPercentage: 1.0,
-    name: 'Executive Search'
+    name: 'Search (10% salary, minimum fee applies)'
   },
   'rpo': {
     baseMonthlyPerConsultant: 0,

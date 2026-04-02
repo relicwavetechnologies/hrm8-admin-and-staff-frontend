@@ -7,11 +7,11 @@ import { salesService } from "@/shared/services/salesService";
 import { Loader2, ExternalLink, CheckCircle, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
-interface StripeConnectCardProps {
+interface PayoutConnectCardProps {
     onStatusChange?: () => void;
 }
 
-export function StripeConnectCard({ onStatusChange }: StripeConnectCardProps) {
+export function PayoutConnectCard({ onStatusChange }: PayoutConnectCardProps) {
     const [status, setStatus] = useState<{ payoutEnabled: boolean; detailsSubmitted: boolean } | null>(null);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
@@ -23,7 +23,7 @@ export function StripeConnectCard({ onStatusChange }: StripeConnectCardProps) {
     const checkStatus = async () => {
         try {
             setLoading(true);
-            const response = await salesService.getStripeStatus();
+            const response = await salesService.getPayoutStatus();
             if (response.success && response.data) {
                 setStatus({
                     payoutEnabled: !!response.data.payoutEnabled || response.data.accountStatus === 'active',
@@ -41,7 +41,7 @@ export function StripeConnectCard({ onStatusChange }: StripeConnectCardProps) {
     const handleConnect = async () => {
         try {
             setActionLoading(true);
-            const response = await salesService.stripeOnboard();
+            const response = await salesService.onboardPayoutProvider();
             if (response.success && response.data?.onboardingUrl) {
                 window.location.href = response.data.onboardingUrl;
             } else {
@@ -57,7 +57,7 @@ export function StripeConnectCard({ onStatusChange }: StripeConnectCardProps) {
     const handleLogin = async () => {
         try {
             setActionLoading(true);
-            const response = await salesService.getStripeLoginLink();
+            const response = await salesService.getPayoutDashboardLink();
             const url = response.data?.url || response.data?.loginLink;
             if (response.success && url) {
                 safeOpenExternal(url);
@@ -150,6 +150,7 @@ export function StripeConnectCard({ onStatusChange }: StripeConnectCardProps) {
         </Card>
     );
 }
+
 
 function DollarSignIcon(props: any) {
     return (

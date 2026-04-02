@@ -12,11 +12,11 @@ import { AlertCircle, CheckCircle2, CreditCard, ExternalLink, RefreshCw } from '
 import { useToast } from '@/shared/hooks/use-toast';
 import { cn } from '@/shared/lib/utils';
 
-interface StripeIntegrationCardProps {
+interface PayoutIntegrationCardProps {
     onConnectionChange?: (connected: boolean) => void;
 }
 
-export function StripeIntegrationCard({ onConnectionChange }: StripeIntegrationCardProps) {
+export function PayoutIntegrationCard({ onConnectionChange }: PayoutIntegrationCardProps) {
     const [loading, setLoading] = useState(true);
     const [syncing, setSyncing] = useState(false);
     const [connecting, setConnecting] = useState(false);

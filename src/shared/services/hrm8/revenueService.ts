@@ -21,6 +21,36 @@ export interface RegionalRevenue {
   updated_at: string;
 }
 
+export interface CompanyRevenueBreakdownRow {
+  id: string;
+  name: string;
+  region_id: string;
+  billing_currency: string;
+  job_revenue: number;
+  subscription_revenue: number;
+  total_revenue: number;
+  licensee_share: number;
+  hrm8_share: number;
+  normalized_job_revenue: number;
+  normalized_subscription_revenue: number;
+  normalized_total_revenue: number;
+  normalized_licensee_share: number;
+  normalized_hrm8_share: number;
+  reporting_currency: string;
+  active_jobs: number;
+  last_payment_at?: string | null;
+}
+
+export interface CompanyRevenueBreakdownResponse {
+  companies: CompanyRevenueBreakdownRow[];
+  totals: {
+    total_revenue: number;
+    hrm8_share: number;
+    licensee_share: number;
+  };
+  reporting_currency: string;
+}
+
 class RevenueService {
   async getAll(filters?: {
     region_id?: string;
@@ -69,10 +99,9 @@ class RevenueService {
     if (filters?.regionId) queryParams.append('regionId', filters.regionId);
 
     const query = queryParams.toString();
-    return apiClient.get<{ companies: any[] }>(`/api/hrm8/revenue/companies${query ? `?${query}` : ''}`);
+    return apiClient.get<CompanyRevenueBreakdownResponse>(`/api/hrm8/revenue/companies${query ? `?${query}` : ''}`);
   }
 }
 
 
 export const revenueService = new RevenueService();
-

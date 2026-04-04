@@ -103,13 +103,11 @@ export default function ConsultantProfilePage() {
         // Set payment method
         if (consultantData.payment_method) {
           const payment = consultantData.payment_method as any;
-          setValue('paymentMethodType', payment.type || '');
+          setValue('paymentMethodType', 'bank_transfer');
           setValue('paymentAccountName', payment.accountName || '');
           setValue('paymentAccountNumber', payment.accountNumber || '');
           setValue('paymentRoutingNumber', payment.routingNumber || '');
           setValue('paymentBankName', payment.bankName || '');
-          setValue('paymentPayPalEmail', payment.paypalEmail || '');
-          setValue('paymentOtherDetails', payment.otherDetails || '');
         }
 
         // Set tax information
@@ -167,16 +165,11 @@ export default function ConsultantProfilePage() {
           type: data.paymentMethodType,
         };
 
-        // Add payment-specific fields based on type
         if (data.paymentMethodType === 'bank_transfer') {
           if (data.paymentAccountName) paymentMethodData.accountName = data.paymentAccountName;
           if (data.paymentAccountNumber) paymentMethodData.accountNumber = data.paymentAccountNumber;
           if (data.paymentRoutingNumber) paymentMethodData.routingNumber = data.paymentRoutingNumber;
           if (data.paymentBankName) paymentMethodData.bankName = data.paymentBankName;
-        } else if (data.paymentMethodType === 'paypal') {
-          if (data.paymentPayPalEmail) paymentMethodData.paypalEmail = data.paymentPayPalEmail;
-        } else if (data.paymentMethodType === 'other') {
-          if (data.paymentOtherDetails) paymentMethodData.otherDetails = data.paymentOtherDetails;
         }
       }
 
@@ -519,7 +512,7 @@ export default function ConsultantProfilePage() {
           <CardHeader>
             <CardTitle className="text-base font-semibold">Payment Method</CardTitle>
             <CardDescription className="text-sm">
-              Configure how you want to receive payments
+              Configure the beneficiary details used for Airwallex bank payouts
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -533,11 +526,7 @@ export default function ConsultantProfilePage() {
                   <SelectValue placeholder="Select payment method" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                  <SelectItem value="paypal">PayPal</SelectItem>
-                  <SelectItem value="wise">Wise</SelectItem>
-                  <SelectItem value="airwallex">Airwallex</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="bank_transfer">Airwallex Bank Payout</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -567,19 +556,9 @@ export default function ConsultantProfilePage() {
               </>
             )}
 
-            {watch('paymentMethodType') === 'paypal' && (
-              <div className="space-y-2">
-                <Label htmlFor="paymentPayPalEmail" className="text-sm">PayPal Email</Label>
-                <Input id="paymentPayPalEmail" type="email" {...register('paymentPayPalEmail')} placeholder="your.email@example.com" />
-              </div>
-            )}
-
-            {watch('paymentMethodType') === 'other' && (
-              <div className="space-y-2">
-                <Label htmlFor="paymentOtherDetails" className="text-sm">Payment Details</Label>
-                <Input id="paymentOtherDetails" {...register('paymentOtherDetails')} placeholder="Enter payment details" />
-              </div>
-            )}
+            <div className="rounded-md border px-3 py-3 text-xs text-muted-foreground">
+              HRM8 pays out through Airwallex bank payouts. Unsupported payout methods are no longer part of the active payout flow.
+            </div>
           </CardContent>
         </Card>
 

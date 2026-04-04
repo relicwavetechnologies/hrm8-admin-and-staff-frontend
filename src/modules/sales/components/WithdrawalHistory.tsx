@@ -98,8 +98,13 @@ export function WithdrawalHistory({ withdrawals, isLoading, onrefresh }: Withdra
                     {withdrawals.map((withdrawal) => (
                         <TableRow key={withdrawal.id}>
                             <TableCell>{format(new Date(withdrawal.createdAt), "MMM d, yyyy")}</TableCell>
-                            <TableCell className="font-medium">{formatCurrency(withdrawal.amount)}</TableCell>
-                            <TableCell className="capitalize">{withdrawal.paymentMethod.replace('_', ' ').toLowerCase()}</TableCell>
+                            <TableCell className="font-medium">
+                                {formatCurrency(
+                                    withdrawal.payoutAmount ?? withdrawal.amount,
+                                    withdrawal.payoutCurrency || 'USD'
+                                )}
+                            </TableCell>
+                            <TableCell>Airwallex bank payout</TableCell>
                             <TableCell>{getStatusBadge(withdrawal.status)}</TableCell>
                             <TableCell className="text-xs text-muted-foreground font-mono">
                                 {withdrawal.paymentReference || (withdrawal.status === 'REJECTED' ? withdrawal.rejectionReason : '-')}

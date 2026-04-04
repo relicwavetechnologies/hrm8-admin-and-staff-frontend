@@ -14,6 +14,14 @@ interface WithdrawalDetailsDialogProps {
 export function WithdrawalDetailsDialog({ open, onOpenChange, withdrawal }: WithdrawalDetailsDialogProps) {
     const { formatCurrency } = useCurrencyFormat();
     const normalizedMethod = withdrawal.paymentMethod?.toLowerCase?.() || '';
+    const paymentMethodLabel =
+        normalizedMethod === 'bank_transfer'
+            ? 'Airwallex bank payout'
+            : normalizedMethod === 'paypal'
+                ? 'Legacy PayPal payout'
+                : normalizedMethod === 'wise'
+                    ? 'Legacy Wise payout'
+                    : withdrawal.paymentMethod.replace('_', ' ');
     const timelineItems = (withdrawal.timeline || [])
         .filter((entry) => entry.at)
         .map((entry) => ({
@@ -63,7 +71,12 @@ export function WithdrawalDetailsDialog({ open, onOpenChange, withdrawal }: With
                     {/* Payment Method */}
                     <div className="space-y-2">
                         <h3 className="font-semibold text-sm text-muted-foreground">Payment Method</h3>
-                        <div className="capitalize">{withdrawal.paymentMethod.replace('_', ' ')}</div>
+                        <div className="capitalize">{paymentMethodLabel}</div>
+                        {normalizedMethod === 'paypal' || normalizedMethod === 'wise' ? (
+                            <p className="text-xs text-muted-foreground">
+                                This withdrawal used a legacy payout method. Active payout flows now use Airwallex bank payouts only.
+                            </p>
+                        ) : null}
                     </div>
 
                     {withdrawal.beneficiaryStatus ? (
@@ -97,6 +110,9 @@ export function WithdrawalDetailsDialog({ open, onOpenChange, withdrawal }: With
                                 )}
                                 {normalizedMethod === 'paypal' && (
                                     <div><span className="font-medium">PayPal Email:</span> {withdrawal.paymentDetails.email}</div>
+                                )}
+                                {normalizedMethod === 'wise' && (
+                                    <div><span className="font-medium">Wise Details:</span> {withdrawal.paymentDetails.email || withdrawal.paymentDetails.accountName || 'Legacy payout record'}</div>
                                 )}
                             </div>
                         </div>

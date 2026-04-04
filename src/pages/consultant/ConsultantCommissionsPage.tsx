@@ -36,7 +36,7 @@ export default function ConsultantCommissionsPage() {
   const [withdrawalDialogOpen, setWithdrawalDialogOpen] = useState(false);
   const [selectedCommissions, setSelectedCommissions] = useState<string[]>([]);
   const [_withdrawalAmount, _setWithdrawalAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('BANK_TRANSFER');
+  const paymentMethod = 'BANK_TRANSFER';
   const [withdrawalNotes, setWithdrawalNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -223,12 +223,31 @@ export default function ConsultantCommissionsPage() {
       label: 'Amount',
       render: (commission: Commission) => {
         const c = commission as Commission & { payout_amount?: number; payout_currency?: string };
-        const amt = commission.payoutAmount ?? c.payout_amount ?? commission.amount ?? 0;
-        const curr = commission.payoutCurrency ?? c.payout_currency ?? commission.currency ?? staffCurrency;
+        const sourceAmount = Number(commission.amount ?? 0);
+        const sourceCurrency = commission.currency ?? staffCurrency;
+        const payoutAmount = Number(commission.payoutAmount ?? c.payout_amount ?? commission.amount ?? 0);
+        const payoutCurrency = commission.payoutCurrency ?? c.payout_currency ?? commission.currency ?? staffCurrency;
+        const isCrossCurrency =
+          Boolean(sourceCurrency) &&
+          Boolean(payoutCurrency) &&
+          sourceCurrency !== payoutCurrency;
         return (
-          <span className="text-sm font-semibold">
-            {formatCurrency(Number(amt), curr)}
-          </span>
+          <div className="space-y-1">
+            <span className="text-sm font-semibold">
+              {formatCurrency(payoutAmount, payoutCurrency)}
+            </span>
+            <div className="text-xs text-muted-foreground">
+              {isCrossCurrency
+                ? `${formatCurrency(sourceAmount, sourceCurrency)} -> ${formatCurrency(payoutAmount, payoutCurrency)}`
+                : `Source ${formatCurrency(sourceAmount, sourceCurrency)}`}
+            </div>
+            {commission.fxRate ? (
+              <div className="text-xs text-muted-foreground">
+                FX locked at {Number(commission.fxRate).toFixed(4)}
+                {commission.fxRateLockedAt ? ` on ${new Date(commission.fxRateLockedAt).toLocaleDateString()}` : ''}
+              </div>
+            ) : null}
+          </div>
         );
       },
     },
@@ -276,11 +295,23 @@ export default function ConsultantCommissionsPage() {
       key: 'amount',
       label: 'Amount',
       render: (withdrawal: CommissionWithdrawal) => {
+        const payoutAmount = Number(withdrawal.payoutAmount ?? withdrawal.amount ?? 0);
         const curr = withdrawal.payoutCurrency ?? (withdrawal as any).payout_currency ?? staffCurrency;
         return (
-          <span className="text-sm font-semibold">
-            {formatCurrency(withdrawal.amount ?? 0, curr)}
-          </span>
+          <div className="space-y-1">
+            <span className="text-sm font-semibold">
+              {formatCurrency(payoutAmount, curr)}
+            </span>
+            {withdrawal.fxRateUsed ? (
+              <div className="text-xs text-muted-foreground">
+                Uses locked FX rate {Number(withdrawal.fxRateUsed).toFixed(4)}
+              </div>
+            ) : (
+              <div className="text-xs text-muted-foreground">
+                Settles in {curr}
+              </div>
+            )}
+          </div>
         );
       },
     },
@@ -307,8 +338,8 @@ export default function ConsultantCommissionsPage() {
     {
       key: 'paymentMethod',
       label: 'Method',
-      render: (withdrawal: CommissionWithdrawal) => (
-        <span className="text-sm">{withdrawal.paymentMethod}</span>
+      render: (_withdrawal: CommissionWithdrawal) => (
+        <span className="text-sm">Airwallex bank payout</span>
       ),
     },
     {
@@ -566,8 +597,20 @@ export default function ConsultantCommissionsPage() {
                       onCheckedChange={() => toggleCommissionSelection(commission.id)}
                     />
                     <div className="flex-1">
-                      <div className="text-sm font-medium">{formatCurrency(commission.amount ?? 0, staffCurrency)}</div>
+                      <div className="text-sm font-medium">
+                        {formatCurrency(commission.payoutAmount ?? commission.amount ?? 0, commission.payoutCurrency ?? staffCurrency)}
+                      </div>
                       <div className="text-xs text-muted-foreground">{commission.description}</div>
+                      {commission.fxRate ? (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {`${formatCurrency(commission.amount ?? 0, commission.currency ?? staffCurrency)} -> ${formatCurrency(commission.payoutAmount ?? commission.amount ?? 0, commission.payoutCurrency ?? staffCurrency)} at ${Number(commission.fxRate).toFixed(4)}`}
+                          {commission.fxRateLockedAt ? ` on ${new Date(commission.fxRateLockedAt).toLocaleDateString()}` : ''}
+                        </div>
+                      ) : commission.currency ? (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Source {formatCurrency(commission.amount ?? 0, commission.currency)}
+                        </div>
+                      ) : null}
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {new Date(commission.createdAt).toLocaleDateString()}
@@ -586,17 +629,14 @@ export default function ConsultantCommissionsPage() {
               />
             </div>
 
-            <div>
-              <Label>Payment Method</Label>
-              <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                <SelectTrigger className="mt-1.5">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="BANK_TRANSFER">Airwallex Bank Payout</SelectItem>
-                  <SelectItem value="PAYPAL">PayPal</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="rounded-md border px-3 py-3 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Payout rail</span>
+                <span className="font-medium">Airwallex bank payout</span>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                The payout amount and currency are already locked on each earning. This request only reserves approved earnings for the Airwallex payout flow.
+              </p>
             </div>
 
             <div>

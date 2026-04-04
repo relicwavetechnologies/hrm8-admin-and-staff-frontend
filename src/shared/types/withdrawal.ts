@@ -10,8 +10,14 @@ export interface WithdrawalBalance {
     availableCommissions: Array<{
         id: string;
         amount: number;
+        currency?: string;
+        payoutAmount?: number;
+        payoutCurrency?: string;
+        fxRate?: number;
+        fxRateLockedAt?: string;
         description: string;
         createdAt: string;
+        date?: string;
     }>;
 }
 

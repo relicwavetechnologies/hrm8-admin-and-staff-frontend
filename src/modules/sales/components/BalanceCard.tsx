@@ -12,6 +12,7 @@ interface BalanceCardProps {
 
 export function BalanceCard({ balance, onRequestWithdrawal, isLoading }: BalanceCardProps) {
     const { formatCurrency } = useCurrencyFormat();
+    const currency = balance.currency || 'USD';
 
     return (
 
@@ -24,7 +25,7 @@ export function BalanceCard({ balance, onRequestWithdrawal, isLoading }: Balance
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold text-slate-900">{formatCurrency(balance.availableBalance)}</div>
+                    <div className="text-2xl font-bold text-slate-900">{formatCurrency(balance.availableBalance, currency)}</div>
                     <p className="text-xs text-muted-foreground pb-4 pt-1">
                         Ready to withdraw
                     </p>
@@ -47,7 +48,7 @@ export function BalanceCard({ balance, onRequestWithdrawal, isLoading }: Balance
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold text-orange-600">{formatCurrency(balance.pendingBalance)}</div>
+                    <div className="text-2xl font-bold text-orange-600">{formatCurrency(balance.pendingBalance, currency)}</div>
                     <p className="text-xs text-muted-foreground pt-1">
                         Awaiting confirmation
                     </p>
@@ -62,7 +63,7 @@ export function BalanceCard({ balance, onRequestWithdrawal, isLoading }: Balance
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold text-slate-900">{formatCurrency(balance.totalEarned)}</div>
+                    <div className="text-2xl font-bold text-slate-900">{formatCurrency(balance.totalEarned, currency)}</div>
                     <p className="text-xs text-muted-foreground pt-1">
                         Lifetime commissions
                     </p>
@@ -77,7 +78,7 @@ export function BalanceCard({ balance, onRequestWithdrawal, isLoading }: Balance
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold text-blue-600">{formatCurrency(balance.totalWithdrawn)}</div>
+                    <div className="text-2xl font-bold text-blue-600">{formatCurrency(balance.totalWithdrawn, currency)}</div>
                     <p className="text-xs text-muted-foreground pt-1">
                         Successfully paid
                     </p>

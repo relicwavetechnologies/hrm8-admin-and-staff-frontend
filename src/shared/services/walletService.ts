@@ -160,7 +160,18 @@ class WalletService {
             throw errorObj;
         }
 
-        return response.json();
+        const result = await response.json();
+        const checkoutUrl =
+            result?.data?.checkout?.url ||
+            result?.data?.checkout?.checkoutUrl ||
+            result?.data?.checkoutUrl ||
+            result?.data?.url;
+
+        if (result?.data?.requiresPayment && typeof checkoutUrl === 'string' && checkoutUrl.length > 0) {
+            window.location.href = checkoutUrl;
+        }
+
+        return result;
     }
 
     async createSubscriptionCheckout(data: {
@@ -297,7 +308,12 @@ class WalletService {
             }
             throw new Error(error.message || 'Failed to purchase add-on service');
         }
-        return response.json();
+        const result = await response.json();
+        const checkoutUrl = result?.data?.checkout?.url || result?.data?.checkoutUrl || result?.data?.url;
+        if (checkoutUrl) {
+            window.location.href = checkoutUrl;
+        }
+        return result;
     }
 
     // Consultant Earnings & Withdrawals

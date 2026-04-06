@@ -123,7 +123,7 @@ export default function SettlementsPage() {
       label: 'Total Revenue',
       render: (settlement) => (
         <span className="font-semibold">
-          {formatCurrency(settlement.total_revenue)}
+          {formatCurrency(settlement.total_revenue, settlement.reporting_currency || 'USD')}
         </span>
       ),
     },
@@ -132,7 +132,7 @@ export default function SettlementsPage() {
       label: 'Licensee Share',
       render: (settlement) => (
         <span className="font-semibold text-primary">
-          {formatCurrency(settlement.licensee_share)}
+          {formatCurrency(settlement.licensee_share, settlement.reporting_currency || 'USD')}
         </span>
       ),
     },
@@ -141,9 +141,31 @@ export default function SettlementsPage() {
       label: 'HRM8 Share',
       render: (settlement) => (
         <span className="font-semibold">
-          {formatCurrency(settlement.hrm8_share)}
+          {formatCurrency(settlement.hrm8_share, settlement.reporting_currency || 'USD')}
         </span>
       ),
+    },
+    {
+      key: 'source_currency_breakdown',
+      label: 'Source Currencies',
+      render: (settlement) => {
+        if (!settlement.source_currency_breakdown || settlement.source_currency_breakdown.length === 0) {
+          return <span className="text-sm text-muted-foreground">USD settled</span>;
+        }
+
+        return (
+          <div className="flex flex-wrap gap-1">
+            {settlement.source_currency_breakdown.slice(0, 3).map((row) => (
+              <Badge key={`${settlement.id}-${row.currency}`} variant="outline">
+                {`${row.currency} ${row.netAmount.toFixed(2)}`}
+              </Badge>
+            ))}
+            {settlement.source_currency_breakdown.length > 3 ? (
+              <Badge variant="outline">+{settlement.source_currency_breakdown.length - 3}</Badge>
+            ) : null}
+          </div>
+        );
+      },
     },
     {
       key: 'status',
@@ -189,7 +211,7 @@ export default function SettlementsPage() {
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Settlements</h1>
-          <p className="text-muted-foreground">Track and manage regional licensee settlements</p>
+          <p className="text-muted-foreground">Track and manage regional licensee settlements. Default settlement currency is USD, with source-currency breakdowns shown per row.</p>
         </div>
 
         <div className="flex items-center gap-2">

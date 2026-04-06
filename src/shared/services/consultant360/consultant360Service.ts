@@ -12,6 +12,7 @@ export interface UnifiedDashboardStats {
     totalEarnings: number;
     availableBalance: number;
     pendingBalance: number;
+    currency?: string;
     activeJobs: number;
     activeLeads: number;
     conversionRate: number;

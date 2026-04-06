@@ -14,6 +14,14 @@ export interface Settlement {
   total_revenue: number;
   licensee_share: number;
   hrm8_share: number;
+  reporting_currency?: string;
+  source_currency_breakdown?: Array<{
+    currency: string;
+    grossAmount: number;
+    refundAmount: number;
+    netAmount: number;
+    count: number;
+  }>;
   status: 'PENDING' | 'PAID';
   payment_date?: string;
   payment_reference?: string;

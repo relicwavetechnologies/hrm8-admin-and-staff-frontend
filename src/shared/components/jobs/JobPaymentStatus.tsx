@@ -14,6 +14,7 @@ import { createJobCheckoutSession } from '@/shared/lib/payments';
 import { useToast } from '@/shared/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
+import { formatCurrency } from '@/shared/lib/currencyUtils';
 
 interface JobPaymentStatusProps {
   job: Job;
@@ -60,6 +61,13 @@ export function JobPaymentStatus({ job, onPaymentComplete: _onPaymentComplete }:
           <Badge variant="destructive">
             <XCircle className="h-3 w-3 mr-1" />
             Payment Failed
+          </Badge>
+        );
+      case 'REFUNDED':
+        return (
+          <Badge variant="outline" className="border-slate-500 text-slate-700">
+            <AlertCircle className="h-3 w-3 mr-1" />
+            Refunded
           </Badge>
         );
       case 'PROCESSING':
@@ -128,6 +136,7 @@ export function JobPaymentStatus({ job, onPaymentComplete: _onPaymentComplete }:
   const isPaid = paymentStatus === 'paid' || paymentStatus === 'PAID';
   const isPending = paymentStatus === 'pending' || paymentStatus === 'PENDING';
   const isFailed = paymentStatus === 'failed' || paymentStatus === 'FAILED';
+  const isRefunded = paymentStatus === 'REFUNDED';
 
   return (
     <Card>
@@ -150,7 +159,7 @@ export function JobPaymentStatus({ job, onPaymentComplete: _onPaymentComplete }:
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Amount</span>
             <span className="text-lg font-semibold">
-              {paymentCurrency.toUpperCase()} ${paymentAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {formatCurrency(paymentAmount, paymentCurrency)}
             </span>
           </div>
         )}
@@ -199,7 +208,7 @@ export function JobPaymentStatus({ job, onPaymentComplete: _onPaymentComplete }:
             ) : (
               <>
                 <CreditCard className="h-4 w-4 mr-2" />
-                {isFailed ? 'Retry Payment' : 'Pay Now'}
+                {isFailed || isRefunded ? 'Pay Again' : 'Pay Now'}
               </>
             )}
           </Button>
@@ -219,6 +228,4 @@ export function JobPaymentStatus({ job, onPaymentComplete: _onPaymentComplete }:
     </Card>
   );
 }
-
-
 

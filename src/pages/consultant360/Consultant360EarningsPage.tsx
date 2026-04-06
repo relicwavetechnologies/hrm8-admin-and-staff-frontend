@@ -152,7 +152,7 @@ export default function Consultant360EarningsPage() {
         const available = earnings?.combined?.availableCommissions || [];
         return available
             .filter((c) => selectedCommissions.includes(c.id))
-            .reduce((sum, c) => sum + c.amount, 0);
+            .reduce((sum, c) => sum + (c.payoutAmount ?? c.amount ?? 0), 0);
     }
 
     async function handleWithdrawalSubmit() {

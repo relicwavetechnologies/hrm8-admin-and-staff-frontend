@@ -25,7 +25,7 @@ const services = [
   {
     id: 'shortlisting' as const,
     name: 'Shortlisting',
-    price: 'From USD 990',
+    price: 'Regional fixed pricing',
     description: 'We screen candidates',
     features: [
       'Job board advertising',
@@ -38,7 +38,7 @@ const services = [
   {
     id: 'full-service' as const,
     name: 'Full Service',
-    price: 'From USD 3,490',
+    price: 'Regional fixed pricing',
     description: 'Complete recruitment',
     features: [
       'End-to-end support',
@@ -51,7 +51,7 @@ const services = [
   {
     id: 'executive-search' as const,
     name: 'Executive Search',
-    price: 'From USD 6,000',
+    price: '10% salary + minimum fee',
     description: 'Leadership roles',
     features: [
       'C-level positions',

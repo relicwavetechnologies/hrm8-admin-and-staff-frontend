@@ -41,6 +41,7 @@ export function CreateSettlementDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [previewSettlement, setPreviewSettlement] = useState<Settlement | null>(null);
+  const reportingCurrency = previewSettlement?.reporting_currency || 'USD';
 
   useEffect(() => {
     if (open) {
@@ -171,7 +172,7 @@ export function CreateSettlementDialog({
                     <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
                             <span className="text-muted-foreground">Total Revenue:</span>
-                            <div className="font-medium text-lg">{formatCurrency(previewSettlement.total_revenue)}</div>
+                            <div className="font-medium text-lg">{formatCurrency(previewSettlement.total_revenue, reportingCurrency)}</div>
                         </div>
                         <div>
                              {/* Placeholder for bill count if available in backend response, currently not in type but good to have */}
@@ -182,11 +183,11 @@ export function CreateSettlementDialog({
                     <div className="pt-2 border-t grid grid-cols-2 gap-4">
                         <div>
                             <span className="text-muted-foreground">Licensee Share:</span>
-                            <div className="font-bold text-green-700 text-lg">{formatCurrency(previewSettlement.licensee_share)}</div>
+                            <div className="font-bold text-green-700 text-lg">{formatCurrency(previewSettlement.licensee_share, reportingCurrency)}</div>
                         </div>
                         <div>
                             <span className="text-muted-foreground">HRM8 Share:</span>
-                             <div className="font-medium text-lg">{formatCurrency(previewSettlement.hrm8_share)}</div>
+                             <div className="font-medium text-lg">{formatCurrency(previewSettlement.hrm8_share, reportingCurrency)}</div>
                         </div>
                     </div>
                  </div>
@@ -293,4 +294,3 @@ export function CreateSettlementDialog({
     </Dialog>
   );
 }
-

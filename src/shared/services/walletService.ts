@@ -7,6 +7,7 @@ export interface WalletBalance {
     balance: number;
     totalCredits: number;
     totalDebits: number;
+    currency?: string;
     status: 'ACTIVE' | 'FROZEN' | 'SUSPENDED';
 }
 

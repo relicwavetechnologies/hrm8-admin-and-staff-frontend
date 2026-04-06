@@ -56,6 +56,14 @@ export function ConsultantEarningsDashboard() {
     const wallet = walletData?.data;
     const earnings = earningsData?.data;
     const transactions = transactionsData?.data?.transactions || [];
+    const walletCurrency = wallet?.currency || 'USD';
+    const formatMoney = (value: number) =>
+        new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: walletCurrency,
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }).format(value || 0);
 
     return (
         <div className="space-y-6 p-6">
@@ -74,6 +82,7 @@ export function ConsultantEarningsDashboard() {
                     balance={wallet?.balance || 0}
                     totalCredits={wallet?.totalCredits || 0}
                     totalDebits={wallet?.totalDebits || 0}
+                    currency={wallet?.currency || 'USD'}
                     status={wallet?.status || 'ACTIVE'}
                     isLoading={walletLoading}
                 />
@@ -103,7 +112,7 @@ export function ConsultantEarningsDashboard() {
                                         <p className="text-xs text-muted-foreground">Total Earned</p>
                                     </div>
                                     <p className="text-2xl font-bold text-green-600">
-                                        ${earnings.totalEarned?.toFixed(2) || '0.00'}
+                                        {formatMoney(earnings.totalEarned || 0)}
                                     </p>
                                 </div>
 
@@ -114,7 +123,7 @@ export function ConsultantEarningsDashboard() {
                                         <p className="text-xs text-muted-foreground">Pending Commissions</p>
                                     </div>
                                     <p className="text-2xl font-bold text-yellow-600">
-                                        ${earnings.pendingCommissions?.toFixed(2) || '0.00'}
+                                        {formatMoney(earnings.pendingCommissions || 0)}
                                     </p>
                                     {earnings.commissions?.pending?.length > 0 && (
                                         <p className="text-xs text-muted-foreground mt-1">
@@ -130,7 +139,7 @@ export function ConsultantEarningsDashboard() {
                                         <p className="text-xs text-muted-foreground">Total Withdrawn</p>
                                     </div>
                                     <p className="text-2xl font-bold text-blue-600">
-                                        ${earnings.totalWithdrawn?.toFixed(2) || '0.00'}
+                                        {formatMoney(earnings.totalWithdrawn || 0)}
                                     </p>
                                 </div>
 

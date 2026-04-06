@@ -590,6 +590,13 @@ export default function PricingPage() {
       actions={null}
     >
       <div className="p-6 space-y-6">
+        <Card className="border-amber-200 bg-amber-50/70">
+          <CardContent className="pt-6 text-sm text-slate-700">
+            ATS subscriptions and fixed USD add-ons are sourced from the Appendix A USD prices and converted live into the company billing currency at runtime.
+            Recruitment services remain manually seeded only for the currencies explicitly defined in the pricing model: USD, AUD, GBP, EUR, and INR.
+          </CardContent>
+        </Card>
+
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader>

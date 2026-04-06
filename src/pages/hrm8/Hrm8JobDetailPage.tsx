@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { apiClient } from '@/shared/lib/apiClient';
+import { formatCurrency } from '@/shared/lib/currencyUtils';
 import { toast } from 'sonner';
 import { AssignConsultantToRequestDialog } from '@/shared/components/hrm8/AssignConsultantToRequestDialog';
 import {
@@ -864,7 +865,10 @@ export default function Hrm8JobDetailPage() {
                                                         <p className="text-muted-foreground">Amount</p>
                                                         <p className="font-medium">
                                                             {job.paymentAmount != null || job.financials?.paymentAmount != null || job.financials?.billTotalAmount != null
-                                                                ? `${job.paymentCurrency ?? job.financials?.paymentCurrency ?? job.financials?.billCurrency ?? 'USD'} ${(job.paymentAmount ?? job.financials?.paymentAmount ?? job.financials?.billTotalAmount ?? 0).toLocaleString()}`
+                                                                ? formatCurrency(
+                                                                    job.paymentAmount ?? job.financials?.paymentAmount ?? job.financials?.billTotalAmount ?? 0,
+                                                                    job.paymentCurrency ?? job.financials?.paymentCurrency ?? job.financials?.billCurrency ?? 'USD'
+                                                                  )
                                                                 : '—'}
                                                         </p>
                                                     </div>

@@ -1135,6 +1135,14 @@ export function ApplicationPipeline({
     // If we found a target round, move application to that round
     if (targetRound) {
       const currentRound = findRoundForApplication(application);
+      if (isConsultantView && isShortlistingManaged && (targetRound.fixedKey === 'OFFER' || targetRound.fixedKey === 'HIRED')) {
+        toast.error("Move blocked", {
+          description: "Shortlisting consultants cannot move candidates into Offer or Hired.",
+          duration: 4000,
+        });
+        setActiveId(null);
+        return;
+      }
       if (targetRound.fixedKey === 'HIRED') {
         toast.error("Direct move blocked", {
           description: "Use the Offer tab onboarding flow to move a candidate to Hired.",
@@ -1370,6 +1378,14 @@ export function ApplicationPipeline({
 
     // 2. Identify Current Round
     const currentRound = findRoundForApplication(application);
+
+    if (isConsultantView && isShortlistingManaged && (targetRound.fixedKey === 'OFFER' || targetRound.fixedKey === 'HIRED')) {
+      toast.error("Move blocked", {
+        description: "Shortlisting consultants cannot move candidates into Offer or Hired.",
+        duration: 4000,
+      });
+      return;
+    }
 
     // Global hard restrictions for hired stage
     if (targetRound.fixedKey === 'HIRED') {

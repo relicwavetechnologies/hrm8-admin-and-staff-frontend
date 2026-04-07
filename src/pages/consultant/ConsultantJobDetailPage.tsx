@@ -501,6 +501,22 @@ export default function ConsultantJobDetailPage() {
       normalizeServicePackage(frontendJob?.servicePackage || frontendJob?.serviceType) === 'full-service',
     [frontendJob]
   );
+  const isShortlistingManagedConsultantFlow = useMemo(
+    () =>
+      frontendJob?.managementType === 'hrm8-managed' &&
+      normalizeServicePackage(frontendJob?.servicePackage || frontendJob?.serviceType) === 'shortlisting',
+    [frontendJob]
+  );
+
+  const isShortlistingBlockedRound = (fixedKey?: string | null) =>
+    isShortlistingManagedConsultantFlow && (fixedKey === 'OFFER' || fixedKey === 'HIRED');
+
+  const resolveRoundById = (roundId: string) =>
+    rounds.find(
+      (round) =>
+        round.id === roundId ||
+        (frontendJob?.id && round.fixedKey && `fixed-${round.fixedKey}-${frontendJob.id}` === roundId)
+    );
 
   const filteredApplications = useMemo(
     () => filterApplications(allApplications, applicationsFilters),
@@ -555,6 +571,12 @@ export default function ConsultantJobDetailPage() {
   };
 
   const moveCandidateToRound = async (applicationId: string, roundId: string) => {
+    const targetRound = resolveRoundById(roundId);
+    if (isShortlistingBlockedRound(targetRound?.fixedKey)) {
+      toast.error('Shortlisting consultants cannot move candidates into Offer or Hired.');
+      return;
+    }
+
     const response = await ConsultantCandidateService.moveToRound(applicationId, roundId);
     if (!response.success) {
       throw new Error(response.error || 'Failed to move candidate');
@@ -975,6 +997,11 @@ export default function ConsultantJobDetailPage() {
                           }
 
                           const nextRound = rounds[currentIndex + 1];
+                          if (isShortlistingBlockedRound(nextRound.fixedKey)) {
+                            toast.error('Shortlisting consultants cannot move candidates into Offer or Hired.');
+                            return;
+                          }
+
                           if (nextRound.fixedKey === 'HIRED') {
                             toast.error('Use the Offer tab to move candidates into Hired.');
                             return;

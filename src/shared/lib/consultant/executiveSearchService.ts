@@ -33,6 +33,23 @@ export interface Prospect {
     linkedInUrl?: string;
     sourceProfileUrl?: string;
     externalDisplayName?: string;
+    externalProfile?: {
+        displayName?: string;
+        firstName?: string;
+        lastName?: string;
+        headline?: string;
+        location?: string;
+        profileUrl?: string;
+        profileImageUrl?: string;
+    } | null;
+    contact?: {
+        displayEmail?: string;
+        emailSource?: 'LINKEDIN_PUBLIC' | 'HUNTER' | 'MANUAL' | 'EXTENSION_IMPORT' | 'UNKNOWN';
+        verificationState?: 'MISSING' | 'PENDING_VERIFY' | 'LOOKUP_PENDING' | 'VERIFIED' | 'MANUAL_REVIEW';
+    } | null;
+    workflow?: {
+        status?: 'IMPORTED' | 'PUBLIC_EMAIL_PENDING_VERIFY' | 'CONTACT_LOOKUP_PENDING' | 'OUTREACH_READY' | 'MANUAL_REVIEW';
+    } | null;
     matchScore?: number;
     matchSummary?: string;
     tags: string[];

@@ -47,12 +47,26 @@ interface FinanceOverview {
         placements: number;
         other: number;
     };
+    revenueCurrencyBreakdown?: Array<{
+        currency: string;
+        grossAmount: number;
+        refundAmount: number;
+        netAmount: number;
+        count: number;
+    }>;
     commissionsByType: {
         recruitment: number;
         sales: number;
     };
     netCashFlow: number;
     projectedPayouts: number;
+    settlementCurrencyBreakdown?: Array<{
+        currency: string;
+        grossAmount: number;
+        refundAmount: number;
+        netAmount: number;
+        count: number;
+    }>;
     period: {
         start: string;
         end: string;
@@ -417,6 +431,68 @@ export default function FinanceOverviewPage() {
                                 </div>
                             </div>
                         </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-2">
+                <Card>
+                    <CardHeader className="pb-3">
+                        <CardTitle className="text-base">Revenue by Source Currency</CardTitle>
+                        <CardDescription>Original customer charge currencies behind the USD-settled totals</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                        {(overview.revenueCurrencyBreakdown || []).length > 0 ? (
+                            (overview.revenueCurrencyBreakdown || []).map((row) => (
+                                <div key={`revenue-${row.currency}`} className="flex items-center justify-between rounded-lg border p-3 text-sm">
+                                    <div>
+                                        <p className="font-medium">{row.currency}</p>
+                                        <p className="text-muted-foreground">{row.count} payment{row.count !== 1 ? 's' : ''}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="font-semibold">{formatCurrency(row.netAmount, row.currency)}</p>
+                                        {row.refundAmount > 0 ? (
+                                            <p className="text-xs text-muted-foreground">
+                                                Refunds {formatCurrency(row.refundAmount, row.currency)}
+                                            </p>
+                                        ) : null}
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-sm text-muted-foreground">No source-currency revenue for this period yet.</p>
+                        )}
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader className="pb-3">
+                        <CardTitle className="text-base">Settlement Source Mix</CardTitle>
+                        <CardDescription>What is rolling into USD settlements before payout</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                        {(overview.settlementCurrencyBreakdown || []).length > 0 ? (
+                            (overview.settlementCurrencyBreakdown || []).map((row) => (
+                                <div key={`settlement-${row.currency}`} className="flex items-center justify-between rounded-lg border p-3 text-sm">
+                                    <div>
+                                        <p className="font-medium">{row.currency}</p>
+                                        <p className="text-muted-foreground">
+                                            Gross {formatCurrency(row.grossAmount, row.currency)}
+                                        </p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="font-semibold">{formatCurrency(row.netAmount, row.currency)}</p>
+                                        {row.refundAmount > 0 ? (
+                                            <p className="text-xs text-muted-foreground">
+                                                Less refunds {formatCurrency(row.refundAmount, row.currency)}
+                                            </p>
+                                        ) : null}
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-sm text-muted-foreground">No settlement source-currency activity for this period yet.</p>
+                        )}
                     </CardContent>
                 </Card>
             </div>

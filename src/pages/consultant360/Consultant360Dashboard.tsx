@@ -183,13 +183,13 @@ export default function Consultant360Dashboard() {
                                 <div className="p-2 bg-amber-100 rounded-full">
                                     <DollarSign className="h-4 w-4 text-amber-600" />
                                 </div>
-                                <div>
-                                    <p className="font-medium">Pending Balance</p>
-                                    <p className="text-sm text-muted-foreground">Awaiting confirmation</p>
-                                </div>
-                            </div>
+                        <div>
+                            <p className="font-medium">Pending Balance</p>
+                            <p className="text-sm text-muted-foreground">Awaiting confirmation</p>
+                        </div>
+                    </div>
                             <p className="text-xl font-bold text-amber-600">
-                                ${stats?.pendingBalance?.toLocaleString() || 0}
+                                {formatCurrency(stats?.pendingBalance || 0, staffCurrency)}
                             </p>
                         </div>
                     </CardContent>

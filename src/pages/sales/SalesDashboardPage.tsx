@@ -20,6 +20,7 @@ export default function SalesDashboardPage() {
   const { formatCurrency } = useCurrencyFormat();
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState<SalesDashboardStats | null>(null);
+  const salesCurrency = stats?.commissions.currency || 'USD';
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -81,7 +82,7 @@ export default function SalesDashboardPage() {
     {
       key: "amount",
       label: "Amount",
-      render: (item) => item.amount ? formatCurrency(item.amount) : '-',
+      render: (item) => item.amount ? formatCurrency(item.amount, item.currency || salesCurrency) : '-',
     },
   ];
 
@@ -104,9 +105,9 @@ export default function SalesDashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <DashboardStatCard
           title="Total Revenue"
-          value={stats ? formatCurrency(stats.commissions.total) : formatCurrency(0)}
+          value={stats ? formatCurrency(stats.commissions.total, salesCurrency) : formatCurrency(0, salesCurrency)}
           icon={DollarSign}
-          description={`${stats?.commissions.pending || 0} pending`}
+          description={`${formatCurrency(stats?.commissions.pending || 0, salesCurrency)} pending`}
           trend="up"
           loading={isLoading}
           onClick={() => navigate('/sales-agent/commissions')}

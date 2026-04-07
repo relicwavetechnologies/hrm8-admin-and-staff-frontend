@@ -82,8 +82,14 @@ export default function SettlementsPage() {
     switch (status) {
       case 'PENDING':
         return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pending</Badge>;
+      case 'APPROVED':
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Approved</Badge>;
+      case 'PROCESSING':
+        return <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">Processing</Badge>;
       case 'PAID':
         return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Paid</Badge>;
+      case 'FAILED':
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Failed</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -191,6 +197,14 @@ export default function SettlementsPage() {
         if (settlement.status === 'PAID' || !isGlobalAdmin) {
           return null;
         }
+
+        const actionLabel =
+          settlement.status === 'PROCESSING'
+            ? 'Refresh Payout'
+            : settlement.status === 'FAILED'
+              ? 'Retry USD Payout'
+              : 'Execute USD Payout';
+
         return (
           <Button
             variant="outline"
@@ -198,7 +212,7 @@ export default function SettlementsPage() {
             onClick={() => handleMarkAsPaid(settlement)}
           >
             <CreditCard className="h-4 w-4 mr-1" />
-            Mark as Paid
+            {actionLabel}
           </Button>
         );
       },
@@ -229,6 +243,9 @@ export default function SettlementsPage() {
             <SelectContent>
               <SelectItem value="all">All</SelectItem>
               <SelectItem value="PENDING">Pending</SelectItem>
+              <SelectItem value="APPROVED">Approved</SelectItem>
+              <SelectItem value="PROCESSING">Processing</SelectItem>
+              <SelectItem value="FAILED">Failed</SelectItem>
               <SelectItem value="PAID">Paid</SelectItem>
             </SelectContent>
           </Select>
@@ -248,7 +265,7 @@ export default function SettlementsPage() {
         </CardContent>
       </Card>
 
-      {/* Mark as Paid Dialog */}
+      {/* Settlement Payout Dialog */}
       <MarkSettlementPaidDialog
         settlement={selectedSettlement}
         open={paymentDialogOpen}

@@ -23,11 +23,12 @@ import { Loader2, AlertTriangle, Briefcase, Users, FileText, DollarSign, ArrowRi
 import { Separator } from '@/shared/components/ui/separator';
 
 interface PendingTasks {
-    jobs: { id: string; title: string; companyName: string; status: string }[];
-    leads: { id: string; companyName: string; status: string }[];
-    conversionRequests: { id: string; companyName: string; status: string }[];
-    pendingCommissions: { id: string; amount: number; status: string }[];
-    totalCount: number;
+  jobs: { id: string; title: string; companyName: string; status: string }[];
+  leads: { id: string; companyName: string; status: string }[];
+  subscriptions: { id: string; name: string; companyName: string; planType: string; status: string }[];
+  conversionRequests: { id: string; companyName: string; status: string }[];
+  pendingCommissions: { id: string; amount: number; status: string }[];
+  totalCount: number;
 }
 
 interface ReassignmentOption {
@@ -210,6 +211,12 @@ export function ChangeRoleDialog({
                                         <div className="flex items-center gap-2 text-muted-foreground">
                                             <Users className="h-3.5 w-3.5" />
                                             <span>{pendingTasks.leads?.length || 0} Lead(s)</span>
+                                        </div>
+                                    )}
+                                    {(pendingTasks.subscriptions?.length || 0) > 0 && (
+                                        <div className="flex items-center gap-2 text-muted-foreground">
+                                            <DollarSign className="h-3.5 w-3.5" />
+                                            <span>{pendingTasks.subscriptions?.length || 0} Subscription(s)</span>
                                         </div>
                                     )}
                                     {(pendingTasks.conversionRequests?.length || 0) > 0 && (

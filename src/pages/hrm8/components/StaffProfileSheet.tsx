@@ -251,7 +251,7 @@ export function StaffProfileSheet({
                         <div className="space-y-4">
                             <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Current Activity</h3>
 
-                            <Tabs defaultValue={isSales ? "leads" : "jobs"} className="w-full">
+                            <Tabs defaultValue={isSales ? "subscriptions" : "jobs"} className="w-full">
                                 <TabsList className="w-full justify-start h-9 bg-transparent p-0 border-b rounded-none space-x-6">
                                     {(isRecruiter || is360) && (
                                         <TabsTrigger
@@ -259,6 +259,14 @@ export function StaffProfileSheet({
                                             className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2"
                                         >
                                             Active Jobs ({pendingTasks?.jobs?.length || 0})
+                                        </TabsTrigger>
+                                    )}
+                                    {(isSales || is360) && (
+                                        <TabsTrigger
+                                            value="subscriptions"
+                                            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2"
+                                        >
+                                            Active Subscriptions ({pendingTasks?.subscriptions?.length || 0})
                                         </TabsTrigger>
                                     )}
                                     {(isSales || is360) && (
@@ -296,6 +304,29 @@ export function StaffProfileSheet({
                                     ) : (
                                         <div className="text-center py-8 text-muted-foreground text-sm">
                                             No active jobs assignments
+                                        </div>
+                                    )}
+                                </TabsContent>
+
+                                <TabsContent value="subscriptions" className="pt-4 space-y-3">
+                                    {pendingTasks?.subscriptions?.length > 0 ? (
+                                        pendingTasks.subscriptions.map((subscription: any) => (
+                                            <div key={subscription.id} className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
+                                                <div className="space-y-1">
+                                                    <div className="font-medium">{subscription.name}</div>
+                                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                        <Building2 className="h-3 w-3" />
+                                                        {subscription.companyName}
+                                                    </div>
+                                                </div>
+                                                <Badge variant="outline" className="text-xs font-normal">
+                                                    {subscription.planType}
+                                                </Badge>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-8 text-muted-foreground text-sm">
+                                            No active subscriptions
                                         </div>
                                     )}
                                 </TabsContent>

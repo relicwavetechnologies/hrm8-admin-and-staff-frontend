@@ -11,14 +11,63 @@ import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { useHrm8Auth } from '@/contexts/Hrm8AuthContext';
-import { staffService, StaffCreateResponse } from '@/shared/services/hrm8/staffService';
+import {
+  staffService,
+  StaffCreateResponse,
+  type CommissionRatesConfig,
+  type StaffPendingTasksData,
+} from '@/shared/services/hrm8/staffService';
 import { regionService } from '@/shared/services/hrm8/regionService';
 import { HRM8_SUPPORTED_CURRENCIES } from '@/shared/lib/supportedCurrencies';
 import { toast } from 'sonner';
 import { Loader2, Mail } from 'lucide-react';
 
 const SUPPORTED_CURRENCIES = HRM8_SUPPORTED_CURRENCIES;
+const SUBSCRIPTION_RATE_KEYS = ['PAYG', 'SMALL', 'MEDIUM', 'LARGE', 'ENTERPRISE'] as const;
+const SERVICE_RATE_KEYS = ['SHORTLISTING', 'FULL_SERVICE', 'EXECUTIVE_SEARCH', 'RPO'] as const;
+
+const optionalRateField = z.number().min(0).max(100).optional();
+
+type FormCommissionRates = {
+  subscriptions: Record<(typeof SUBSCRIPTION_RATE_KEYS)[number], number | undefined>;
+  services: Record<(typeof SERVICE_RATE_KEYS)[number], number | undefined>;
+};
+
+const EMPTY_COMMISSION_RATES: FormCommissionRates = {
+  subscriptions: {
+    PAYG: undefined,
+    SMALL: undefined,
+    MEDIUM: undefined,
+    LARGE: undefined,
+    ENTERPRISE: undefined,
+  },
+  services: {
+    SHORTLISTING: undefined,
+    FULL_SERVICE: undefined,
+    EXECUTIVE_SEARCH: undefined,
+    RPO: undefined,
+  },
+};
+
+const toFormCommissionRates = (
+  rates?: CommissionRatesConfig | null
+): FormCommissionRates => ({
+  subscriptions: {
+    PAYG: rates?.subscriptions?.PAYG ?? undefined,
+    SMALL: rates?.subscriptions?.SMALL ?? undefined,
+    MEDIUM: rates?.subscriptions?.MEDIUM ?? undefined,
+    LARGE: rates?.subscriptions?.LARGE ?? undefined,
+    ENTERPRISE: rates?.subscriptions?.ENTERPRISE ?? undefined,
+  },
+  services: {
+    SHORTLISTING: rates?.services?.SHORTLISTING ?? undefined,
+    FULL_SERVICE: rates?.services?.FULL_SERVICE ?? undefined,
+    EXECUTIVE_SEARCH: rates?.services?.EXECUTIVE_SEARCH ?? undefined,
+    RPO: rates?.services?.RPO ?? undefined,
+  },
+});
 
 export const staffSchema = z.object({
   email: z.string().email('Invalid email'),
@@ -30,6 +79,21 @@ export const staffSchema = z.object({
   regionId: z.string().min(1, 'Region is required'),
   defaultCommissionRate: z.number().min(0).max(100).optional(),
   defaultCurrency: z.enum(SUPPORTED_CURRENCIES).default('USD'),
+  commissionRates: z.object({
+    subscriptions: z.object({
+      PAYG: optionalRateField,
+      SMALL: optionalRateField,
+      MEDIUM: optionalRateField,
+      LARGE: optionalRateField,
+      ENTERPRISE: optionalRateField,
+    }),
+    services: z.object({
+      SHORTLISTING: optionalRateField,
+      FULL_SERVICE: optionalRateField,
+      EXECUTIVE_SEARCH: optionalRateField,
+      RPO: optionalRateField,
+    }),
+  }).default(EMPTY_COMMISSION_RATES),
 });
 
 export type StaffFormData = z.infer<typeof staffSchema>;
@@ -46,6 +110,7 @@ export function StaffForm({ consultantId, onSave, onCancel }: StaffFormProps) {
   const [loadingConsultant, setLoadingConsultant] = useState(!!consultantId);
   const [generatingEmail, setGeneratingEmail] = useState(false);
   const [regions, setRegions] = useState<Array<{ id: string; name: string }>>([]);
+  const [pendingTasks, setPendingTasks] = useState<StaffPendingTasksData | null>(null);
 
   const {
     register,
@@ -60,6 +125,7 @@ export function StaffForm({ consultantId, onSave, onCancel }: StaffFormProps) {
       regionId: '',
       defaultCommissionRate: 10,
       defaultCurrency: 'USD',
+      commissionRates: EMPTY_COMMISSION_RATES,
     },
   });
 
@@ -75,7 +141,10 @@ export function StaffForm({ consultantId, onSave, onCancel }: StaffFormProps) {
 
     try {
       setLoadingConsultant(true);
-      const response = await staffService.getById(consultantId);
+      const [response, tasksResponse] = await Promise.all([
+        staffService.getById(consultantId),
+        staffService.getPendingTasks(consultantId),
+      ]);
       if (response.success && response.data?.consultant) {
         const consultant = response.data.consultant;
         setValue('email', consultant.email);
@@ -88,6 +157,12 @@ export function StaffForm({ consultantId, onSave, onCancel }: StaffFormProps) {
         const raw = (consultant as { defaultCurrency?: string }).defaultCurrency ?? 'USD';
         const currency: (typeof SUPPORTED_CURRENCIES)[number] = SUPPORTED_CURRENCIES.includes(raw as (typeof SUPPORTED_CURRENCIES)[number]) ? (raw as (typeof SUPPORTED_CURRENCIES)[number]) : 'USD';
         setValue('defaultCurrency', currency);
+        setValue('commissionRates', toFormCommissionRates(consultant.commissionRates));
+      }
+      if (tasksResponse.success && tasksResponse.data) {
+        setPendingTasks(tasksResponse.data);
+      } else {
+        setPendingTasks(null);
       }
     } catch (error) {
       toast.error('Failed to load staff member');
@@ -181,6 +256,7 @@ export function StaffForm({ consultantId, onSave, onCancel }: StaffFormProps) {
           password: data.password,
           phone: data.phone,
           defaultCommissionRate: data.defaultCommissionRate ?? 10,
+          commissionRates: data.commissionRates,
           defaultCurrency: data.defaultCurrency ?? 'USD',
         };
 
@@ -364,6 +440,114 @@ export function StaffForm({ consultantId, onSave, onCancel }: StaffFormProps) {
         </p>
       </div>
 
+      <Card className="border-dashed">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Staff-Specific Commission Overrides</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Set future overrides for this staff member by subscription plan or HRM8 managed service.
+            Existing commissions stay frozen.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="space-y-3">
+            <div>
+              <p className="text-sm font-medium">Subscription Plans</p>
+              <p className="text-xs text-muted-foreground">These override the global base rate for future subscription sales.</p>
+            </div>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              {SUBSCRIPTION_RATE_KEYS.map((planKey) => (
+                <div key={planKey} className="space-y-2">
+                  <Label htmlFor={`commissionRates.subscriptions.${planKey}`}>{planKey} (%)</Label>
+                  <Input
+                    id={`commissionRates.subscriptions.${planKey}`}
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    {...register(`commissionRates.subscriptions.${planKey}` as const, {
+                      setValueAs: (value) => value === '' ? undefined : Number(value),
+                    })}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <p className="text-sm font-medium">HRM8 Managed Services</p>
+              <p className="text-xs text-muted-foreground">These override the global base rate for future service commissions.</p>
+            </div>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              {SERVICE_RATE_KEYS.map((serviceKey) => (
+                <div key={serviceKey} className="space-y-2">
+                  <Label htmlFor={`commissionRates.services.${serviceKey}`}>{serviceKey.replace(/_/g, ' ')} (%)</Label>
+                  <Input
+                    id={`commissionRates.services.${serviceKey}`}
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    {...register(`commissionRates.services.${serviceKey}` as const, {
+                      setValueAs: (value) => value === '' ? undefined : Number(value),
+                    })}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {consultantId ? (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Current Assignments Snapshot</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              These records are shown for visibility only. Saving here affects future commissions only and does not reprice existing commissions.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Active Jobs</p>
+              {pendingTasks?.jobs?.length ? (
+                <div className="space-y-2">
+                  {pendingTasks.jobs.map((job) => (
+                    <div key={job.id} className="rounded-md border p-3 text-sm">
+                      <div className="font-medium">{job.title}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {job.companyName} · {job.status}
+                        {job.servicePackage ? ` · ${job.servicePackage}` : ''}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No active managed-service jobs for this staff member.</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Active Subscription Sales</p>
+              {pendingTasks?.subscriptions?.length ? (
+                <div className="space-y-2">
+                  {pendingTasks.subscriptions.map((subscription) => (
+                    <div key={subscription.id} className="rounded-md border p-3 text-sm">
+                      <div className="font-medium">{subscription.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {subscription.companyName} · {subscription.planType} · {subscription.status}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No active subscription sales for this staff member.</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+
       <div className="flex justify-end gap-2 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
@@ -376,4 +560,3 @@ export function StaffForm({ consultantId, onSave, onCancel }: StaffFormProps) {
     </form>
   );
 }
-

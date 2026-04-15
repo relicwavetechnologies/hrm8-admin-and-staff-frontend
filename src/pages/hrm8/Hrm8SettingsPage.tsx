@@ -4,6 +4,7 @@ import { JobTagsTab } from "@/shared/components/admin/settings/JobTagsTab";
 import { GeneralSettingsTab } from "@/shared/components/admin/settings/GeneralSettingsTab";
 import { IntegrationsSettingsTab } from "@/shared/components/admin/settings/IntegrationsSettingsTab";
 import { EmailSettingsTab } from "@/shared/components/admin/settings/EmailSettingsTab";
+import { CommissionRatesSettingsTab } from "@/shared/components/hrm8/CommissionRatesSettingsTab";
 
 /**
  * HRM8 Settings Page - Global Admin Only
@@ -40,6 +41,12 @@ export default function Hrm8SettingsPage() {
                                 Email
                             </TabsTrigger>
                             <TabsTrigger
+                                value="commissions"
+                                className="inline-flex items-center gap-1.5 h-7 px-3 rounded-full text-xs whitespace-nowrap data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                            >
+                                Commissions
+                            </TabsTrigger>
+                            <TabsTrigger
                                 value="job-categories"
                                 className="inline-flex items-center gap-1.5 h-7 px-3 rounded-full text-xs whitespace-nowrap data-[state=active]:bg-background data-[state=active]:shadow-sm"
                             >
@@ -64,6 +71,10 @@ export default function Hrm8SettingsPage() {
 
                     <TabsContent value="email" className="mt-6">
                         <EmailSettingsTab />
+                    </TabsContent>
+
+                    <TabsContent value="commissions" className="mt-6">
+                        <CommissionRatesSettingsTab />
                     </TabsContent>
 
                     <TabsContent value="job-categories" className="mt-6">

@@ -82,8 +82,14 @@ export default function SettlementsPage() {
     switch (status) {
       case 'PENDING':
         return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pending</Badge>;
+      case 'APPROVED':
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Approved</Badge>;
+      case 'PROCESSING':
+        return <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">Processing</Badge>;
       case 'PAID':
         return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Paid</Badge>;
+      case 'FAILED':
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Failed</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -123,7 +129,7 @@ export default function SettlementsPage() {
       label: 'Total Revenue',
       render: (settlement) => (
         <span className="font-semibold">
-          {formatCurrency(settlement.total_revenue)}
+          {formatCurrency(settlement.total_revenue, settlement.reporting_currency || 'USD')}
         </span>
       ),
     },
@@ -132,7 +138,7 @@ export default function SettlementsPage() {
       label: 'Licensee Share',
       render: (settlement) => (
         <span className="font-semibold text-primary">
-          {formatCurrency(settlement.licensee_share)}
+          {formatCurrency(settlement.licensee_share, settlement.reporting_currency || 'USD')}
         </span>
       ),
     },
@@ -141,9 +147,31 @@ export default function SettlementsPage() {
       label: 'HRM8 Share',
       render: (settlement) => (
         <span className="font-semibold">
-          {formatCurrency(settlement.hrm8_share)}
+          {formatCurrency(settlement.hrm8_share, settlement.reporting_currency || 'USD')}
         </span>
       ),
+    },
+    {
+      key: 'source_currency_breakdown',
+      label: 'Source Currencies',
+      render: (settlement) => {
+        if (!settlement.source_currency_breakdown || settlement.source_currency_breakdown.length === 0) {
+          return <span className="text-sm text-muted-foreground">USD settled</span>;
+        }
+
+        return (
+          <div className="flex flex-wrap gap-1">
+            {settlement.source_currency_breakdown.slice(0, 3).map((row) => (
+              <Badge key={`${settlement.id}-${row.currency}`} variant="outline">
+                {`${row.currency} ${row.netAmount.toFixed(2)}`}
+              </Badge>
+            ))}
+            {settlement.source_currency_breakdown.length > 3 ? (
+              <Badge variant="outline">+{settlement.source_currency_breakdown.length - 3}</Badge>
+            ) : null}
+          </div>
+        );
+      },
     },
     {
       key: 'status',
@@ -169,6 +197,14 @@ export default function SettlementsPage() {
         if (settlement.status === 'PAID' || !isGlobalAdmin) {
           return null;
         }
+
+        const actionLabel =
+          settlement.status === 'PROCESSING'
+            ? 'Refresh Payout'
+            : settlement.status === 'FAILED'
+              ? 'Retry USD Payout'
+              : 'Execute USD Payout';
+
         return (
           <Button
             variant="outline"
@@ -176,7 +212,7 @@ export default function SettlementsPage() {
             onClick={() => handleMarkAsPaid(settlement)}
           >
             <CreditCard className="h-4 w-4 mr-1" />
-            Mark as Paid
+            {actionLabel}
           </Button>
         );
       },
@@ -189,7 +225,7 @@ export default function SettlementsPage() {
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Settlements</h1>
-          <p className="text-muted-foreground">Track and manage regional licensee settlements</p>
+          <p className="text-muted-foreground">Track and manage regional licensee settlements. Default settlement currency is USD, with source-currency breakdowns shown per row.</p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -207,6 +243,9 @@ export default function SettlementsPage() {
             <SelectContent>
               <SelectItem value="all">All</SelectItem>
               <SelectItem value="PENDING">Pending</SelectItem>
+              <SelectItem value="APPROVED">Approved</SelectItem>
+              <SelectItem value="PROCESSING">Processing</SelectItem>
+              <SelectItem value="FAILED">Failed</SelectItem>
               <SelectItem value="PAID">Paid</SelectItem>
             </SelectContent>
           </Select>
@@ -226,7 +265,7 @@ export default function SettlementsPage() {
         </CardContent>
       </Card>
 
-      {/* Mark as Paid Dialog */}
+      {/* Settlement Payout Dialog */}
       <MarkSettlementPaidDialog
         settlement={selectedSettlement}
         open={paymentDialogOpen}

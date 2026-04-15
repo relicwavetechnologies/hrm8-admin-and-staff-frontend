@@ -30,6 +30,7 @@ import {
 import { consultant360Service, type DashboardData } from "@/shared/services/consultant360/consultant360Service";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { format } from "date-fns";
+import { formatCurrency } from "@/shared/lib/utils";
 
 export default function Consultant360Dashboard() {
     const [data, setData] = useState<DashboardData | null>(null);
@@ -69,6 +70,7 @@ export default function Consultant360Dashboard() {
     }
 
     const stats = data?.stats;
+    const staffCurrency = stats?.currency || "USD";
     const chartData = data?.monthlyTrend?.map((t) => ({
         name: `${t.month} ${t.year}`,
         recruiter: t.recruiterEarnings,
@@ -98,9 +100,9 @@ export default function Consultant360Dashboard() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <DashboardStatCard
                     title="Total Earnings"
-                    value={stats?.totalEarnings?.toLocaleString() || "0"}
+                    value={formatCurrency(stats?.totalEarnings || 0, staffCurrency)}
                     icon={DollarSign}
-                    description={`$${stats?.availableBalance?.toLocaleString() || 0} available`}
+                    description={`${formatCurrency(stats?.availableBalance || 0, staffCurrency)} available`}
                     trend="up"
                     loading={loading}
                     onClick={() => {}} // No direct link for now, maybe earnings page
@@ -127,7 +129,7 @@ export default function Consultant360Dashboard() {
                     title="Total Sales"
                     value={stats?.totalSubscriptionSales?.toString() || "0"}
                     icon={TrendingUp}
-                    description={`$${stats?.salesEarnings?.toLocaleString() || 0} earned`}
+                    description={`${formatCurrency(stats?.salesEarnings || 0, staffCurrency)} earned`}
                     trend="up"
                     loading={loading}
                     onClick={() => {}}
@@ -157,7 +159,7 @@ export default function Consultant360Dashboard() {
                                 </div>
                             </div>
                             <p className="text-xl font-bold text-blue-600">
-                                ${stats?.recruiterEarnings?.toLocaleString() || 0}
+                                {formatCurrency(stats?.recruiterEarnings || 0, staffCurrency)}
                             </p>
                         </div>
 
@@ -172,7 +174,7 @@ export default function Consultant360Dashboard() {
                                 </div>
                             </div>
                             <p className="text-xl font-bold text-green-600">
-                                ${stats?.salesEarnings?.toLocaleString() || 0}
+                                {formatCurrency(stats?.salesEarnings || 0, staffCurrency)}
                             </p>
                         </div>
 
@@ -181,13 +183,13 @@ export default function Consultant360Dashboard() {
                                 <div className="p-2 bg-amber-100 rounded-full">
                                     <DollarSign className="h-4 w-4 text-amber-600" />
                                 </div>
-                                <div>
-                                    <p className="font-medium">Pending Balance</p>
-                                    <p className="text-sm text-muted-foreground">Awaiting confirmation</p>
-                                </div>
-                            </div>
+                        <div>
+                            <p className="font-medium">Pending Balance</p>
+                            <p className="text-sm text-muted-foreground">Awaiting confirmation</p>
+                        </div>
+                    </div>
                             <p className="text-xl font-bold text-amber-600">
-                                ${stats?.pendingBalance?.toLocaleString() || 0}
+                                {formatCurrency(stats?.pendingBalance || 0, staffCurrency)}
                             </p>
                         </div>
                     </CardContent>

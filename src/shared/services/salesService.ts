@@ -9,6 +9,7 @@ export interface SalesDashboardStats {
     total: number;
     pending: number;
     paid: number;
+    currency?: string;
   };
   leads: {
     total: number;
@@ -24,6 +25,7 @@ export interface SalesDashboardStats {
     description: string;
     date: string;
     amount?: number;
+    currency?: string;
     status: string;
   }>;
 }
@@ -47,6 +49,12 @@ export interface Lead {
 export interface Commission {
   id: string;
   amount: number;
+  currency?: string;
+  payoutAmount?: number;
+  payoutCurrency?: string;
+  fxRate?: number;
+  fxRateLockedAt?: string;
+  fxSource?: string;
   status: string;
   description: string;
   type: string;

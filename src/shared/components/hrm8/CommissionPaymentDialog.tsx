@@ -8,6 +8,7 @@ import { Loader2, CheckCircle2, XCircle, AlertCircle, Circle } from "lucide-reac
 import { useToast } from "@/shared/hooks/use-toast";
 import { commissionService, Commission } from "@/shared/services/hrm8/commissionService";
 import { cn } from "@/shared/lib/utils";
+import { formatCurrency as formatMoney } from "@/shared/lib/currencyUtils";
 import { format, parseISO, isValid } from "date-fns";
 
 // Safe date formatting helper
@@ -56,12 +57,18 @@ export function CommissionPaymentDialog({
     setSelectedCommissions([]);
   }, []);
 
-  const selectedTotal = useMemo(() => 
+  const selectedTotals = useMemo(() => {
+    const totals = new Map<string, number>();
     commissions
       .filter((c) => selectedCommissions.includes(c.id))
-      .reduce((sum, c) => sum + (c.amount || 0), 0),
-    [commissions, selectedCommissions]
-  );
+      .forEach((commission) => {
+        const currency = commission.payoutCurrency || commission.currency || "USD";
+        const amount = commission.payoutAmount ?? commission.amount ?? 0;
+        totals.set(currency, (totals.get(currency) || 0) + amount);
+      });
+
+    return Array.from(totals.entries()).map(([currency, amount]) => ({ currency, amount }));
+  }, [commissions, selectedCommissions]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -205,9 +212,20 @@ export function CommissionPaymentDialog({
                               Consultant: {commission.consultantId?.slice(0, 8) || 'N/A'}... •{" "}
                               {safeFormatDate(commission.createdAt)} • {commission.status}
                             </p>
+                            {(commission.payoutCurrency || commission.currency) && (
+                              <p className="text-xs text-muted-foreground">
+                                {commission.currency && commission.payoutCurrency && commission.currency !== commission.payoutCurrency
+                                  ? `${formatMoney(commission.amount || 0, commission.currency, 'decimal')} -> ${formatMoney(commission.payoutAmount ?? commission.amount ?? 0, commission.payoutCurrency, 'decimal')}`
+                                  : formatMoney(commission.payoutAmount ?? commission.amount ?? 0, commission.payoutCurrency || commission.currency || 'USD', 'decimal')}
+                              </p>
+                            )}
                           </div>
                           <span className="font-semibold text-sm whitespace-nowrap">
-                            ${commission.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                            {formatMoney(
+                              commission.payoutAmount ?? commission.amount ?? 0,
+                              commission.payoutCurrency || commission.currency || "USD",
+                              'decimal'
+                            )}
                           </span>
                         </div>
                       );
@@ -217,9 +235,13 @@ export function CommissionPaymentDialog({
                   {selectedCommissions.length > 0 && (
                     <div className="flex items-center justify-between p-3 bg-primary/5 rounded-lg">
                       <span className="font-semibold">Total Selected:</span>
-                      <span className="text-xl font-bold text-primary">
-                        ${selectedTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-                      </span>
+                      <div className="text-right">
+                        {selectedTotals.map((total) => (
+                          <div key={total.currency} className="text-xl font-bold text-primary">
+                            {formatMoney(total.amount, total.currency, 'decimal')}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>

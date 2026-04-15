@@ -94,6 +94,7 @@ export function SubscriptionManagementPage() {
                     balance={wallet?.balance || 0}
                     totalCredits={wallet?.totalCredits || 0}
                     totalDebits={wallet?.totalDebits || 0}
+                    currency={wallet?.currency || 'USD'}
                     status={wallet?.status || 'ACTIVE'}
                     isLoading={walletLoading}
                     showRechargeButton

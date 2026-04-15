@@ -222,7 +222,10 @@ export default function StaffProfilePage() {
                 {staff.defaultCommissionRate ?? 10}%
               </div>
               <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                Default rate
+                Default fallback rate
+              </p>
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-2">
+                Plan and service-specific overrides are managed from the staff editor.
               </p>
             </div>
             <Button
@@ -231,7 +234,7 @@ export default function StaffProfilePage() {
               className="w-full"
             >
               <Percent className="mr-2 h-4 w-4" />
-              Change Rate
+              Change Default Rate
             </Button>
             
             <DropdownMenu>
@@ -414,10 +417,10 @@ export default function StaffProfilePage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Percent className="h-5 w-5 text-blue-600" />
-              Change Commission Rate
+              Change Default Commission Rate
             </DialogTitle>
             <DialogDescription>
-              Update the commission rate for {staff?.firstName} {staff?.lastName}
+              Update the fallback rate for {staff?.firstName} {staff?.lastName}. Existing commissions stay frozen.
             </DialogDescription>
           </DialogHeader>
 

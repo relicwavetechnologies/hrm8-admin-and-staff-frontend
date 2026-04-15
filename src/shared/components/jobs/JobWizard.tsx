@@ -478,19 +478,19 @@ export function JobWizard({ serviceType, defaultValues, jobId: initialJobId, onS
     },
     'shortlisting': {
       name: 'Shortlisting Service',
-      price: 'From USD 990',
+      price: 'Regional fixed pricing',
       icon: Users,
       color: 'text-blue-600'
     },
     'full-service': {
       name: 'Full Service',
-      price: 'From USD 3,490',
+      price: 'Regional fixed pricing',
       icon: Star,
       color: 'text-primary'
     },
     'executive-search': {
       name: 'Executive Search',
-      price: 'From USD 6,000',
+      price: '10% salary + minimum fee',
       icon: Crown,
       color: 'text-amber-600'
     },

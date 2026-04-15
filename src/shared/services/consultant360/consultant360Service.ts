@@ -12,6 +12,7 @@ export interface UnifiedDashboardStats {
     totalEarnings: number;
     availableBalance: number;
     pendingBalance: number;
+    currency?: string;
     activeJobs: number;
     activeLeads: number;
     conversionRate: number;
@@ -101,6 +102,11 @@ export interface CombinedBalance {
     availableCommissions: Array<{
         id: string;
         amount: number;
+        currency?: string;
+        payoutAmount?: number;
+        payoutCurrency?: string;
+        fxRate?: number;
+        fxRateLockedAt?: string;
         type?: 'PLACEMENT' | 'SUBSCRIPTION_SALE' | 'RECRUITMENT_SERVICE' | 'CUSTOM';
         description: string;
         createdAt?: string;

@@ -21,7 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui
 import { CompanyRevenueTable } from '@/shared/components/hrm8/CompanyRevenueTable';
 import { getScopedRegionId, isAllRegionsSelected } from '@/shared/lib/regionScope';
 
-const columns = [
+const getColumns = (reportingCurrency: string) => [
   {
     key: 'region_id',
     label: 'Region',
@@ -42,21 +42,21 @@ const columns = [
     key: 'total_revenue',
     label: 'Total Revenue',
     render: (revenue: RegionalRevenue) => (
-      <span className="font-semibold">${(revenue.total_revenue || 0).toLocaleString()}</span>
+      <span className="font-semibold">{formatCurrency(revenue.total_revenue || 0, reportingCurrency)}</span>
     ),
   },
   {
     key: 'hrm8_share',
     label: 'HRM8 Share',
     render: (revenue: RegionalRevenue) => (
-      <span className="text-primary font-medium">${(revenue.hrm8_share || 0).toLocaleString()}</span>
+      <span className="text-primary font-medium">{formatCurrency(revenue.hrm8_share || 0, reportingCurrency)}</span>
     ),
   },
   {
     key: 'licensee_share',
     label: 'Licensee Share',
     render: (revenue: RegionalRevenue) => (
-      <span className="text-purple-600 font-medium">${(revenue.licensee_share || 0).toLocaleString()}</span>
+      <span className="text-purple-600 font-medium">{formatCurrency(revenue.licensee_share || 0, reportingCurrency)}</span>
     ),
   },
   {
@@ -242,7 +242,7 @@ export default function RevenuePage() {
                 ) : (
                   <DataTable
                     data={revenues}
-                    columns={columns}
+                    columns={getColumns(reportingCurrency)}
                     searchable
                     searchKeys={['status']}
                     emptyMessage="No revenue records found"

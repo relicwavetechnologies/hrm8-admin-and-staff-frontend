@@ -83,7 +83,29 @@ export default function CommissionsPage() {
     {
       key: "amount",
       label: "Amount",
-      render: (item) => <span className="font-semibold">{formatCurrency(item.amount)}</span>,
+      render: (item) => {
+        const payoutAmount = item.payoutAmount ?? item.amount;
+        const payoutCurrency = item.payoutCurrency ?? balance.currency ?? 'USD';
+        const sourceCurrency = item.currency ?? payoutCurrency;
+        const isCrossCurrency = sourceCurrency !== payoutCurrency;
+
+        return (
+          <div className="space-y-1">
+            <span className="font-semibold">{formatCurrency(payoutAmount, payoutCurrency)}</span>
+            <div className="text-xs text-muted-foreground">
+              {isCrossCurrency
+                ? `${formatCurrency(item.amount, sourceCurrency)} -> ${formatCurrency(payoutAmount, payoutCurrency)}`
+                : `Source ${formatCurrency(item.amount, sourceCurrency)}`}
+            </div>
+            {item.fxRate ? (
+              <div className="text-xs text-muted-foreground">
+                FX locked at {Number(item.fxRate).toFixed(4)}
+                {item.fxRateLockedAt ? ` on ${new Date(item.fxRateLockedAt).toLocaleDateString()}` : ''}
+              </div>
+            ) : null}
+          </div>
+        );
+      },
     },
     {
       key: "status",

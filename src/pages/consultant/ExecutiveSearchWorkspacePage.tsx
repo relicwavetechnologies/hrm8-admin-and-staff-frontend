@@ -83,7 +83,6 @@ export default function ExecutiveSearchWorkspacePage() {
   const [loadingMatchScore, setLoadingMatchScore] = useState(false);
   const [matchScoreError, setMatchScoreError] = useState<string | null>(null);
   const [pausingId, setPausingId] = useState<string | null>(null);
-  const [enrichingId, setEnrichingId] = useState<string | null>(null);
   const [manualEmail, setManualEmail] = useState('');
   const [savingEmailId, setSavingEmailId] = useState<string | null>(null);
   const [customTemplateOpen, setCustomTemplateOpen] = useState(false);
@@ -446,34 +445,6 @@ export default function ExecutiveSearchWorkspacePage() {
     }
   };
 
-  const handleEnrichProspect = async (prospectId: string) => {
-    if (!jobId) return;
-    try {
-      setEnrichingId(prospectId);
-      const res = await executiveSearchService.enrichProspect(jobId, prospectId);
-      if (res.success && res.data) {
-        if (res.data.found) {
-          toast.success(res.data.message + (res.data.email ? `: ${res.data.email}` : ''));
-          await loadProspects();
-          if (selectedProspect?.id === prospectId) {
-            const updated = await executiveSearchService.listProspects(jobId);
-            const list = updated.success ? updated.data?.prospects : undefined;
-            const p = list?.find((x) => x.id === prospectId);
-            if (p) setSelectedProspect(p);
-          }
-        } else {
-          toast.info(res.data.message || 'Email not found');
-        }
-      } else {
-        toast.error(res.error || 'Enrichment failed');
-      }
-    } catch (e) {
-      toast.error('Failed to find email');
-    } finally {
-      setEnrichingId(null);
-    }
-  };
-
   const handleSaveManualEmail = async (prospectId: string) => {
     if (!jobId || !manualEmail.trim()) return;
     const email = manualEmail.trim();
@@ -568,6 +539,49 @@ export default function ExecutiveSearchWorkspacePage() {
       toast.error('Failed to convert');
     } finally {
       setConvertingId(null);
+    }
+  };
+
+  const getProspectDisplayName = (prospect: Prospect) => {
+    if (prospect.candidate) {
+      return `${prospect.candidate.firstName} ${prospect.candidate.lastName}`.trim();
+    }
+    return prospect.externalProfile?.displayName || prospect.externalDisplayName || prospect.email || 'External prospect';
+  };
+
+  const getProspectDisplayEmail = (prospect: Prospect) =>
+    prospect.candidate?.email || prospect.contact?.displayEmail || prospect.email || '';
+
+  const getContactStateLabel = (prospect: Prospect) => {
+    if (prospect.contact?.emailSource === 'LINKEDIN_PUBLIC' && prospect.contact?.verificationState === 'PENDING_VERIFY') {
+      return null;
+    }
+    switch (prospect.contact?.verificationState) {
+      case 'PENDING_VERIFY':
+        return 'Verification pending';
+      case 'VERIFIED':
+        return 'Verified';
+      case 'LOOKUP_PENDING':
+        return prospect.linkedInUrl || prospect.sourceProfileUrl ? 'No public LinkedIn email' : 'Email lookup pending';
+      case 'MANUAL_REVIEW':
+        return 'Manual review';
+      default:
+        return null;
+    }
+  };
+
+  const getContactSourceLabel = (prospect: Prospect) => {
+    switch (prospect.contact?.emailSource) {
+      case 'LINKEDIN_PUBLIC':
+        return 'Observed on LinkedIn';
+      case 'HUNTER':
+        return 'Verified via Hunter';
+      case 'MANUAL':
+        return 'Added manually';
+      case 'EXTENSION_IMPORT':
+        return 'Imported from extension';
+      default:
+        return null;
     }
   };
 
@@ -1016,15 +1030,27 @@ export default function ExecutiveSearchWorkspacePage() {
                       className="flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:bg-muted/50"
                       onClick={() => setSelectedProspect(p)}
                     >
-                      <div>
-                        <p className="font-medium">
-                          {p.candidate
-                            ? `${p.candidate.firstName} ${p.candidate.lastName}`
-                            : p.externalDisplayName || 'External prospect'}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {p.candidate?.email || p.email || ''}
-                        </p>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium truncate">{getProspectDisplayName(p)}</p>
+                        {getProspectDisplayEmail(p) ? (
+                          <p className="text-sm text-muted-foreground truncate">{getProspectDisplayEmail(p)}</p>
+                        ) : p.externalProfile?.headline ? (
+                          <p className="text-sm text-muted-foreground line-clamp-1">{p.externalProfile.headline}</p>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">No email yet</p>
+                        )}
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {getContactSourceLabel(p) && (
+                            <Badge variant="outline" className="text-[10px]">
+                              {getContactSourceLabel(p)}
+                            </Badge>
+                          )}
+                          {getContactStateLabel(p) && (
+                            <Badge variant="outline" className="text-[10px]">
+                              {getContactStateLabel(p)}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                       <Badge variant="outline">{p.stage}</Badge>
                     </div>
@@ -1041,9 +1067,7 @@ export default function ExecutiveSearchWorkspacePage() {
         <SheetContent>
           <SheetHeader>
             <SheetTitle>
-              {selectedProspect?.candidate
-                ? `${selectedProspect.candidate.firstName} ${selectedProspect.candidate.lastName}`
-                : selectedProspect?.externalDisplayName || selectedProspect?.email || 'Prospect'}
+              {selectedProspect ? getProspectDisplayName(selectedProspect) : 'Prospect'}
             </SheetTitle>
             <SheetDescription className="sr-only">
               Prospect details and outreach actions
@@ -1051,22 +1075,30 @@ export default function ExecutiveSearchWorkspacePage() {
           </SheetHeader>
           {selectedProspect && (
             <div className="mt-6 space-y-4">
-              <p className="text-sm text-muted-foreground">
-                {selectedProspect.candidate?.email || selectedProspect.email || 'No email'}
-              </p>
-              {!(selectedProspect.candidate?.email || selectedProspect.email) && (
-                <div className="space-y-2">
-                  {(selectedProspect.linkedInUrl || selectedProspect.sourceProfileUrl) && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEnrichProspect(selectedProspect.id)}
-                      disabled={enrichingId === selectedProspect.id}
-                    >
-                      <Search className="h-4 w-4 mr-2" />
-                      {enrichingId === selectedProspect.id ? 'Finding...' : 'Find email (Hunter.io)'}
-                    </Button>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  {getProspectDisplayEmail(selectedProspect) || 'No email'}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {getContactSourceLabel(selectedProspect) && (
+                    <Badge variant="outline">{getContactSourceLabel(selectedProspect)}</Badge>
                   )}
+                  {getContactStateLabel(selectedProspect) && (
+                    <Badge variant="outline">{getContactStateLabel(selectedProspect)}</Badge>
+                  )}
+                  {selectedProspect.workflow?.status && (
+                    <Badge variant="outline">{selectedProspect.workflow.status}</Badge>
+                  )}
+                </div>
+                {(selectedProspect.externalProfile?.headline || selectedProspect.externalProfile?.location) && (
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    {selectedProspect.externalProfile?.headline && <p>{selectedProspect.externalProfile.headline}</p>}
+                    {selectedProspect.externalProfile?.location && <p>{selectedProspect.externalProfile.location}</p>}
+                  </div>
+                )}
+              </div>
+              {!getProspectDisplayEmail(selectedProspect) && (
+                <div className="space-y-2">
                   <div className="flex gap-2 items-center">
                     <Input
                       type="email"

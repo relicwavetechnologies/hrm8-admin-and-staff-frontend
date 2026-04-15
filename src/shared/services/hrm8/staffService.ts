@@ -5,6 +5,22 @@
 
 import { apiClient } from '@/shared/lib/apiClient';
 
+export interface CommissionRatesConfig {
+  subscriptions: {
+    PAYG?: number | null;
+    SMALL?: number | null;
+    MEDIUM?: number | null;
+    LARGE?: number | null;
+    ENTERPRISE?: number | null;
+  };
+  services: {
+    SHORTLISTING?: number | null;
+    FULL_SERVICE?: number | null;
+    EXECUTIVE_SEARCH?: number | null;
+    RPO?: number | null;
+  };
+}
+
 export interface StaffMember {
   id: string;
   email: string;
@@ -31,6 +47,7 @@ export interface StaffMember {
   currentJobs: number;
   commissionStructure?: string;
   defaultCommissionRate?: number;
+  commissionRates?: CommissionRatesConfig | null;
   defaultCurrency?: string;
   payoutCurrency?: string | null;
   payoutCurrencyConfirmedAt?: string | null;
@@ -105,6 +122,41 @@ export interface StaffOverviewData {
   }>;
 }
 
+export interface StaffPendingTasksData {
+  jobs: {
+    id: string;
+    title: string;
+    companyName: string;
+    status: string;
+    servicePackage?: string | null;
+    hiringMode?: string | null;
+  }[];
+  leads: {
+    id: string;
+    companyName: string;
+    status: string;
+  }[];
+  subscriptions: {
+    id: string;
+    name: string;
+    companyName: string;
+    planType: string;
+    status: string;
+  }[];
+  conversionRequests: {
+    id: string;
+    companyName: string;
+    status: string;
+  }[];
+  pendingCommissions: {
+    id: string;
+    amount: number;
+    status: string;
+  }[];
+  totalCount: number;
+  count: number;
+}
+
 class StaffService {
   async getAll(filters?: {
     regionId?: string;
@@ -142,6 +194,7 @@ class StaffService {
     role: 'RECRUITER' | 'SALES_AGENT' | 'CONSULTANT_360';
     regionId?: string;
     defaultCommissionRate?: number;
+    commissionRates?: CommissionRatesConfig | null;
     defaultCurrency?: string;
   }) {
     return apiClient.post<StaffCreateResponse>('/api/hrm8/consultants', data);
@@ -181,13 +234,7 @@ class StaffService {
   }
 
   async getPendingTasks(id: string) {
-    return apiClient.get<{
-      jobs: { id: string; title: string; companyName: string; status: string }[];
-      leads: { id: string; companyName: string; status: string }[];
-      conversionRequests: { id: string; companyName: string; status: string }[];
-      pendingCommissions: { id: string; amount: number; status: string }[];
-      totalCount: number;
-    }>(`/api/hrm8/consultants/${id}/pending-tasks`);
+    return apiClient.get<StaffPendingTasksData>(`/api/hrm8/consultants/${id}/pending-tasks`);
   }
 
   async getReassignmentOptions(id: string) {

@@ -152,7 +152,7 @@ export default function Consultant360EarningsPage() {
         const available = earnings?.combined?.availableCommissions || [];
         return available
             .filter((c) => selectedCommissions.includes(c.id))
-            .reduce((sum, c) => sum + c.amount, 0);
+            .reduce((sum, c) => sum + (c.payoutAmount ?? c.amount ?? 0), 0);
     }
 
     async function handleWithdrawalSubmit() {
@@ -422,9 +422,19 @@ export default function Consultant360EarningsPage() {
                                                         })()}
                                                     </span>
                                                 </div>
+                                                {commission.fxRate ? (
+                                                    <p className="text-xs text-muted-foreground mt-1">
+                                                        {`${formatCurrency(commission.amount ?? 0, commission.currency ?? combined?.currency ?? 'USD')} -> ${formatCurrency(commission.payoutAmount ?? commission.amount ?? 0, commission.payoutCurrency ?? combined?.currency ?? 'USD')} at ${Number(commission.fxRate).toFixed(4)}`}
+                                                        {commission.fxRateLockedAt ? ` on ${format(new Date(commission.fxRateLockedAt), "MMM d, yyyy")}` : ''}
+                                                    </p>
+                                                ) : commission.currency ? (
+                                                    <p className="text-xs text-muted-foreground mt-1">
+                                                        Source {formatCurrency(commission.amount ?? 0, commission.currency)}
+                                                    </p>
+                                                ) : null}
                                             </div>
                                             <p className="font-bold text-green-600">
-                                                +{formatCurrency(commission.amount ?? 0, combined?.currency ?? 'USD')}
+                                                +{formatCurrency(commission.payoutAmount ?? commission.amount ?? 0, commission.payoutCurrency ?? combined?.currency ?? 'USD')}
                                             </p>
                                         </div>
                                     ))
@@ -733,10 +743,22 @@ export default function Consultant360EarningsPage() {
                                                             }
                                                         })()}
                                                     </p>
+                                                    {commission.fxRate ? (
+                                                        <p className="text-xs text-muted-foreground mt-1">
+                                                            {`${formatCurrency(commission.amount ?? 0, commission.currency ?? combined?.currency ?? 'USD')} -> ${formatCurrency(commission.payoutAmount ?? commission.amount ?? 0, commission.payoutCurrency ?? combined?.currency ?? 'USD')} at ${Number(commission.fxRate).toFixed(4)}`}
+                                                            {commission.fxRateLockedAt ? ` on ${format(new Date(commission.fxRateLockedAt), "MMM d, yyyy")}` : ''}
+                                                        </p>
+                                                    ) : commission.currency ? (
+                                                        <p className="text-xs text-muted-foreground mt-1">
+                                                            Source {formatCurrency(commission.amount ?? 0, commission.currency)}
+                                                        </p>
+                                                    ) : null}
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <p className="font-bold">${commission.amount.toLocaleString()}</p>
+                                                <p className="font-bold">
+                                                    {formatCurrency(commission.payoutAmount ?? commission.amount ?? 0, commission.payoutCurrency ?? combined?.currency ?? 'USD')}
+                                                </p>
                                                 <Badge
                                                     variant={
                                                         commission.status === "PAID"

@@ -125,10 +125,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             ? 'Invalid email or password'
             : response.error || 'Invalid email or password';
         const pendingDetails =
-          response.details?.code === 'PENDING_VERIFICATION'
+          response.code === 'PENDING_VERIFICATION' || response.details?.code === 'PENDING_VERIFICATION'
             ? {
-                email: (response.details.email as string) || email,
-                companyId: response.details.companyId as string | undefined,
+                email: (response.details?.email as string) || email,
+                companyId: response.details?.companyId as string | undefined,
               }
             : null;
 

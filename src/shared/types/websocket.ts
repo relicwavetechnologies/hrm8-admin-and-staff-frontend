@@ -47,6 +47,9 @@ export interface MessageData {
   senderEmail: string;
   senderType: MessageSenderType;
   senderId?: string;
+  senderDisplayName?: string;
+  senderRoleLabel?: string;
+  senderInitials?: string;
   content: string;
   contentType: MessageContentType;
   readBy?: string[];
@@ -126,4 +129,3 @@ export interface WebSocketContextType {
   addMessage: (conversationId: string, message: MessageData) => void;
   onMessage?: (type: WSMessageType, handler: (payload: unknown) => void) => () => void;
 }
-

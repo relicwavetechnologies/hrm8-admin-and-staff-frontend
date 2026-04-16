@@ -19,6 +19,7 @@ import { Label } from "@/shared/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
 import { toast } from "sonner";
 import { Application } from "@/shared/types/application";
+import { useAuthStore } from "@/shared/stores/authStore";
 
 interface JobMessagesTabProps {
     jobId: string;
@@ -26,6 +27,7 @@ interface JobMessagesTabProps {
 }
 
 export function JobMessagesTab({ jobId, channelType }: JobMessagesTabProps) {
+    const currentUserEmail = useAuthStore((state) => state.user?.rawUser?.email || "");
     const [searchParams] = useSearchParams();
     const urlConversationId = searchParams.get('conversationId');
 
@@ -136,23 +138,78 @@ export function JobMessagesTab({ jobId, channelType }: JobMessagesTabProps) {
         }
     };
 
+    const normalizeEmail = (value?: string) => (value || "").trim().toLowerCase();
+    const participantType = (participant: any) =>
+        participant?.participantType || participant?.participant_type || participant?.type || "";
+    const participantEmail = (participant: any) =>
+        participant?.participantEmail || participant?.participant_email || participant?.email || "";
+    const formatDisplayName = (value?: string) => {
+        if (!value) return "";
+        if (value.includes("@")) {
+            return value
+                .split("@")[0]
+                .split(/[._-]+/)
+                .filter(Boolean)
+                .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+                .join(" ");
+        }
+        return value;
+    };
+    const participantName = (participant: any) =>
+        participant?.displayName ||
+        participant?.display_name ||
+        formatDisplayName(participantEmail(participant));
+
     const getOtherParticipant = (c: ConversationData) => {
-        // Find Candidate first (used in Candidate Messages tab)
-        const candidate = c.participants?.find((p: any) => p.participant_type === 'CANDIDATE' || p.type === 'CANDIDATE');
+        const participants = Array.isArray(c.participants) ? c.participants : [];
+
+        const candidate = participants.find((participant: any) => participantType(participant) === 'CANDIDATE');
         if (candidate) return { ...candidate, label: 'Candidate' };
 
-        // If no candidate, we are in a Company Chat. The "other" participant is the Employer.
-        const employer = c.participants?.find((p: any) => p.participant_type === 'EMPLOYER' || p.type === 'EMPLOYER');
+        const employer = participants.find((participant: any) =>
+            participantType(participant) === 'EMPLOYER' && normalizeEmail(participantEmail(participant)) !== normalizeEmail(currentUserEmail)
+        );
         if (employer) return { ...employer, label: 'Company Team' };
 
-        return null;
+        const consultant = participants.find((participant: any) =>
+            participantType(participant) === 'CONSULTANT' && normalizeEmail(participantEmail(participant)) !== normalizeEmail(currentUserEmail)
+        );
+        if (consultant) return { ...consultant, label: 'Consultant' };
+
+        const fallback = participants.find((participant: any) =>
+            normalizeEmail(participantEmail(participant)) !== normalizeEmail(currentUserEmail)
+        ) || participants[0];
+
+        return fallback ? { ...fallback, label: 'Conversation' } : null;
+    };
+
+    const getMessageAuthorLabel = (message: any) => {
+        const senderEmail = message?.senderEmail || message?.sender_email || "";
+        if (normalizeEmail(senderEmail) && normalizeEmail(senderEmail) === normalizeEmail(currentUserEmail)) {
+            return "You";
+        }
+
+        return (
+            message?.senderDisplayName ||
+            message?.sender_display_name ||
+            senderEmail.split("@")[0]?.replace(/[._-]+/g, " ") ||
+            "Participant"
+        );
+    };
+
+    const getLastMessagePreview = (conversation: any) => {
+        const lastMessage = conversation?.lastMessage || conversation?.last_message || conversation?.messages?.[0];
+        if (!lastMessage?.content) return "No messages yet";
+        const senderType = lastMessage?.senderType || lastMessage?.sender_type;
+        if (senderType === "SYSTEM") return lastMessage.content;
+        return `${getMessageAuthorLabel(lastMessage)}: ${lastMessage.content}`;
     };
 
     const filteredConversations = conversations.filter(c => {
         const other = getOtherParticipant(c);
         if (!other) return true;
-        const name = other.display_name || other.displayName || '';
-        const email = other.participant_email || other.email || '';
+        const name = participantName(other);
+        const email = participantEmail(other);
         const query = searchQuery.toLowerCase();
         if (!query) return true;
         return name.toLowerCase().includes(query) || email.toLowerCase().includes(query);
@@ -235,11 +292,11 @@ export function JobMessagesTab({ jobId, channelType }: JobMessagesTabProps) {
                         <div className="flex flex-col">
                             {filteredConversations.map(conversation => {
                                 const other = getOtherParticipant(conversation);
-                                const name = other?.display_name || other?.displayName || 'Conversation';
-                                const email = other?.participant_email || other?.email || '';
+                                const name = participantName(other) || 'Conversation';
+                                const email = participantEmail(other);
                                 const label = other?.label ? ` (${other.label})` : '';
                                 const initials = name !== 'Conversation' ? name.slice(0, 2).toUpperCase() : '??';
-                                const lastMsg = conversation.lastMessage?.content || (conversation as any).messages?.[0]?.content || 'No messages yet';
+                                const lastMsg = getLastMessagePreview(conversation);
                                 const time = conversation.updatedAt ? formatRelativeDate(conversation.updatedAt) : '';
                                 const isSelected = selectedConversationId === conversation.id;
 
@@ -282,7 +339,8 @@ export function JobMessagesTab({ jobId, channelType }: JobMessagesTabProps) {
                 {selectedConversationId ? (
                     <MessagingPanel
                         conversationId={selectedConversationId}
-                        title={selectedConversation ? (getOtherParticipant(selectedConversation)?.display_name || getOtherParticipant(selectedConversation)?.displayName || 'Conversation') : ''}
+                        title={selectedConversation ? (participantName(getOtherParticipant(selectedConversation)) || 'Conversation') : ''}
+                        currentUserEmail={currentUserEmail}
                         className="flex-1 h-full border-none"
                     />
                 ) : (

@@ -8,6 +8,7 @@ import { AiAssistantSidebar } from "../components/common/AiAssistantSidebar";
 import { getSidebarConfig } from "../config/navigation";
 import { useAuthStore } from "../stores/authStore";
 import { useLocation } from "react-router-dom";
+import { WebSocketProvider } from "@/contexts/WebSocketContext";
 
 interface UnifiedDashboardLayoutProps {
     children: ReactNode;
@@ -59,49 +60,51 @@ export function UnifiedDashboardLayout({ children }: UnifiedDashboardLayoutProps
     }, [showAiPanel]);
 
     return (
-        <SidebarProvider>
-            <CommandPalette />
-            <div className="flex h-svh w-full overflow-hidden">
-                <UnifiedSidebar
-                    config={config}
-                    auth={authAdapter}
-                />
-
-                <SidebarInset className="flex flex-col flex-1 min-h-0 overflow-hidden">
-                    {/* Header */}
-                    <UnifiedHeader
-                        showAiToggle={showAiPanel}
-                        isAiOpen={isAiPanelOpen}
-                        onToggleAi={toggleAiPanel}
+        <WebSocketProvider isAuthenticated={true} userEmail={user.rawUser?.email}>
+            <SidebarProvider>
+                <CommandPalette />
+                <div className="flex h-svh w-full overflow-hidden">
+                    <UnifiedSidebar
+                        config={config}
+                        auth={authAdapter}
                     />
 
-                    {/* Main Content - Keep mounted to prevent re-fetching */}
-                    <div className="flex flex-1 min-h-0 overflow-hidden">
-                        <main className="flex-1 min-h-0 overflow-y-auto p-4 md:p-6 lg:p-8">
-                            <div className="mx-auto max-w-7xl w-full">
-                                {children}
-                            </div>
-                        </main>
+                    <SidebarInset className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                        {/* Header */}
+                        <UnifiedHeader
+                            showAiToggle={showAiPanel}
+                            isAiOpen={isAiPanelOpen}
+                            onToggleAi={toggleAiPanel}
+                        />
 
-                        {showAiPanel && (
-                            <CustomResizablePanel
-                                isOpen={isAiPanelOpen}
-                                defaultWidth={500}
-                                minWidth={320}
-                                maxWidthPercent={40}
-                            >
-                                <AiAssistantSidebar
-                                    streamEndpoint={
-                                        userType === "ADMIN"
-                                            ? "/api/assistant/chat/hrm8/stream"
-                                            : "/api/assistant/chat/stream"
-                                    }
-                                />
-                            </CustomResizablePanel>
-                        )}
-                    </div>
-                </SidebarInset>
-            </div>
-        </SidebarProvider>
+                        {/* Main Content - Keep mounted to prevent re-fetching */}
+                        <div className="flex flex-1 min-h-0 overflow-hidden">
+                            <main className="flex-1 min-h-0 overflow-y-auto p-4 md:p-6 lg:p-8">
+                                <div className="mx-auto max-w-7xl w-full">
+                                    {children}
+                                </div>
+                            </main>
+
+                            {showAiPanel && (
+                                <CustomResizablePanel
+                                    isOpen={isAiPanelOpen}
+                                    defaultWidth={500}
+                                    minWidth={320}
+                                    maxWidthPercent={40}
+                                >
+                                    <AiAssistantSidebar
+                                        streamEndpoint={
+                                            userType === "ADMIN"
+                                                ? "/api/assistant/chat/hrm8/stream"
+                                                : "/api/assistant/chat/stream"
+                                        }
+                                    />
+                                </CustomResizablePanel>
+                            )}
+                        </div>
+                    </SidebarInset>
+                </div>
+            </SidebarProvider>
+        </WebSocketProvider>
     );
 }

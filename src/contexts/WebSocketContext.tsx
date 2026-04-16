@@ -111,6 +111,14 @@ export function WebSocketProvider({
           console.log('✅ WebSocket authentication successful');
           setConnectionState('connected');
           reconnectAttemptRef.current = 0; // Reset reconnect attempts
+          if (currentConversationIdRef.current && wsRef.current?.readyState === WebSocket.OPEN) {
+            wsRef.current.send(
+              JSON.stringify({
+                type: 'join_conversation',
+                payload: { conversationId: currentConversationIdRef.current },
+              })
+            );
+          }
           break;
 
         case 'online_users_list':
@@ -406,4 +414,3 @@ export function useWebSocket() {
   }
   return context;
 }
-

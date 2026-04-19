@@ -275,6 +275,98 @@ class BillingApiService {
             { new_consultant_id: newConsultantId, reason }
         );
     }
+
+    // ==================== ASSESSMENT PACKAGE CATALOG ====================
+
+    async listAssessPackages(includeInactive = false) {
+        return apiClient.get<{ packages: AssessPackage[] }>(
+            `/api/admin/billing/assess-packages?includeInactive=${includeInactive}`
+        );
+    }
+
+    async createAssessPackage(data: CreateAssessPackageInput) {
+        return apiClient.post<{ package: AssessPackage }>(`/api/admin/billing/assess-packages`, data);
+    }
+
+    async updateAssessPackage(id: string, data: Partial<CreateAssessPackageInput>) {
+        return apiClient.put<{ package: AssessPackage }>(`/api/admin/billing/assess-packages/${id}`, data);
+    }
+
+    async deactivateAssessPackage(id: string) {
+        return apiClient.delete<{ package: AssessPackage }>(`/api/admin/billing/assess-packages/${id}`);
+    }
+
+    async getAssessPackageEntitlements(id: string) {
+        return apiClient.get<{ entitlements: AssessEntitlement[] }>(
+            `/api/admin/billing/assess-packages/${id}/entitlements`
+        );
+    }
+
+    // ==================== XOBIN PLATFORM CONFIG ====================
+
+    async getXobinPlatformConfig() {
+        return apiClient.get<XobinPlatformConfig>(`/api/admin/billing/xobin/config`);
+    }
+
+    async setXobinApiKey(apiKey: string) {
+        return apiClient.post<{ configured: boolean; apiKeyMasked: string }>(
+            `/api/admin/billing/xobin/config/api-key`,
+            { apiKey }
+        );
+    }
+
+    async deleteXobinApiKey() {
+        return apiClient.delete<{ configured: boolean }>(`/api/admin/billing/xobin/config/api-key`);
+    }
 }
 
 export const billingApiService = new BillingApiService();
+
+// ==================== ASSESS TYPES ====================
+
+export interface AssessPackage {
+    id: string;
+    code: string;
+    name: string;
+    description: string | null;
+    base_price: number;
+    currency: string;
+    per_candidate_price: number;
+    included_candidates: number;
+    validity_days: number | null;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+    _count?: { entitlements: number };
+}
+
+export interface CreateAssessPackageInput {
+    code: string;
+    name: string;
+    description?: string;
+    basePrice: number;
+    currency?: string;
+    perCandidatePrice?: number;
+    includedCandidates: number;
+    validityDays?: number | null;
+}
+
+export interface AssessEntitlement {
+    id: string;
+    company_id: string;
+    job_id: string | null;
+    package_catalog_id: string;
+    included_seats: number;
+    purchased_extra_seats: number;
+    used_seats: number;
+    status: string;
+    expires_at: string | null;
+    created_at: string;
+}
+
+export interface XobinPlatformConfig {
+    apiKeyConfigured: boolean;
+    apiKeyMasked: string | null;
+    source: 'database' | 'environment' | null;
+    webhookSecretConfigured: boolean;
+}

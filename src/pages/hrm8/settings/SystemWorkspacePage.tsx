@@ -1,6 +1,6 @@
 
 import { Outlet } from 'react-router-dom';
-import { Settings, BarChart3, Mail, ShieldAlert, Cpu } from 'lucide-react';
+import { Settings, BarChart3, Mail, ShieldAlert, Cpu, Package } from 'lucide-react';
 import { NestedSidebarLayout, type NestedSidebarItem } from '@/shared/components/layouts/NestedSidebarLayout';
 
 const settingsNavItems: NestedSidebarItem[] = [
@@ -33,6 +33,12 @@ const settingsNavItems: NestedSidebarItem[] = [
         label: 'Audit Logs',
         path: '/hrm8/settings/audit-logs',
         icon: ShieldAlert,
+    },
+    {
+        id: 'settings-xobin',
+        label: 'Xobin Packages',
+        path: '/hrm8/settings/xobin',
+        icon: Package,
     },
 ];
 

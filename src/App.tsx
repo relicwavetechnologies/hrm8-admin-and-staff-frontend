@@ -113,6 +113,7 @@ const FinanceWorkspacePage = lazy(() => import('./pages/hrm8/finance/FinanceWork
 const FinanceOverviewPage = lazy(() => import('./pages/hrm8/finance/FinanceOverviewPage'));
 const FinanceReconciliationPage = lazy(() => import('./pages/hrm8/finance/FinanceReconciliationPage'));
 const Hrm8ChatPage = lazy(() => import('./pages/hrm8/Hrm8ChatPage'));
+const XobinAdminPage = lazy(() => import('./pages/hrm8/XobinAdminPage'));
 
 function App() {
     const { checkAuth } = useAuthStore();
@@ -209,6 +210,7 @@ function App() {
                         <Route path="integrations" element={<Hrm8IntegrationsPage />} />
                         <Route path="email-templates" element={<AdminEmailTemplatesPage />} />
                         <Route path="audit-logs" element={<AuditLogsPage />} />
+                        <Route path="xobin" element={<XobinAdminPage />} />
                     </Route>
 
                     {/* Redirects for old routes */}

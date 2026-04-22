@@ -103,6 +103,7 @@ const PricingPage = lazy(() => import('./pages/hrm8/PricingPage'));
 const BillingPage = lazy(() => import('./pages/hrm8/BillingPage'));
 const CreditLedgerPage = lazy(() => import('./pages/hrm8/CreditLedgerPage'));
 const CompanyCreditMigrationPage = lazy(() => import('./pages/hrm8/CompanyCreditMigrationPage'));
+const HRServicesManagementPage = lazy(() => import('./pages/hrm8/HRServicesManagementPage'));
 const RegionalSalesDashboard = lazy(() => import('./pages/hrm8/RegionalSalesDashboard'));
 const RevenuePage = lazy(() => import('./pages/hrm8/RevenuePage'));
 const ConsultantOverview = lazy(() => import('./pages/consultant/ConsultantOverview'));
@@ -198,6 +199,7 @@ function App() {
                     <Route path="/hrm8/billing" element={<BillingPage />} />
                     <Route path="/hrm8/credit-ledger" element={<CreditLedgerPage />} />
                     <Route path="/hrm8/credit-migration" element={<CompanyCreditMigrationPage />} />
+                    <Route path="/hrm8/hr-services" element={<HRServicesManagementPage />} />
                     <Route path="/hrm8/regional-sales" element={<RegionalSalesDashboard />} />
                     <Route path="/hrm8/careers-requests" element={<CareersRequestsPage />} />
 

@@ -143,6 +143,8 @@ class Hrm8PricingService {
     maxQuantity?: number | null;
     unitPrice: number;
     period?: string;
+    billingBasis?: 'PER_UNIT' | 'PEPM_BLOCK';
+    blockSize?: number | null;
   }) {
     return apiClient.post<{ tier: PriceBookTier }>(`/api/hrm8/pricing/tiers/${priceBookId}`, data);
   }
@@ -153,6 +155,8 @@ class Hrm8PricingService {
     maxQuantity?: number | null;
     unitPrice?: number;
     period?: string;
+    billingBasis?: 'PER_UNIT' | 'PEPM_BLOCK';
+    blockSize?: number | null;
   }) {
     return apiClient.put<{ tier: PriceBookTier }>(`/api/hrm8/pricing/tiers/${id}`, data);
   }

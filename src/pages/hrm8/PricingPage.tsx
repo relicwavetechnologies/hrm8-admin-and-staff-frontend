@@ -86,6 +86,8 @@ export default function PricingPage() {
     max_quantity: '' as string | undefined,
     unit_price: 0,
     period: 'MONTHLY',
+    billing_basis: 'PER_UNIT' as 'PER_UNIT' | 'PEPM_BLOCK',
+    block_size: '' as string | undefined,
   });
 
   const [promoDialogOpen, setPromoDialogOpen] = useState(false);
@@ -308,6 +310,8 @@ export default function PricingPage() {
           max_quantity: tier.max_quantity ? String(tier.max_quantity) : undefined,
           unit_price: tier.unit_price,
           period: tier.period,
+          billing_basis: ((tier as any).billing_basis || 'PER_UNIT') as 'PER_UNIT' | 'PEPM_BLOCK',
+          block_size: (tier as any).block_size != null ? String((tier as any).block_size) : undefined,
         });
       }
     } else {
@@ -320,6 +324,8 @@ export default function PricingPage() {
         max_quantity: undefined,
         unit_price: 0,
         period: 'MONTHLY',
+        billing_basis: 'PER_UNIT',
+        block_size: undefined,
       });
     }
     setTierDialogOpen(true);
@@ -335,6 +341,8 @@ export default function PricingPage() {
         maxQuantity: tierForm.max_quantity ? Number(tierForm.max_quantity) : null,
         unitPrice: Number(tierForm.unit_price),
         period: tierForm.period,
+        billingBasis: tierForm.billing_basis,
+        blockSize: tierForm.block_size ? Number(tierForm.block_size) : null,
       };
 
       if (editingTierId) {
@@ -1119,6 +1127,32 @@ export default function PricingPage() {
                     <SelectItem value="ANNUAL">ANNUAL</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label>Billing Basis</Label>
+                <Select
+                  value={tierForm.billing_basis}
+                  onValueChange={(v) => setTierForm({ ...tierForm, billing_basis: v as 'PER_UNIT' | 'PEPM_BLOCK' })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PER_UNIT">PER_UNIT</SelectItem>
+                    <SelectItem value="PEPM_BLOCK">PEPM_BLOCK</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label>Block Size (for PEPM_BLOCK)</Label>
+                <Input
+                  type="number"
+                  value={tierForm.block_size}
+                  onChange={(e) => setTierForm({ ...tierForm, block_size: e.target.value })}
+                  disabled={tierForm.billing_basis !== 'PEPM_BLOCK'}
+                />
               </div>
             </div>
           </div>

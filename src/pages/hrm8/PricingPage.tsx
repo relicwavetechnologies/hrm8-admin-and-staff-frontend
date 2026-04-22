@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { hrm8PricingService, Product, PriceBook, PromoCode, ProductCategory, type CountryPricingMap } from '@/shared/services/hrm8/pricingService';
+import { hrm8PricingService, Product, PriceBook, PromoCode, ProductCategory, type CountryPricingMap, type CreditPackage } from '@/shared/services/hrm8/pricingService';
 import { useRegionStore } from '@/shared/stores/useRegionStore';
 import { isFeatureEnabled } from '@/shared/lib/featureFlags';
 import { useHrm8Auth } from '@/contexts/Hrm8AuthContext';
@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/shared/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { toast } from 'sonner';
-import { Package, BookOpen, Globe, MapPin, Plus, Trash2, AlertTriangle, Map, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Package, BookOpen, Globe, MapPin, Plus, Trash2, AlertTriangle, Map, ToggleLeft, ToggleRight, Coins } from 'lucide-react';
 import { TableSkeleton } from '@/shared/components/tables/TableSkeleton';
 import { Button } from '@/shared/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog';
@@ -118,10 +118,24 @@ export default function PricingPage() {
     pricingPeg: 'USD',
     billingCurrency: 'USD',
   });
+  const [creditPackages, setCreditPackages] = useState<CreditPackage[]>([]);
+  const [loadingCreditPackages, setLoadingCreditPackages] = useState(true);
+  const [creditCostMap, setCreditCostMap] = useState<Record<string, number>>({});
+  const [savingCreditCostMap, setSavingCreditCostMap] = useState(false);
+  const [creditPackageForm, setCreditPackageForm] = useState({
+    code: '',
+    name: '',
+    description: '',
+    creditsIncluded: 100,
+    basePrice: 0,
+    currency: 'USD',
+  });
 
   useEffect(() => {
     loadProducts();
     if (showCountryMap) loadCountryMap();
+    loadCreditPackages();
+    loadCreditCostMap();
   }, []);
 
   useEffect(() => {
@@ -445,6 +459,65 @@ export default function PricingPage() {
     }
   };
 
+  const loadCreditPackages = async () => {
+    try {
+      setLoadingCreditPackages(true);
+      const data = await hrm8PricingService.getCreditPackages(true);
+      if (!data.success && data.error) {
+        toast.error(data.error || 'Failed to load credit packages');
+        return;
+      }
+      setCreditPackages(data.data?.packages ?? []);
+    } catch {
+      toast.error('Failed to load credit packages');
+    } finally {
+      setLoadingCreditPackages(false);
+    }
+  };
+
+  const loadCreditCostMap = async () => {
+    try {
+      const data = await hrm8PricingService.getCreditCostMap();
+      if (!data.success && data.error) {
+        toast.error(data.error || 'Failed to load credit cost map');
+        return;
+      }
+      setCreditCostMap(data.data?.costMap || {});
+    } catch {
+      toast.error('Failed to load credit cost map');
+    }
+  };
+
+  const saveCreditPackage = async () => {
+    try {
+      await hrm8PricingService.createCreditPackage(creditPackageForm);
+      toast.success('Credit package created');
+      setCreditPackageForm({
+        code: '',
+        name: '',
+        description: '',
+        creditsIncluded: 100,
+        basePrice: 0,
+        currency: 'USD',
+      });
+      await loadCreditPackages();
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to create credit package');
+    }
+  };
+
+  const saveCreditCostMap = async () => {
+    try {
+      setSavingCreditCostMap(true);
+      await hrm8PricingService.updateCreditCostMap(creditCostMap);
+      toast.success('Credit cost map saved');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to save credit cost map');
+    } finally {
+      setSavingCreditCostMap(false);
+    }
+  };
+
   const countryMapColumns = [
     { key: 'country_code', label: 'Code', sortable: true },
     { key: 'country_name', label: 'Country', sortable: true },
@@ -583,6 +656,37 @@ export default function PricingPage() {
       ),
     },
   ];
+
+  const creditPackageColumns = [
+    { key: 'code', label: 'Code', sortable: true },
+    { key: 'name', label: 'Name', sortable: true },
+    { key: 'credits_included', label: 'Credits', sortable: true },
+    { key: 'base_price', label: 'Price', sortable: true },
+    { key: 'currency', label: 'Currency', sortable: true },
+    {
+      key: 'is_active',
+      label: 'Status',
+      sortable: true,
+      render: (p: CreditPackage) => (
+        <Badge variant={p.is_active ? 'default' : 'outline'}>
+          {p.is_active ? 'Active' : 'Inactive'}
+        </Badge>
+      ),
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (p: CreditPackage) => (
+        <Button size="sm" variant="outline" onClick={() => hrm8PricingService.deleteCreditPackage(p.id).then(() => {
+          toast.success('Credit package deactivated');
+          loadCreditPackages();
+        }).catch((error: any) => toast.error(error?.message || 'Failed to deactivate package'))}>
+          <Trash2 className="h-3.5 w-3.5 mr-1" />
+          Deactivate
+        </Button>
+      ),
+    },
+  ];
   return (
     <Hrm8PageLayout
       title="Pricing Management"
@@ -628,6 +732,8 @@ export default function PricingPage() {
             <TabsTrigger value="books">Price Books</TabsTrigger>
             <TabsTrigger value="promos">Promo Codes</TabsTrigger>
             {showCountryMap && <TabsTrigger value="countryMap">Country Map</TabsTrigger>}
+            <TabsTrigger value="creditPacks">Credit Packs</TabsTrigger>
+            <TabsTrigger value="creditCostMap">Credit Cost Map</TabsTrigger>
           </TabsList>
 
           <TabsContent value="products">
@@ -749,6 +855,87 @@ export default function PricingPage() {
               </Card>
             </TabsContent>
           )}
+
+          <TabsContent value="creditPacks">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Coins className="h-5 w-5" />
+                  Credit Packs
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-3 md:grid-cols-3">
+                  <div>
+                    <Label>Code</Label>
+                    <Input value={creditPackageForm.code} onChange={(e) => setCreditPackageForm({ ...creditPackageForm, code: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label>Name</Label>
+                    <Input value={creditPackageForm.name} onChange={(e) => setCreditPackageForm({ ...creditPackageForm, name: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label>Currency</Label>
+                    <Input value={creditPackageForm.currency} onChange={(e) => setCreditPackageForm({ ...creditPackageForm, currency: e.target.value.toUpperCase() })} />
+                  </div>
+                  <div>
+                    <Label>Credits Included</Label>
+                    <Input type="number" value={creditPackageForm.creditsIncluded} onChange={(e) => setCreditPackageForm({ ...creditPackageForm, creditsIncluded: Number(e.target.value) })} />
+                  </div>
+                  <div>
+                    <Label>Base Price</Label>
+                    <Input type="number" value={creditPackageForm.basePrice} onChange={(e) => setCreditPackageForm({ ...creditPackageForm, basePrice: Number(e.target.value) })} />
+                  </div>
+                  <div className="md:col-span-3">
+                    <Label>Description</Label>
+                    <Textarea value={creditPackageForm.description} onChange={(e) => setCreditPackageForm({ ...creditPackageForm, description: e.target.value })} />
+                  </div>
+                </div>
+                <Button onClick={saveCreditPackage}>
+                  <Plus className="h-4 w-4 mr-1" />
+                  Create Credit Package
+                </Button>
+                {loadingCreditPackages ? (
+                  <TableSkeleton columns={6} />
+                ) : (
+                  <DataTable
+                    data={creditPackages}
+                    columns={creditPackageColumns as any}
+                    searchable
+                    searchKeys={['code', 'name', 'currency']}
+                    emptyMessage="No credit packages found"
+                  />
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="creditCostMap">
+            <Card>
+              <CardHeader>
+                <CardTitle>Credit Cost Map</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-3 md:grid-cols-2">
+                  {Object.entries(creditCostMap).map(([key, value]) => (
+                    <div key={key} className="space-y-1">
+                      <Label>{key}</Label>
+                      <Input
+                        type="number"
+                        value={value}
+                        onChange={(e) =>
+                          setCreditCostMap((prev) => ({ ...prev, [key]: Number(e.target.value) || 0 }))
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+                <Button onClick={saveCreditCostMap} disabled={savingCreditCostMap}>
+                  {savingCreditCostMap ? 'Saving...' : 'Save Cost Map'}
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
 

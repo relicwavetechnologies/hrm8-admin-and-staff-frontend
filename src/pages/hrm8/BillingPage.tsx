@@ -76,6 +76,11 @@ export default function BillingPage() {
         render: (item: Invoice) => <span className="font-medium">{item.company?.name || "—"}</span>,
       },
       {
+        key: "credit_mode",
+        label: "Credit Mode",
+        render: (item: Invoice) => <Badge variant="outline">{(item as any).company?.credit_mode || 'SEATS'}</Badge>,
+      },
+      {
         key: "amount",
         label: "Total",
         render: (item: Invoice) => (
@@ -139,6 +144,11 @@ export default function BillingPage() {
         key: "company",
         label: "Company",
         render: (item: DunningCandidate) => <span className="font-medium">{item.company?.name || "—"}</span>,
+      },
+      {
+        key: "credit_mode",
+        label: "Credit Mode",
+        render: (item: DunningCandidate) => <Badge variant="outline">{(item as any).company?.credit_mode || 'SEATS'}</Badge>,
       },
       {
         key: "amount",

@@ -89,6 +89,20 @@ export interface CountryPricingMap {
   updated_at: string;
 }
 
+export interface CreditPackage {
+  id: string;
+  code: string;
+  name: string;
+  description?: string | null;
+  display_order: number;
+  credits_included: number;
+  base_price: number;
+  currency: string;
+  region_id?: string | null;
+  is_active: boolean;
+  billing_tag?: string | null;
+}
+
 class Hrm8PricingService {
   async getProducts() {
     return apiClient.get<{ products: Product[] }>('/api/hrm8/pricing/products');
@@ -201,6 +215,41 @@ class Hrm8PricingService {
       discountType?: string;
       message?: string;
     }>('/api/hrm8/pricing/promo-codes/validate', { code });
+  }
+
+  async getCreditPackages(includeInactive = false) {
+    const suffix = includeInactive ? '?includeInactive=true' : '';
+    return apiClient.get<{ packages: CreditPackage[] }>(`/api/admin/billing/credit-packages${suffix}`);
+  }
+
+  async createCreditPackage(data: {
+    code: string;
+    name: string;
+    description?: string;
+    displayOrder?: number;
+    creditsIncluded: number;
+    basePrice: number;
+    currency?: string;
+    regionId?: string | null;
+    billingTag?: string | null;
+  }) {
+    return apiClient.post<{ package: CreditPackage }>('/api/admin/billing/credit-packages', data);
+  }
+
+  async updateCreditPackage(id: string, data: Record<string, unknown>) {
+    return apiClient.put<{ package: CreditPackage }>(`/api/admin/billing/credit-packages/${id}`, data);
+  }
+
+  async deleteCreditPackage(id: string) {
+    return apiClient.delete(`/api/admin/billing/credit-packages/${id}`);
+  }
+
+  async getCreditCostMap() {
+    return apiClient.get<{ costMap: Record<string, number> }>('/api/admin/billing/settings/credit-cost');
+  }
+
+  async updateCreditCostMap(costMap: Record<string, number>) {
+    return apiClient.put<{ costMap: Record<string, number> }>('/api/admin/billing/settings/credit-cost', costMap);
   }
 
 }

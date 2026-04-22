@@ -17,7 +17,7 @@ class HiringTeamService {
     data: InviteHiringTeamMemberRequest
   ): Promise<void> {
     const response = await apiClient.post(
-      `/api/jobs/${jobId}/hiring-team/invite`,
+      `/api/jobs/${jobId}/team`,
       data
     );
 

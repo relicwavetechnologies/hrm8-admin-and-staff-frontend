@@ -36,7 +36,23 @@ interface WebSocketProviderProps {
 // WebSocket URL construction
 const getWebSocketUrl = (): string => {
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-  return apiUrl.replace(/^http/, 'ws');
+  const wsUrl = apiUrl.replace(/^http/, 'ws');
+
+  // Extract session ID from cookies as fallback for cookie-less connections
+  const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+    const [key, value] = cookie.trim().split('=');
+    acc[key] = decodeURIComponent(value || '');
+    return acc;
+  }, {} as Record<string, string>);
+
+  const sessionId = cookies['sessionId'] || cookies['hrm8SessionId'] || cookies['candidateSessionId'];
+
+  if (sessionId) {
+    const separator = wsUrl.includes('?') ? '&' : '?';
+    return `${wsUrl}${separator}token=${encodeURIComponent(sessionId)}`;
+  }
+
+  return wsUrl;
 };
 
 // Exponential backoff configuration
@@ -190,7 +206,7 @@ export function WebSocketProvider({
         case 'error':
           console.error('❌ WebSocket error:', message.payload);
           const errorPayload = message.payload as any;
-          // Show toast notification for messaging restriction errors
+          // Show toast for messaging restriction errors (actionable).
           if (errorPayload?.code === 4010 || errorPayload?.code === 4011) {
             toast({
               title: 'Message Not Sent',
@@ -198,7 +214,13 @@ export function WebSocketProvider({
               variant: 'destructive',
               duration: 5000,
             });
-          } else if (errorPayload?.message) {
+          } else if (
+            errorPayload?.message &&
+            // Suppress transport-level auth failures — these spam the UI during
+            // reconnection attempts and the user cannot act on them. Console log
+            // still captures them for debugging.
+            !/authentication failed/i.test(String(errorPayload.message))
+          ) {
             toast({
               title: 'Error',
               description: errorPayload.message,

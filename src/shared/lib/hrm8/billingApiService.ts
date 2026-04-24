@@ -318,6 +318,280 @@ class BillingApiService {
     async deleteXobinApiKey() {
         return apiClient.delete<{ configured: boolean }>(`/api/admin/billing/xobin/config/api-key`);
     }
+
+    // ==================== CREDIT PACKS ====================
+
+    async listCreditPackages(includeInactive = false) {
+        return apiClient.get<{ packages: CreditPackage[] }>(
+            `/api/admin/billing/credit-packages?includeInactive=${includeInactive}`
+        );
+    }
+
+    async createCreditPackage(data: CreateCreditPackageInput) {
+        return apiClient.post<{ package: CreditPackage }>(`/api/admin/billing/credit-packages`, data);
+    }
+
+    async updateCreditPackage(id: string, data: Partial<CreateCreditPackageInput>) {
+        return apiClient.put<{ package: CreditPackage }>(`/api/admin/billing/credit-packages/${id}`, data);
+    }
+
+    async deactivateCreditPackage(id: string) {
+        return apiClient.delete<{ package: CreditPackage }>(`/api/admin/billing/credit-packages/${id}`);
+    }
+
+    // ==================== CREDIT COST MAP ====================
+
+    async getCreditCostSettings() {
+        return apiClient.get<{ costMap: Record<string, number> }>(
+            `/api/admin/billing/settings/credit-cost`
+        );
+    }
+
+    async updateCreditCostSettings(costMap: Record<string, number>) {
+        return apiClient.put<{ costMap: Record<string, number> }>(
+            `/api/admin/billing/settings/credit-cost`,
+            costMap
+        );
+    }
+
+    // ==================== COMPANY CREDIT OPS ====================
+
+    async listCompanyCreditSummaries(params?: {
+        search?: string;
+        mode?: 'SEATS' | 'CREDITS';
+        limit?: number;
+        offset?: number;
+    }) {
+        const qs = new URLSearchParams();
+        if (params?.search) qs.set('search', params.search);
+        if (params?.mode) qs.set('mode', params.mode);
+        if (params?.limit) qs.set('limit', String(params.limit));
+        if (params?.offset) qs.set('offset', String(params.offset));
+        return apiClient.get<{ items: CompanyCreditSummary[]; limit: number; offset: number }>(
+            `/api/admin/billing/companies/credit-summary?${qs.toString()}`
+        );
+    }
+
+    async getCompanyCreditSummary(companyId: string) {
+        return apiClient.get<{
+            company: any;
+            balance: { available: number; totalPurchased: number; totalConsumed: number; totalAdjusted: number };
+            recentEntries: any[];
+            counts: { purchases: number; consumptions: number };
+        }>(`/api/admin/billing/companies/${companyId}/credit-summary`);
+    }
+
+    async getCompanyCreditLedger(
+        companyId: string,
+        params?: { cursor?: string; sourceType?: string; limit?: number }
+    ) {
+        const qs = new URLSearchParams();
+        if (params?.cursor) qs.set('cursor', params.cursor);
+        if (params?.sourceType) qs.set('sourceType', params.sourceType);
+        if (params?.limit) qs.set('limit', String(params.limit));
+        return apiClient.get<{ items: any[]; nextCursor: string | null }>(
+            `/api/admin/billing/companies/${companyId}/credit-ledger?${qs.toString()}`
+        );
+    }
+
+    async createCreditAdjustment(
+        companyId: string,
+        data: { delta: number; reason?: string; metadata?: Record<string, unknown> }
+    ) {
+        return apiClient.post<{ entry: any }>(
+            `/api/admin/billing/companies/${companyId}/credit-adjustment`,
+            data
+        );
+    }
+
+    async updateCompanyCreditMode(companyId: string, mode: 'SEATS' | 'CREDITS') {
+        return apiClient.post<{ company: { id: string; credit_mode: string; credit_mode_flipped_at: string } }>(
+            `/api/admin/billing/companies/${companyId}/credit-mode`,
+            { mode }
+        );
+    }
+
+    async reverseCreditLedgerEntry(
+        ledgerId: string,
+        data?: { reason?: string; metadata?: Record<string, unknown> }
+    ) {
+        return apiClient.post<{ reversalLedgerId: string; balanceAfter: number; alreadyReversed: boolean }>(
+            `/api/admin/billing/credit-ledger/${ledgerId}/reverse`,
+            data || {}
+        );
+    }
+
+    // ==================== XOBIN MONITORING ====================
+
+    async getXobinStatus() {
+        return apiClient.get<XobinStatusResponse>(`/api/admin/billing/xobin/status`);
+    }
+
+    async listXobinInvites(params?: {
+        companyId?: string;
+        status?: string;
+        from?: string;
+        to?: string;
+        limit?: number;
+        cursor?: string;
+    }) {
+        const qs = new URLSearchParams();
+        if (params?.companyId) qs.set('companyId', params.companyId);
+        if (params?.status) qs.set('status', params.status);
+        if (params?.from) qs.set('from', params.from);
+        if (params?.to) qs.set('to', params.to);
+        if (params?.limit) qs.set('limit', String(params.limit));
+        if (params?.cursor) qs.set('cursor', params.cursor);
+        return apiClient.get<{ items: XobinInviteMonitorRow[]; nextCursor: string | null }>(
+            `/api/admin/billing/xobin/invites?${qs.toString()}`
+        );
+    }
+
+    async reverseXobinInviteCredit(assessmentId: string) {
+        return apiClient.post<{ reversalLedgerId: string; balanceAfter: number; alreadyReversed: boolean }>(
+            `/api/admin/billing/xobin/invites/${assessmentId}/reverse-credit`,
+            {}
+        );
+    }
+
+    async getXobinCogs() {
+        return apiClient.get<{ cogsPerInvite: number | null; currency: string; updatedAt: string | null }>(
+            `/api/admin/billing/xobin/cogs`
+        );
+    }
+
+    async setXobinCogs(amount: number, currency: string = 'USD') {
+        return apiClient.put<{ cogsPerInvite: number; currency: string }>(
+            `/api/admin/billing/xobin/cogs`,
+            { amount, currency }
+        );
+    }
+
+    // ==================== XOBIN PACKAGE CATALOG + PER-ASSESSMENT CREDIT OVERRIDES ====================
+
+    async getXobinPackagesAdmin() {
+        return apiClient.get<{
+            packages: XobinAdminPackageRow[];
+            defaultCost: number;
+            overrides: Record<string, number>;
+        }>(`/api/admin/billing/xobin/packages`);
+    }
+
+    async setXobinPackageCosts(overrides: Record<string, number>) {
+        return apiClient.put<{ overrides: Record<string, number> }>(
+            `/api/admin/billing/xobin/package-costs`,
+            { overrides }
+        );
+    }
+
+    async syncXobinPackagesPlatform() {
+        return apiClient.post<{
+            companiesSynced: number;
+            totalPackagesSynced: number;
+            errorCount: number;
+            results: Array<{ companyId: string; syncedCount: number; error?: string }>;
+        }>(`/api/admin/billing/xobin/sync-packages`, {});
+    }
+
+    async getCreditUsageReport(params?: { from?: string; to?: string; companyId?: string }) {
+        const qs = new URLSearchParams();
+        if (params?.from) qs.set('from', params.from);
+        if (params?.to) qs.set('to', params.to);
+        if (params?.companyId) qs.set('companyId', params.companyId);
+        return apiClient.get<{ from: string; to: string; rows: any[] }>(
+            `/api/admin/billing/credit-usage-report?${qs.toString()}`
+        );
+    }
+}
+
+// ==================== CREDIT TYPES ====================
+
+export interface CreditPackage {
+    id: string;
+    code: string;
+    name: string;
+    description: string | null;
+    display_order: number;
+    credits_included: number;
+    base_price: number;
+    currency: string;
+    region_id: string | null;
+    is_active: boolean;
+    billing_tag: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface CreateCreditPackageInput {
+    code: string;
+    name: string;
+    description?: string;
+    displayOrder?: number;
+    creditsIncluded: number;
+    basePrice: number;
+    currency?: string;
+    regionId?: string | null;
+    billingTag?: string | null;
+    isActive?: boolean;
+}
+
+export interface CompanyCreditSummary {
+    id: string;
+    name: string;
+    domain: string;
+    billingCurrency: string | null;
+    creditMode: 'SEATS' | 'CREDITS';
+    creditModeFlippedAt: string | null;
+    createdAt: string;
+    balance: {
+        available: number;
+        totalPurchased: number;
+        totalConsumed: number;
+        totalAdjusted: number;
+        lastActivityAt: string | null;
+    };
+}
+
+export interface XobinStatusResponse {
+    apiKey: { configured: boolean; source: 'environment' | 'database' | null };
+    webhookSecret: { configured: boolean };
+    catalog: { totalPackages: number; lastSyncAt: string | null };
+    invites: { last24h: number; last30d: number; cancelledLast30d: number; reversalsLast30d: number };
+}
+
+export interface XobinInviteMonitorRow {
+    id: string;
+    status: string;
+    invitedAt: string | null;
+    expiryDate: string | null;
+    xobinAssessmentId: string | null;
+    xobinInviteId: string | null;
+    providerStatus: string | null;
+    launchUrl: string | null;
+    lastSyncedAt: string | null;
+    candidate: { id: string; name: string; email: string } | null;
+    job: { id: string; title: string; company: { id: string; name: string; billing_currency: string | null } | null } | null;
+    creditLedger: {
+        id: string;
+        delta: number;
+        reason: string;
+        balanceAfter: number;
+        createdAt: string;
+        isReversed: boolean;
+    } | null;
+}
+
+export interface XobinAdminPackageRow {
+    externalId: string;
+    externalCode: string | null;
+    name: string;
+    description: string | null;
+    durationMinutes: number | null;
+    cutoffScore: number | null;
+    status: string;
+    syncedAt: string | null;
+    creditCostOverride: number | null;
+    effectiveCreditCost: number;
 }
 
 export const billingApiService = new BillingApiService();

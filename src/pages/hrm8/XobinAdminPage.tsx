@@ -11,8 +11,24 @@ import {
     type AssessPackage,
     type CreateAssessPackageInput,
     type XobinPlatformConfig,
+    type XobinStatusResponse,
+    type XobinInviteMonitorRow,
+    type XobinAdminPackageRow,
 } from '@/shared/lib/hrm8/billingApiService';
-import { KeyRound, Package, Plus, Pencil, Trash2, RefreshCw, CheckCircle2, XCircle } from 'lucide-react';
+import {
+    KeyRound,
+    Package,
+    Plus,
+    Pencil,
+    Trash2,
+    RefreshCw,
+    CheckCircle2,
+    XCircle,
+    Activity,
+    Coins,
+    TrendingDown,
+    ArrowDownCircle,
+} from 'lucide-react';
 
 export default function XobinAdminPage() {
     const { toast } = useToast();
@@ -35,6 +51,134 @@ export default function XobinAdminPage() {
         currency: 'USD', perCandidatePrice: 0, includedCandidates: 25, validityDays: 365,
     });
 
+    // ── Synced Xobin templates + per-assessment credit overrides ──────────────
+    const [xobinPackages, setXobinPackages] = useState<XobinAdminPackageRow[]>([]);
+    const [defaultCost, setDefaultCost] = useState<number>(1);
+    const [pkgCostEdits, setPkgCostEdits] = useState<Record<string, string>>({});
+    const [loadingXobinPackages, setLoadingXobinPackages] = useState(true);
+    const [syncingPackages, setSyncingPackages] = useState(false);
+    const [savingOverrides, setSavingOverrides] = useState(false);
+
+    // ── Monitoring + COGS ─────────────────────────────────────────────────────
+    const [status, setStatus] = useState<XobinStatusResponse | null>(null);
+    const [loadingStatus, setLoadingStatus] = useState(true);
+    const [invites, setInvites] = useState<XobinInviteMonitorRow[]>([]);
+    const [loadingInvites, setLoadingInvites] = useState(true);
+    const [reversingInvite, setReversingInvite] = useState<string | null>(null);
+    const [cogsAmount, setCogsAmount] = useState<string>('');
+    const [cogsCurrency, setCogsCurrency] = useState<string>('USD');
+    const [cogsLoading, setCogsLoading] = useState(true);
+    const [cogsSaving, setCogsSaving] = useState(false);
+
+    const loadStatus = async () => {
+        setLoadingStatus(true);
+        const res = await billingApiService.getXobinStatus();
+        if (res.success && res.data) setStatus(res.data);
+        setLoadingStatus(false);
+    };
+
+    const loadInvites = async () => {
+        setLoadingInvites(true);
+        const res = await billingApiService.listXobinInvites({ limit: 25 });
+        if (res.success && res.data) setInvites(res.data.items || []);
+        setLoadingInvites(false);
+    };
+
+    const loadXobinPackages = async () => {
+        setLoadingXobinPackages(true);
+        const res = await billingApiService.getXobinPackagesAdmin();
+        if (res.success && res.data) {
+            setXobinPackages(res.data.packages);
+            setDefaultCost(res.data.defaultCost);
+            const edits: Record<string, string> = {};
+            for (const p of res.data.packages) {
+                edits[p.externalId] = p.creditCostOverride != null ? String(p.creditCostOverride) : '';
+            }
+            setPkgCostEdits(edits);
+        }
+        setLoadingXobinPackages(false);
+    };
+
+    const handleSyncXobinPackages = async () => {
+        setSyncingPackages(true);
+        const res = await billingApiService.syncXobinPackagesPlatform();
+        if (res.success && res.data) {
+            toast({
+                title: 'Xobin packages synced',
+                description: `${res.data.totalPackagesSynced} template(s) across ${res.data.companiesSynced} company scope(s)${res.data.errorCount ? ` · ${res.data.errorCount} error(s)` : ''}`,
+            });
+            await loadXobinPackages();
+            await loadStatus();
+        } else {
+            toast({ title: 'Sync failed', description: res.error, variant: 'destructive' });
+        }
+        setSyncingPackages(false);
+    };
+
+    const handleSavePackageCosts = async () => {
+        setSavingOverrides(true);
+        const overrides: Record<string, number> = {};
+        for (const [externalId, raw] of Object.entries(pkgCostEdits)) {
+            const trimmed = (raw ?? '').trim();
+            if (!trimmed) continue;
+            const n = Number(trimmed);
+            if (Number.isFinite(n) && n > 0) overrides[externalId] = Math.max(1, Math.round(n));
+        }
+        const res = await billingApiService.setXobinPackageCosts(overrides);
+        if (res.success) {
+            toast({
+                title: 'Per-assessment credit costs saved',
+                description: `${Object.keys(overrides).length} override(s) active. Others use default ${defaultCost} credit(s).`,
+            });
+            await loadXobinPackages();
+        } else {
+            toast({ title: 'Save failed', description: res.error, variant: 'destructive' });
+        }
+        setSavingOverrides(false);
+    };
+
+    const loadCogs = async () => {
+        setCogsLoading(true);
+        const res = await billingApiService.getXobinCogs();
+        if (res.success && res.data) {
+            setCogsAmount(res.data.cogsPerInvite != null ? String(res.data.cogsPerInvite) : '');
+            setCogsCurrency(res.data.currency || 'USD');
+        }
+        setCogsLoading(false);
+    };
+
+    const handleSaveCogs = async () => {
+        const amount = Number(cogsAmount);
+        if (!Number.isFinite(amount) || amount < 0) {
+            toast({ title: 'Invalid amount', description: 'Enter a non-negative number.', variant: 'destructive' });
+            return;
+        }
+        setCogsSaving(true);
+        const res = await billingApiService.setXobinCogs(amount, cogsCurrency);
+        if (res.success) {
+            toast({ title: 'COGS updated', description: `${cogsCurrency} ${amount.toFixed(2)} per invite` });
+        } else {
+            toast({ title: 'Failed to update COGS', description: res.error, variant: 'destructive' });
+        }
+        setCogsSaving(false);
+    };
+
+    const handleReverseInviteCredit = async (assessmentId: string, candidateName: string) => {
+        setReversingInvite(assessmentId);
+        const res = await billingApiService.reverseXobinInviteCredit(assessmentId);
+        if (res.success) {
+            const alreadyReversed = res.data?.alreadyReversed;
+            toast({
+                title: alreadyReversed ? 'Already reversed' : 'Credit reversed',
+                description: `Invite for ${candidateName}: new balance ${res.data?.balanceAfter ?? 0}`,
+            });
+            await Promise.all([loadInvites(), loadStatus()]);
+        } else {
+            toast({ title: 'Reversal failed', description: res.error, variant: 'destructive' });
+        }
+        setReversingInvite(null);
+    };
+
     const loadConfig = async () => {
         setLoadingConfig(true);
         const res = await billingApiService.getXobinPlatformConfig();
@@ -49,7 +193,14 @@ export default function XobinAdminPage() {
         setLoadingPackages(false);
     };
 
-    useEffect(() => { void loadConfig(); void loadPackages(); }, []);
+    useEffect(() => {
+        void loadConfig();
+        void loadPackages();
+        void loadStatus();
+        void loadInvites();
+        void loadCogs();
+        void loadXobinPackages();
+    }, []);
 
     const handleSaveKey = async () => {
         if (!apiKeyInput.trim()) return;
@@ -201,10 +352,10 @@ export default function XobinAdminPage() {
                         <div>
                             <CardTitle className="flex items-center gap-2">
                                 <Package className="h-5 w-5" />
-                                Assessment Packages
+                                Assessment Packages (Legacy SEATS mode)
                             </CardTitle>
                             <CardDescription>
-                                Packages companies can purchase. Each package grants a number of Xobin invite credits.
+                                Legacy seat-mode packages. Credits-first tenants should use Credit Packs + Credit Cost Map.
                             </CardDescription>
                         </div>
                         <Button size="sm" onClick={() => { resetForm(); setShowForm(true); }}>
@@ -348,6 +499,290 @@ export default function XobinAdminPage() {
                                     </div>
                                 </div>
                             ))}
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
+            {/* ── Synced Xobin templates + per-assessment credit overrides ── */}
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle className="flex items-center gap-2">
+                                <RefreshCw className="h-5 w-5" />
+                                Xobin assessment templates
+                            </CardTitle>
+                            <CardDescription>
+                                Synced from the platform Xobin account. Override credit cost per template — blank uses the default ({defaultCost} credit{defaultCost === 1 ? '' : 's'} from Credit Cost Map).
+                            </CardDescription>
+                        </div>
+                        <Button size="sm" onClick={handleSyncXobinPackages} disabled={syncingPackages}>
+                            {syncingPackages ? <RefreshCw className="h-4 w-4 mr-1 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-1" />}
+                            Sync now
+                        </Button>
+                    </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    {loadingXobinPackages ? (
+                        <div className="space-y-2">
+                            {[1, 2, 3].map((i) => <Skeleton key={i} className="h-12 w-full" />)}
+                        </div>
+                    ) : xobinPackages.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-6">
+                            No Xobin templates synced yet. Set the platform API key, then click "Sync now".
+                            {' '}If sync fails with a 500 from Xobin, log into Xobin and ensure the account has at least one assessment configured.
+                        </p>
+                    ) : (
+                        <>
+                            <div className="divide-y rounded-md border">
+                                {xobinPackages.map((pkg) => (
+                                    <div key={pkg.externalId} className="flex items-center justify-between px-4 py-3 gap-3">
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <span className="font-medium text-sm truncate">{pkg.name}</span>
+                                                <Badge variant="outline" className="text-xs font-mono">{pkg.externalCode || pkg.externalId}</Badge>
+                                                {pkg.status !== 'ACTIVE' && (
+                                                    <Badge variant="secondary" className="text-xs">{pkg.status}</Badge>
+                                                )}
+                                            </div>
+                                            <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                                                {pkg.durationMinutes ? `${pkg.durationMinutes} min · ` : ''}
+                                                {pkg.cutoffScore != null ? `cutoff ${pkg.cutoffScore} · ` : ''}
+                                                effective cost: {pkg.effectiveCreditCost} credit{pkg.effectiveCreditCost === 1 ? '' : 's'}
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-2 shrink-0">
+                                            <Label className="text-xs text-muted-foreground">Credits</Label>
+                                            <Input
+                                                type="number"
+                                                min={1}
+                                                placeholder={String(defaultCost)}
+                                                value={pkgCostEdits[pkg.externalId] ?? ''}
+                                                onChange={(e) =>
+                                                    setPkgCostEdits((prev) => ({ ...prev, [pkg.externalId]: e.target.value }))
+                                                }
+                                                className="h-8 w-20 text-sm"
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="flex justify-end">
+                                <Button size="sm" onClick={handleSavePackageCosts} disabled={savingOverrides}>
+                                    {savingOverrides ? <RefreshCw className="h-4 w-4 mr-1 animate-spin" /> : null}
+                                    Save credit overrides
+                                </Button>
+                            </div>
+                        </>
+                    )}
+                </CardContent>
+            </Card>
+
+            {/* ── Xobin Platform Status ───────────────────────────────────── */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Activity className="h-5 w-5" />
+                        Platform Status (last 30 days)
+                    </CardTitle>
+                    <CardDescription>
+                        Live health metrics — invite volume, cancellations, credit reversals, last package sync.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {loadingStatus ? (
+                        <Skeleton className="h-24 w-full" />
+                    ) : status ? (
+                        <div className="grid gap-4 md:grid-cols-4">
+                            <div className="rounded-lg border p-3">
+                                <p className="text-xs text-muted-foreground">Invites 24h</p>
+                                <p className="text-2xl font-semibold mt-1">{status.invites.last24h}</p>
+                            </div>
+                            <div className="rounded-lg border p-3">
+                                <p className="text-xs text-muted-foreground">Invites 30d</p>
+                                <p className="text-2xl font-semibold mt-1">{status.invites.last30d}</p>
+                            </div>
+                            <div className="rounded-lg border p-3">
+                                <p className="text-xs text-muted-foreground">Cancelled 30d</p>
+                                <p className="text-2xl font-semibold mt-1">{status.invites.cancelledLast30d}</p>
+                            </div>
+                            <div
+                                className={`rounded-lg border p-3 ${
+                                    status.invites.reversalsLast30d > 0
+                                        ? 'border-amber-300 bg-amber-50'
+                                        : ''
+                                }`}
+                            >
+                                <p className="text-xs text-muted-foreground">Credit reversals 30d</p>
+                                <p className="text-2xl font-semibold mt-1 flex items-center gap-1">
+                                    <TrendingDown className="h-4 w-4" />
+                                    {status.invites.reversalsLast30d}
+                                </p>
+                            </div>
+                            <div className="rounded-lg border p-3 col-span-2">
+                                <p className="text-xs text-muted-foreground">Synced packages</p>
+                                <p className="text-sm font-medium mt-1">
+                                    {status.catalog.totalPackages} packages · last sync{' '}
+                                    {status.catalog.lastSyncAt
+                                        ? new Date(status.catalog.lastSyncAt).toLocaleString()
+                                        : 'never'}
+                                </p>
+                            </div>
+                            <div className="rounded-lg border p-3 col-span-2">
+                                <p className="text-xs text-muted-foreground">API key + webhook</p>
+                                <p className="text-sm font-medium mt-1">
+                                    {status.apiKey.configured ? `✓ Key via ${status.apiKey.source}` : '✗ No API key'}
+                                    {' · '}
+                                    {status.webhookSecret.configured ? '✓ Webhook secret set' : '✗ Webhook secret missing'}
+                                </p>
+                            </div>
+                        </div>
+                    ) : (
+                        <p className="text-sm text-muted-foreground">Could not load status.</p>
+                    )}
+                </CardContent>
+            </Card>
+
+            {/* ── COGS (margin analytics) ─────────────────────────────────── */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Coins className="h-5 w-5" />
+                        Wholesale Cost (COGS) per Invite
+                    </CardTitle>
+                    <CardDescription>
+                        The amount HRM8 pays Xobin per invite. Used for credit margin analytics — not exposed to customers.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    {cogsLoading ? (
+                        <Skeleton className="h-10 w-full" />
+                    ) : (
+                        <div className="flex flex-wrap items-end gap-3">
+                            <div className="space-y-1">
+                                <Label className="text-xs">Amount per invite</Label>
+                                <Input
+                                    type="number"
+                                    min={0}
+                                    step={0.01}
+                                    value={cogsAmount}
+                                    onChange={(e) => setCogsAmount(e.target.value)}
+                                    className="max-w-[160px]"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <Label className="text-xs">Currency</Label>
+                                <Input
+                                    value={cogsCurrency}
+                                    onChange={(e) => setCogsCurrency(e.target.value.toUpperCase())}
+                                    className="max-w-[100px]"
+                                />
+                            </div>
+                            <Button onClick={handleSaveCogs} disabled={cogsSaving}>
+                                {cogsSaving ? <RefreshCw className="h-4 w-4 animate-spin mr-1" /> : null}
+                                Save COGS
+                            </Button>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
+            {/* ── Invites Monitor ─────────────────────────────────────────── */}
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle className="flex items-center gap-2">
+                                <ArrowDownCircle className="h-5 w-5" />
+                                Recent Xobin Invites
+                            </CardTitle>
+                            <CardDescription>
+                                Latest invites across all companies. Use "Refund credit" when a cancelled invite still consumed a credit.
+                            </CardDescription>
+                        </div>
+                        <Button variant="ghost" size="sm" onClick={() => void loadInvites()} disabled={loadingInvites}>
+                            <RefreshCw className={`h-4 w-4 ${loadingInvites ? 'animate-spin' : ''}`} />
+                        </Button>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    {loadingInvites ? (
+                        <div className="space-y-2">
+                            {[1, 2, 3].map((i) => (
+                                <Skeleton key={i} className="h-12 w-full" />
+                            ))}
+                        </div>
+                    ) : invites.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-6">No Xobin invites yet.</p>
+                    ) : (
+                        <div className="divide-y rounded-md border">
+                            {invites.map((inv) => {
+                                const isCancelled = inv.status === 'CANCELLED';
+                                const hasLedger = !!inv.creditLedger;
+                                const isReversed = inv.creditLedger?.isReversed === true;
+                                const canReverse = hasLedger && !isReversed;
+                                return (
+                                    <div key={inv.id} className="flex items-center justify-between px-4 py-3 gap-3">
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <span className="font-medium text-sm truncate">
+                                                    {inv.candidate?.name || 'Unknown candidate'}
+                                                </span>
+                                                <Badge
+                                                    variant="outline"
+                                                    className={`text-xs ${
+                                                        inv.status === 'COMPLETED'
+                                                            ? 'border-emerald-300 text-emerald-700 bg-emerald-50'
+                                                            : inv.status === 'IN_PROGRESS'
+                                                              ? 'border-blue-300 text-blue-700 bg-blue-50'
+                                                              : inv.status === 'CANCELLED'
+                                                                ? 'border-red-300 text-red-700 bg-red-50'
+                                                                : ''
+                                                    }`}
+                                                >
+                                                    {inv.status}
+                                                </Badge>
+                                                {hasLedger ? (
+                                                    <Badge
+                                                        variant="outline"
+                                                        className={`text-xs ${
+                                                            isReversed
+                                                                ? 'border-amber-300 text-amber-700 bg-amber-50'
+                                                                : 'border-slate-300 text-slate-700 bg-slate-50'
+                                                        }`}
+                                                    >
+                                                        {isReversed ? 'Refunded' : `Consumed ${Math.abs(inv.creditLedger!.delta)} credit(s)`}
+                                                    </Badge>
+                                                ) : null}
+                                            </div>
+                                            <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                                                {inv.candidate?.email || '—'}
+                                                {inv.job ? ` · ${inv.job.title}` : ''}
+                                                {inv.job?.company ? ` · ${inv.job.company.name}` : ''}
+                                                {inv.invitedAt
+                                                    ? ` · ${new Date(inv.invitedAt).toLocaleString()}`
+                                                    : ''}
+                                            </p>
+                                        </div>
+                                        {canReverse && (isCancelled || inv.status === 'EXPIRED') ? (
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() =>
+                                                    handleReverseInviteCredit(
+                                                        inv.id,
+                                                        inv.candidate?.name || 'candidate'
+                                                    )
+                                                }
+                                                disabled={reversingInvite === inv.id}
+                                            >
+                                                {reversingInvite === inv.id ? 'Refunding…' : 'Refund credit'}
+                                            </Button>
+                                        ) : null}
+                                    </div>
+                                );
+                            })}
                         </div>
                     )}
                 </CardContent>

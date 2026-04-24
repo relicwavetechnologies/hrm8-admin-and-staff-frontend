@@ -3,7 +3,7 @@
  * Centralized configuration for workspace nested navigation (Jobs, Staff, etc.)
  */
 
-import { LayoutDashboard, Target, Users, Briefcase, DollarSign, TrendingUp, BarChart3, UserCheck, ArrowDownToLine, RotateCcw, HandCoins, BookOpen, Settings, Building2, FileText } from 'lucide-react';
+import { LayoutDashboard, Target, Users, Briefcase, DollarSign, TrendingUp, BarChart3, UserCheck, ArrowDownToLine, RotateCcw, HandCoins, BookOpen, Settings, Building2, FileText, Coins, Sliders, Package } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 export interface NestedRoute {
@@ -227,6 +227,35 @@ export const financeNestedRoutes: NestedRoute[] = [
         icon: BookOpen,
         parentPath: '/hrm8/finance',
     },
+    // ── Credits admin (Assessment Hub credit wallet / Xobin reseller flow) ──
+    {
+        id: 'finance-credit-packs',
+        label: 'Credit Packs',
+        path: '/hrm8/finance/credits/packs',
+        icon: Package,
+        parentPath: '/hrm8/finance',
+    },
+    {
+        id: 'finance-credit-cost-map',
+        label: 'Credit Cost Map',
+        path: '/hrm8/finance/credits/cost-map',
+        icon: Sliders,
+        parentPath: '/hrm8/finance',
+    },
+    {
+        id: 'finance-credit-companies',
+        label: 'Company Credits',
+        path: '/hrm8/finance/credits/companies',
+        icon: Coins,
+        parentPath: '/hrm8/finance',
+    },
+    {
+        id: 'finance-credit-ledger',
+        label: 'Credit Ledger',
+        path: '/hrm8/finance/credits/ledger',
+        icon: FileText,
+        parentPath: '/hrm8/finance',
+    },
 ];
 
 /**
@@ -266,6 +295,13 @@ export const settingsNestedRoutes: NestedRoute[] = [
         label: 'Audit Logs',
         path: '/hrm8/settings/audit-logs',
         icon: FileText,
+        parentPath: '/hrm8/settings',
+    },
+    {
+        id: 'settings-xobin',
+        label: 'Xobin Platform',
+        path: '/hrm8/settings/xobin',
+        icon: Sliders,
         parentPath: '/hrm8/settings',
     },
 ];

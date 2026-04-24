@@ -103,6 +103,9 @@ const PricingPage = lazy(() => import('./pages/hrm8/PricingPage'));
 const BillingPage = lazy(() => import('./pages/hrm8/BillingPage'));
 const CreditLedgerPage = lazy(() => import('./pages/hrm8/CreditLedgerPage'));
 const CompanyCreditMigrationPage = lazy(() => import('./pages/hrm8/CompanyCreditMigrationPage'));
+const CreditPacksAdminPage = lazy(() => import('./pages/hrm8/CreditPacksAdminPage'));
+const CreditCostMapPage = lazy(() => import('./pages/hrm8/CreditCostMapPage'));
+const CompanyCreditsAdminPage = lazy(() => import('./pages/hrm8/CompanyCreditsAdminPage'));
 const HRServicesManagementPage = lazy(() => import('./pages/hrm8/HRServicesManagementPage'));
 const RegionalSalesDashboard = lazy(() => import('./pages/hrm8/RegionalSalesDashboard'));
 const RevenuePage = lazy(() => import('./pages/hrm8/RevenuePage'));
@@ -190,6 +193,11 @@ function App() {
                         <Route path="reconciliation" element={<FinanceReconciliationPage />} />
                         <Route path="settlements" element={<SettlementsPage />} />
                         <Route path="pricing" element={<PricingPage />} />
+                        {/* Credits admin — nested inside Finance so the workspace sidebar stays visible. */}
+                        <Route path="credits/packs" element={<CreditPacksAdminPage />} />
+                        <Route path="credits/cost-map" element={<CreditCostMapPage />} />
+                        <Route path="credits/companies" element={<CompanyCreditsAdminPage />} />
+                        <Route path="credits/ledger" element={<CreditLedgerPage />} />
                     </Route>
                     <Route path="/hrm8/sales-pipeline" element={<SalesPipelinePage />} />
                     <Route path="/hrm8/reports" element={<ReportsPage />} />
@@ -199,6 +207,9 @@ function App() {
                     <Route path="/hrm8/billing" element={<BillingPage />} />
                     <Route path="/hrm8/credit-ledger" element={<CreditLedgerPage />} />
                     <Route path="/hrm8/credit-migration" element={<CompanyCreditMigrationPage />} />
+                    <Route path="/hrm8/credits/packs" element={<CreditPacksAdminPage />} />
+                    <Route path="/hrm8/credits/cost-map" element={<CreditCostMapPage />} />
+                    <Route path="/hrm8/credits/companies" element={<CompanyCreditsAdminPage />} />
                     <Route path="/hrm8/hr-services" element={<HRServicesManagementPage />} />
                     <Route path="/hrm8/regional-sales" element={<RegionalSalesDashboard />} />
                     <Route path="/hrm8/careers-requests" element={<CareersRequestsPage />} />
